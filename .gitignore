@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Private ground-truth answer keys
+ground_truth/private/
+ground_truth/*_private.csv
+
+# Large/raw dataset artifacts
+*.pcapng
+*.mp4
+*.zip
+
+# Temporary files
+*.tmp
