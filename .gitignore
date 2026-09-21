@@ -23,3 +23,8 @@ ground_truth/*_private.csv
 
 # Temporary files
 *.tmp
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.test-tmp/
