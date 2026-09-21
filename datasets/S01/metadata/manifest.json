@@ -1,0 +1,22 @@
+{
+    "schema_version":  "1.0",
+    "scenario_id":  "S01",
+    "generated_at_utc":  "2026-09-20T21:51:41.7788887Z",
+    "file_count":  2,
+    "files":  [
+                  {
+                      "filename":  "Security.evtx",
+                      "relative_path":  "raw/Security.evtx",
+                      "size_bytes":  3215360,
+                      "sha256":  "7389879ACB920ECB020DAC3E2D95AFF52EE01306036BF21472885CEA09A0E925",
+                      "source_channel":  "Security"
+                  },
+                  {
+                      "filename":  "Sysmon.evtx",
+                      "relative_path":  "raw/Sysmon.evtx",
+                      "size_bytes":  2166784,
+                      "sha256":  "DEDCC67463C7F0579A1425427DC132B14E4346F2520F36652973C6A7C0040BEF",
+                      "source_channel":  "Microsoft-Windows-Sysmon/Operational"
+                  }
+              ]
+}
