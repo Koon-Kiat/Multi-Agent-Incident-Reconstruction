@@ -1,0 +1,454 @@
+[
+  {
+    "evidence_id": "SYN-A-SEC-1",
+    "scenario_id": "SYN-A",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 1,
+    "timestamp_utc": "2026-01-10T00:00:01.0000001Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-A/Security/1"
+  },
+  {
+    "evidence_id": "SYN-A-SEC-2",
+    "scenario_id": "SYN-A",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 2,
+    "timestamp_utc": "2026-01-10T00:00:02.0000001Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-A/Security/2"
+  },
+  {
+    "evidence_id": "SYN-A-SEC-3",
+    "scenario_id": "SYN-A",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 3,
+    "timestamp_utc": "2026-01-10T00:00:03.0000001Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-A/Security/3"
+  },
+  {
+    "evidence_id": "SYN-A-SEC-4",
+    "scenario_id": "SYN-A",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 4,
+    "timestamp_utc": "2026-01-10T00:00:04.0000001Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-A/Security/4"
+  },
+  {
+    "evidence_id": "SYN-B-SEC-1",
+    "scenario_id": "SYN-B",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 1,
+    "timestamp_utc": "2026-01-10T00:00:01.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-B/Security/1"
+  },
+  {
+    "evidence_id": "SYN-B-SEC-2",
+    "scenario_id": "SYN-B",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 2,
+    "timestamp_utc": "2026-01-10T00:00:02.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-B/Security/2"
+  },
+  {
+    "evidence_id": "SYN-C-SEC-1",
+    "scenario_id": "SYN-C",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 1,
+    "timestamp_utc": "2026-01-10T00:00:01.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-C/Security/1"
+  },
+  {
+    "evidence_id": "SYN-C-SEC-2",
+    "scenario_id": "SYN-C",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 2,
+    "timestamp_utc": "2026-01-10T00:00:02.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-C/Security/2"
+  },
+  {
+    "evidence_id": "SYN-C-SEC-3",
+    "scenario_id": "SYN-C",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 3,
+    "timestamp_utc": "2026-01-10T00:00:03.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-C/Security/3"
+  },
+  {
+    "evidence_id": "SYN-D-SEC-1",
+    "scenario_id": "SYN-D",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 1,
+    "timestamp_utc": "2026-01-10T00:00:01.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-D/Security/1"
+  },
+  {
+    "evidence_id": "SYN-D-SEC-2",
+    "scenario_id": "SYN-D",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 2,
+    "timestamp_utc": "2026-01-10T00:00:02.0000000Z",
+    "host": "LAB-A",
+    "user": "second.user",
+    "event_data": {
+      "TargetUserName": "second.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-D/Security/2"
+  },
+  {
+    "evidence_id": "SYN-D-SEC-3",
+    "scenario_id": "SYN-D",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 3,
+    "timestamp_utc": "2026-01-10T00:00:03.0000000Z",
+    "host": "LAB-B",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-D/Security/3"
+  },
+  {
+    "evidence_id": "SYN-D-SEC-4",
+    "scenario_id": "SYN-D",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 4,
+    "timestamp_utc": "2026-01-10T00:00:04.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "198.51.100.20",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-D/Security/4"
+  },
+  {
+    "evidence_id": "SYN-D-SEC-5",
+    "scenario_id": "SYN-D",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 5,
+    "timestamp_utc": "2026-01-10T00:00:05.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 10
+    },
+    "raw_reference": "synthetic://SYN-D/Security/5"
+  },
+  {
+    "evidence_id": "SYN-D-SEC-6",
+    "scenario_id": "SYN-D",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 6,
+    "timestamp_utc": "2026-01-10T00:00:06.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-OTHER",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-D/Security/6"
+  },
+  {
+    "evidence_id": "SYN-F-SEC-1",
+    "scenario_id": "SYN-F",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 1,
+    "timestamp_utc": "2026-01-10T00:00:01.0000000Z",
+    "host": null,
+    "user": null,
+    "event_data": {},
+    "raw_reference": "synthetic://SYN-F/Security/1"
+  },
+  {
+    "evidence_id": "SYN-F-SEC-2",
+    "scenario_id": "SYN-F",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 2,
+    "timestamp_utc": "2026-01-10T00:00:02.0000000Z",
+    "host": "",
+    "user": "",
+    "event_data": {
+      "TargetUserName": "",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "",
+      "WorkstationName": "",
+      "LogonType": null
+    },
+    "raw_reference": "synthetic://SYN-F/Security/2"
+  },
+  {
+    "evidence_id": "SYN-F-SEC-3",
+    "scenario_id": "SYN-F",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 3,
+    "timestamp_utc": "2026-01-10T00:00:03.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "different.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": {
+        "unexpected": "object"
+      }
+    },
+    "raw_reference": "synthetic://SYN-F/Security/3"
+  },
+  {
+    "evidence_id": "SYN-H1-SEC-42",
+    "scenario_id": "SYN-H1",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 42,
+    "timestamp_utc": "2026-01-10T00:00:01.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-H1/Security/42"
+  },
+  {
+    "evidence_id": "SYN-H2-SEC-42",
+    "scenario_id": "SYN-H2",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 42,
+    "timestamp_utc": "2026-01-10T00:00:01.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-H2/Security/42"
+  },
+  {
+    "evidence_id": "SYN-I-SEC-1",
+    "scenario_id": "SYN-I",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4624,
+    "record_id": 1,
+    "timestamp_utc": "2026-01-10T00:00:01.1234568Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-I/Security/1"
+  },
+  {
+    "evidence_id": "SYN-I-SEC-2",
+    "scenario_id": "SYN-I",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 2,
+    "timestamp_utc": "2026-01-10T00:00:01.1234567Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-I/Security/2"
+  },
+  {
+    "evidence_id": "SYN-I-SEC-3",
+    "scenario_id": "SYN-I",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4625,
+    "record_id": 3,
+    "timestamp_utc": "2026-01-10T00:00:01.1234000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-I/Security/3"
+  },
+  {
+    "evidence_id": "SYN-A-SEC-99",
+    "scenario_id": "SYN-A",
+    "source_type": "windows_security",
+    "channel": "Security",
+    "source_event_id": 4634,
+    "record_id": 99,
+    "timestamp_utc": "2026-01-10T00:00:05.0000000Z",
+    "host": "LAB-A",
+    "user": "demo.user",
+    "event_data": {
+      "TargetUserName": "demo.user",
+      "TargetDomainName": "SYNTHETIC",
+      "IpAddress": "192.0.2.10",
+      "WorkstationName": "SYN-CLIENT",
+      "LogonType": 3
+    },
+    "raw_reference": "synthetic://SYN-A/Security/99"
+  }
+]
