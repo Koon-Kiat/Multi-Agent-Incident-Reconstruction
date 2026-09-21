@@ -60,12 +60,21 @@ def validate_subject(subject: str) -> str | None:
     return None
 
 
+def validate_commit(commit: dict) -> str | None:
+    # GitHub's messageHeadline is a shortened display value, not the original
+    # subject. Validate the first line of the full message without truncation.
+    reason = validate_subject(commit["message"].split("\n", 1)[0])
+    if reason:
+        return f"Commit {commit['oid']}: {reason} Example: 'Describe authentication query limits'."
+    return None
+
+
 COMMITS_QUERY = """query($owner: String!, $name: String!, $number: Int!, $cursor: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
       commits(first: 100, after: $cursor) {
         totalCount
-        nodes { commit { oid messageHeadline } }
+        nodes { commit { oid message } }
         pageInfo { hasNextPage endCursor }
       }
     }
@@ -117,8 +126,7 @@ def main() -> int:
         repository = event["repository"]
         try:
             commits = fetch_all_commits(github_query, repository["owner"]["login"], repository["name"], event["number"])
-            errors = [f"Commit {commit['oid']}: {reason} Example: 'Describe authentication query limits'."
-                      for commit in commits if (reason := validate_subject(commit["messageHeadline"]))]
+            errors = [error for commit in commits if (error := validate_commit(commit))]
             print(f"Inspected all {len(commits)} PR commits (paginated GraphQL totalCount matched).")
         except Exception:
             errors = ["Unable to retrieve every PR commit. Check API availability/read permissions and rerun; no partial pass was recorded."]

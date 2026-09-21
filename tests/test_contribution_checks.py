@@ -37,9 +37,17 @@ def test_invalid_commit_subjects(subject):
     assert policy.validate_subject(subject)
 
 
+def test_full_commit_message_preserves_subject_length():
+    assert "messageHeadline" not in policy.COMMITS_QUERY
+    assert policy.validate_commit({"oid": "abc123", "message": "Add authentication query limits\n\nA separate body."}) is None
+    error = policy.validate_commit({"oid": "abc123", "message": "A" * 101 + "\n\nA separate body."})
+    assert "abc123" in error and "8-100" in error
+    assert "too generic" in policy.validate_commit({"oid": "abc123", "message": "wip\n\nA descriptive body does not fix the subject."})
+
+
 def test_pagination_checks_every_commit():
-    commits = [{"oid": f"{i:040x}", "messageHeadline": "Add authentication query limits"} for i in range(305)]
-    commits[-1]["messageHeadline"] = "wip"
+    commits = [{"oid": f"{i:040x}", "message": "Add authentication query limits"} for i in range(305)]
+    commits[-1]["message"] = "wip"
     cursors = []
     def query(payload):
         cursor = payload["variables"]["cursor"]
@@ -51,7 +59,7 @@ def test_pagination_checks_every_commit():
             "pageInfo": {"hasNextPage": end < len(commits), "endCursor": str(end)}}}}}}
     fetched = policy.fetch_all_commits(query, "owner", "repo", 5)
     assert fetched == commits and cursors == [None, "100", "200", "300"]
-    assert policy.validate_subject(fetched[-1]["messageHeadline"])
+    assert policy.validate_commit(fetched[-1])
 
 
 @pytest.mark.parametrize("mode", ["error", "short", "duplicate", "bad_cursor"])
@@ -59,7 +67,7 @@ def test_incomplete_pagination_never_passes(mode):
     def query(_):
         if mode == "error": return {"errors": [{"message": "API failure"}]}
         return {"data": {"repository": {"pullRequest": {"commits": {"totalCount": 2,
-            "nodes": [{"commit": {"oid": "one", "messageHeadline": "Valid subject"}}] * (2 if mode == "duplicate" else 1),
+            "nodes": [{"commit": {"oid": "one", "message": "Valid subject"}}] * (2 if mode == "duplicate" else 1),
             "pageInfo": {"hasNextPage": mode == "bad_cursor", "endCursor": None}}}}}}
     with pytest.raises(ValueError):
         policy.fetch_all_commits(query, "owner", "repo", 5)

@@ -17,7 +17,7 @@ M5 are ready. Observations and references are calculated and validated in Python
 ## Testing
 
 - `python -m pip install -e '.[test]'` completed successfully.
-- `python -m pytest -q --basetemp .test-tmp`: 130 passed, 1 skipped on Python 3.14.6.
+- `python -m pytest -q --basetemp .test-tmp`: 131 passed, 1 skipped on Python 3.14.6.
 - Fake CLI completed for SYN-A and generated `m3/examples/synthetic-result.json`.
 - Live local Ollama `/api/tags` responded with no installed models. A missing-model
   request returned a structured failure with no findings. Real model inference
@@ -27,6 +27,8 @@ M5 are ready. Observations and references are calculated and validated in Python
 - Commit enumeration was checked read-only against existing PR #5: one commit
   matched `totalCount`. Unit tests cover 305 commits, final-page validation, and
   incomplete/error pagination. No existing PR was modified.
+- Commit subject validation uses the complete GitHub message, not its shortened
+  display headline, with a regression test for overlong subjects.
 - GitHub-hosted checks must pass on the current PR commit before merge; local
   validation does not substitute for those workflow results.
 

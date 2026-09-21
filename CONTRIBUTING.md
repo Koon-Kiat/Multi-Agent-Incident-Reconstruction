@@ -34,6 +34,8 @@ The commit validator queries only that pull request's `commits` GraphQL connecti
 unique SHAs, and requires the collected count to match `totalCount`. API errors,
 changing counts and incomplete pagination fail instead of producing a partial
 pass. This avoids the REST pull-request commits endpoint's 250-commit ceiling.
+Subjects are taken from the first line of each full commit message; GitHub's
+shortened display headline is not used for length validation.
 The log states the total inspected count. The local pagination test supplies 305
 commits and puts a rejected subject on the last page; it must be detected.
 
