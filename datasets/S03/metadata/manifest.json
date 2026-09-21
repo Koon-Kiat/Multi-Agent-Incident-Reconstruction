@@ -1,0 +1,20 @@
+{
+    "collection_time_utc":  "2026-09-21T02:29:36.8396458Z",
+    "scenario_id":  "S03",
+    "collection_host":  "MAIR-WIN11-LAB",
+    "source":  "Controlled Windows 11 VMware lab",
+    "files":  [
+                  {
+                      "size_bytes":  1118208,
+                      "channel":  "Security",
+                      "filename":  "Security.evtx",
+                      "sha256":  "FA7267610D7F875E45B5E7799B845B7D9E47E6F5F6274428C892BE7087BEC160"
+                  },
+                  {
+                      "size_bytes":  2166784,
+                      "channel":  "Microsoft-Windows-Sysmon/Operational",
+                      "filename":  "Sysmon.evtx",
+                      "sha256":  "DABEE2AF8A90CEC5EB2F1693597916EAA88E91B24227AB1F6FC90440B8F4F188"
+                  }
+              ]
+}

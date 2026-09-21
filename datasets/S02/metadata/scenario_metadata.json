@@ -1,0 +1,15 @@
+{
+    "scenario_end_utc":  "2026-09-21T02:06:18.3126076Z",
+    "description":  "Controlled Windows authentication and endpoint telemetry capture for MAIR evaluation.",
+    "log_sources":  [
+                        "Windows Security",
+                        "Microsoft-Windows-Sysmon/Operational"
+                    ],
+    "scenario_start_utc":  "2026-09-21T02:04:38.9439270Z",
+    "timezone":  "UTC",
+    "ground_truth_withheld":  true,
+    "collection_method":  "Original EVTX export using wevtutil",
+    "scenario_id":  "S02",
+    "host":  "MAIR-WIN11-LAB",
+    "collection_time_utc":  "2026-09-21T02:09:40.5430006Z"
+}
