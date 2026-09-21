@@ -1,4 +1,4 @@
-﻿{
+{
     "scenario_end_utc":  "2026-09-21T02:26:07.8581131Z",
     "description":  "Controlled Windows authentication and endpoint telemetry capture for MAIR evaluation.",
     "log_sources":  [
