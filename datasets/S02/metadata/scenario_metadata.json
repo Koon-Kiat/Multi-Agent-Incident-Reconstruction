@@ -11,5 +11,6 @@
     "collection_method":  "Original EVTX export using wevtutil",
     "scenario_id":  "S02",
     "host":  "MAIR-WIN11-LAB",
-    "collection_time_utc":  "2026-09-21T02:09:40.5430006Z"
+    "collection_time_utc":  "2026-09-21T02:09:40.5430006Z",
+    "redaction_note":  "No event-content redaction performed. S02 was generated in an isolated MAIR laboratory using synthetic test accounts and private network identifiers. No production credentials were intentionally introduced. Ground truth is withheld separately."
 }

@@ -1,21 +1,22 @@
 {
-  "schema_version": "1.0",
-  "scenario_id": "S01",
-  "source_provider": "Splunk Attack Data / CAPAttack",
-  "source_capture_id": "4fd47dac-6090-451c-977e-2da96af05d6b",
-  "capture_start_utc": "2022-08-31T17:46:45.197821Z",
-  "capture_end_utc": "2022-08-31T17:48:41.545700Z",
-  "host": "win-dc-mhaag-attack-range-602",
-  "os": "Microsoft Windows Server 2016 Datacenter",
-  "telemetry": [
-    {
-      "file": "raw/Security.evtx",
-      "channel": "Security"
-    },
-    {
-      "file": "raw/Sysmon.evtx",
-      "channel": "Microsoft-Windows-Sysmon/Operational"
-    }
-  ],
-  "notes": "Controlled public laboratory capture. Ground-truth activity, attack labels and expected stages are stored separately."
+    "schema_version":  "1.0",
+    "scenario_id":  "S01",
+    "source_provider":  "Splunk Attack Data / CAPAttack",
+    "source_capture_id":  "4fd47dac-6090-451c-977e-2da96af05d6b",
+    "capture_start_utc":  "2022-08-31T17:46:45.197821Z",
+    "capture_end_utc":  "2022-08-31T17:48:41.545700Z",
+    "host":  "win-dc-mhaag-attack-range-602",
+    "os":  "Microsoft Windows Server 2016 Datacenter",
+    "telemetry":  [
+                      {
+                          "file":  "raw/Security.evtx",
+                          "channel":  "Security"
+                      },
+                      {
+                          "file":  "raw/Sysmon.evtx",
+                          "channel":  "Microsoft-Windows-Sysmon/Operational"
+                      }
+                  ],
+    "notes":  "Controlled public laboratory capture. Ground-truth activity, attack labels and expected stages are stored separately.",
+    "redaction_note":  "No event-content redaction performed by MAIR. S01 is a controlled public laboratory capture; original source host and event identifiers are retained for evidentiary integrity. Ground-truth interpretation is withheld separately."
 }
