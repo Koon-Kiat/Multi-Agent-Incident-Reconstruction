@@ -51,3 +51,20 @@ The validator checks:
 - JSON metadata is parseable
 - EVTX files can be opened
 - SHA-256 hashes match the manifests
+
+## S01 Source Provenance
+
+S01 was curated from an external controlled security dataset.
+
+- Provider: Splunk Attack Data / CAPAttack
+- Source repository: https://github.com/splunk/attack_data
+- Source capture ID: `4fd47dac-6090-451c-977e-2da96af05d6b`
+
+The exact source repository commit used for S01 is recorded in
+`S01/metadata/scenario_metadata.json`.
+
+The original EVTX evidence retained by MAIR is independently verified using the
+SHA-256 values in `S01/metadata/manifest.json`.
+
+Detailed ground-truth interpretation is intentionally withheld from the public
+dataset documentation.
