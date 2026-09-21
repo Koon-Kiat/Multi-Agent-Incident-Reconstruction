@@ -18,5 +18,7 @@
                       }
                   ],
     "notes":  "Controlled public laboratory capture. Ground-truth activity, attack labels and expected stages are stored separately.",
-    "redaction_note":  "No event-content redaction performed by MAIR. S01 is a controlled public laboratory capture; original source host and event identifiers are retained for evidentiary integrity. Ground-truth interpretation is withheld separately."
+    "redaction_note":  "No event-content redaction performed by MAIR. S01 is a controlled public laboratory capture; original source host and event identifiers are retained for evidentiary integrity. Ground-truth interpretation is withheld separately.",
+    "source_repository_url":  "https://github.com/splunk/attack_data",
+    "source_repository_commit":  "6bc794b7f65562148c872fde1e7412ab3c173f4c"
 }
