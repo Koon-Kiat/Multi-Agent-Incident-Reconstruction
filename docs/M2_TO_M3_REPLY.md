@@ -65,7 +65,24 @@ One check did reveal an adapter bug, now fixed (B15): M3's fixture looks up a `S
 requires it back unchanged, but the adapter returned `None` for every Event ID other than
 4624/4625 under exact lookup. `get_event` now preserves **any** `Security` record; `query` stays
 narrow and offers only the Event IDs the request admits (4624/4625 for `QueryRequest`), so the
-agent tools still see authentication evidence only. Also covered:
+agent tools still see authentication evidence only. Two details of that boundary are worth stating
+because the suite is now part of M2's tests:
+
+* **`get_event` is not authentication-only.** It returns any `Security` record the corpus holds —
+  4624, 4625, **and 4634, 4688, 1102, …** — because M3's contract requires an exact lookup to
+  return the record that exists and `None` only when it does not. M3 code calling `get_event`
+  directly must not assume the result is a 4624/4625, and must not read `logon_type` etc. without
+  checking the event ID. `query` is the narrow path, and it preselects 4624/4625.
+* **The contract fixture's `event_data` is not M2's type.** M3's synthetic events carry JSON-typed
+  `event_data` (an integer `LogonType`, a `null`, a nested object), while M2's
+  `NormalisedEvent.event_data` is `dict[str, str]` and rejects those values. The contract test
+  therefore builds its `NormalisedEvent`s from M3's own already-validated models through an
+  adapter (pydantic `model_construct`), so the suite proves the **mapping**, not M2's validation of
+  those values. Every real corpus record is fully validated. If M3 ever needs non-string
+  `event_data` end to end, that is a shared-contract change for M2 and M3 to agree, not something
+  the test silences.
+
+Also covered:
 
 | Handoff requirement | Where it is implemented | Proving test |
 |---|---|---|

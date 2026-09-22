@@ -154,12 +154,21 @@ name is `<scenario_id>.json`/`summary.json` *and* whose contents carry the M2 de
 marker (`m2-detect-v1`; the summary also carries the `detection-summary` marker) is removed —
 anything else in the directory is left exactly as it is. `detect` refuses a `--out` that resolves
 inside a `datasets/` or `ground_truth/` tree, or that is the corpus directory, and exits `2`
-without writing. Before it writes anything it also refuses a run whose target name already holds a
-file that is not an M2 detection artefact — a foreign `S02.json` or `summary.json` — exiting `1`
-and writing nothing rather than overwriting the caller's data. See
+without writing. Before it writes anything it also refuses a name that is not a regular file (a
+directory called `S02.json`) and a symbolic link, and a regular file that is not an M2 detection
+artefact — a foreign `S02.json` or `summary.json` — exiting `1` and writing nothing rather than
+overwriting the caller's data. Every document is staged under a dotted `.tmp` name and renamed
+into place only once all of them exist, so an I/O failure part way through leaves the previous run
+intact. See
 [`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) for all 12 rules, their frozen
 thresholds, their benign lookalikes and what is deliberately not covered. The baseline is **not
 scored**: there are no agreed labels yet.
+
+> **Upgrade note (pre-phase-5 output).** The `summary.json` written by an M2 build from before the
+> phase-5 `detection-summary` marker was added does not carry that marker, so `detect` treats it as
+> a foreign file and refuses the whole `--out` directory with exit `1` until the old
+> `summary.json` is deleted (or `--out` is pointed at a fresh directory). Nothing is overwritten;
+> the refusal is the safety check doing its job.
 
 ### `score` — P/R/F1 once the labels are agreed
 
@@ -172,8 +181,10 @@ scored**: there are no agreed labels yet.
 being scored, and a label naming an event the corpus does not hold exits `2` instead of becoming a
 silent false negative. Every detection run must also name that corpus's manifest digest as its
 `corpus_manifest_sha256`; a run computed from a different corpus revision exits `1` rather than
-being scored against the wrong events. An unreadable label file (bad encoding, broken CSV/JSON)
-exits `2` with a one-line message, never a traceback. `--out` is refused inside `datasets/` or
+being scored against the wrong events. An unreadable label file or detection run — bad encoding,
+broken CSV/JSON, a locked or permission-denied file, or a directory sitting where a
+`<scenario>.json` run file is expected — exits `2` with a one-line message, never a traceback.
+`--out` is refused inside `datasets/` or
 `ground_truth/`. The report lists **every rule that ran**, including a rule that flagged nothing
 (its false negatives are part of the picture). The output shape is:
 
@@ -355,9 +366,10 @@ $env:M2_DATASETS_DIR = "$env:TEMP/m2-no-evtx"
 * **`detect --out` owns only its own run files, and refuses two locations.** It removes a direct
   child only when the name is `<scenario_id>.json`/`summary.json` *and* the contents carry the M2
   detection schema marker; every other file in the directory is left alone, so a `manifest.json`,
-  a `package.json` or a foreign `S02.json` survives. A `--out` resolving inside `datasets/` or
-  `ground_truth/` (any path component, case-insensitive), or equal to the corpus directory, is
-  refused with exit `2` before anything is read or written.
+  a `package.json` or a foreign `S02.json` survives. A target name that is not a regular file (a
+  directory called `S02.json`) or is a symbolic link is refused before anything is written. A
+  `--out` resolving inside `datasets/` or `ground_truth/` (any path component, case-insensitive),
+  or equal to the corpus directory, is refused with exit `2` before anything is read or written.
 * **Metrics are arithmetic, not definitions.** `m2/metrics.py` reports precision/recall/F1 for
   whatever labels it is given; the unit, the positive label and the excluded category are still
   DRAFT (`../docs/M2_DETECTION_METRICS_PROPOSAL.md`), and the real baseline stays unscored until

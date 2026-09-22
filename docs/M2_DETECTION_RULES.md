@@ -259,6 +259,24 @@ User and host grouping uses the normalised `user` and `host` fields exactly as s
 never case-folded or domain-stripped. `None` (a field the source did not carry) forms its own
 group and is never merged with `""` or with a real name.
 
+### R-EXEC-02 (version 2): the image match and double counting
+
+Version 2 asks two separate questions, and the second answer does not need the first.
+
+* **The process image can supply "is PowerShell" without the command line naming it.** The rule
+  fires when the event's own process image basename is `powershell.exe`/`pwsh.exe` (a 4688
+  `NewProcessName` or a Sysmon 1 `Image`) **or** when a whitespace/quote-delimited `CommandLine`
+  token's basename is — and the command line matches at least one encoded/hidden/downloader
+  marker. So a `powershell.exe` whose `CommandLine` is only `-enc <blob>`, and a `CommandLine`
+  that never spells the shell name at all, still fire on the image. The image alone is never
+  enough: a plain `powershell.exe -File script.ps1` carries no marker and produces nothing.
+* **`cmd.exe /c powershell.exe -enc …` produces two detections for one action.** The `cmd.exe`
+  process fires on the `powershell.exe` command-line token, and its `powershell.exe` child fires
+  again on its own image. Both are process-creation events describing one action, and the rule
+  reports each triggering event it is given, at the event level. A consumer that counts actions
+  must expect the duplicate rather than treating the pair as two incidents; this is the same
+  question as metrics open question 1 (one action seen through two rules or two channels).
+
 ## Not covered
 
 Stated so nobody reads absence of a detection as absence of activity.
