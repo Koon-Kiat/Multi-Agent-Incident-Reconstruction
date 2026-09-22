@@ -38,7 +38,8 @@ Declared thresholds and vocabularies
 ``POWERSHELL_COMMAND_MARKERS``          R-EXEC-02: the command line must actually be a PowerShell one.
 ``LSASS_ACCESS_MASKS``                  R-CRED-01: documented PROCESS_VM_READ / ALL_ACCESS combos.
 ``FILE_DROP_EXTENSIONS``                R-FILE-01: executable and script payload types.
-``FILE_DROP_LOCATION_MARKERS``          R-FILE-01: user-writable drop locations.
+``FILE_DROP_USER_APP_DATA_MARKERS``     R-FILE-01: a path segment pair, so ``\\Users\\<x>\\AppData\\`` holds both.
+``FILE_DROP_LOCATION_MARKERS``          R-FILE-01: the remaining user-writable drop locations.
 ``RUN_KEY_MARKERS``                     R-PERSIST-03: Run / RunOnce autostart keys.
 ======================================= ==========================================================
 
@@ -177,13 +178,19 @@ def detect_failed_logon_then_success(events: Sequence[NormalisedEvent]) -> tuple
 
 
 def detect_failed_logon_burst(events: Sequence[NormalisedEvent]) -> tuple[Detection, ...]:
-    """R-AUTH-02: the same burst with no successful logon in its window (T1110)."""
+    """R-AUTH-02: the same burst with no successful logon for that account after it (T1110)."""
     return _failed_logon_detections(events, _SPEC_BY_ID["R-AUTH-02"], requires_success=False)
 
 
 def _failed_logon_detections(
     events: Sequence[NormalisedEvent], spec: RuleSpec, *, requires_success: bool
 ) -> tuple[Detection, ...]:
+    """Shared body of R-AUTH-01 and R-AUTH-02.
+
+    ``requires_success`` splits the two rules: a qualifying cluster with a successful logon
+    after its last failure is R-AUTH-01's, and one without is R-AUTH-02's. Exactly one of the
+    two fires per cluster, which keeps their ``detection_id`` values distinct.
+    """
     failures = [event for event in events if _matches_event_id(event, SECURITY_CHANNEL, SECURITY_FAILED_LOGON)]
     successes = [event for event in events if _matches_event_id(event, SECURITY_CHANNEL, SECURITY_SUCCESSFUL_LOGON)]
     detections: list[Detection] = []
