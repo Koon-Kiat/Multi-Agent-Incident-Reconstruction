@@ -306,6 +306,15 @@ helpers, which **skip with a reason** when a file is missing or is a Git-LFS poi
 (`lfs: false`) the M2 suite is green with those tests skipped, and locally every anchor, count and
 digest is checked. A test is never weakened to make a change pass.
 
+The datasets root is `<repo>/datasets`. Set **`M2_DATASETS_DIR`** to run the whole suite in the
+CI shape without touching the real exports — point it at an empty directory and every real-data
+test skips with its reason instead of failing:
+
+```powershell
+$env:M2_DATASETS_DIR = "$env:TEMP/m2-no-evtx"
+.\.venv\Scripts\python.exe -m pytest -q --basetemp .test-tmp
+```
+
 ## Known limitations
 
 * **S01 is not like S02/S03.** It is a different host and year (`win-dc-mhaag-attack-range-602`,
