@@ -16,9 +16,9 @@ from m2.__main__ import (
     build_parser,
     main,
 )
-from m2.corpus import write_manifest, write_scenario
+from m2.corpus import JsonlDigest, write_manifest, write_scenario
 from m2.evtx_reader import RawRecord
-from m2.manifest import load_scenario
+from m2.manifest import load_scenario, sha256_file
 from m2.schema import NormalisedEvent
 from m2.tests.synthetic import SECURITY, SYSMON, build_scenario_dir, make_event
 from m2.timeutil import TICKS_PER_SECOND, iso_to_ticks
@@ -161,6 +161,31 @@ def test_lookup_separates_absent_from_malformed(tmp_path: Path, capsys):
 def test_lookup_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, capsys):
     assert main(["lookup", "SYN-B-SEC-1", "--corpus", str(tmp_path / "absent")]) == EXIT_FAILED
     assert "corpus manifest" in capsys.readouterr().err
+
+
+def test_lookup_reports_a_malformed_corpus_line_without_a_traceback(tmp_path: Path, capsys):
+    # B13 through the CLI: QueryError is caught and printed in one line, never a traceback.
+    info = load_scenario(build_scenario_dir(tmp_path / "datasets", "lab"))
+    corpus = tmp_path / "corpus"
+    scenario = write_scenario(corpus, info, [make_event(record_id=1)])
+    path = corpus / "SYN-B.jsonl"
+    path.write_text('{"evidence_id": "SYN-B-SEC-1"}\n', encoding="utf-8", newline="\n")
+    write_manifest(
+        corpus,
+        [
+            scenario.model_copy(
+                update={
+                    "jsonl": JsonlDigest(
+                        filename="SYN-B.jsonl",
+                        sha256=sha256_file(path),
+                        line_count=1,
+                    )
+                }
+            )
+        ],
+    )
+    assert main(["lookup", "SYN-B-SEC-1", "--corpus", str(corpus)]) == EXIT_FAILED
+    assert "line 1" in capsys.readouterr().err
 
 
 def test_query_prints_one_event_per_line_and_filters(tmp_path: Path, capsys):

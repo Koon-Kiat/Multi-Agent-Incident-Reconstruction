@@ -6,13 +6,14 @@ opened. The real collision case (S02/S03 record 43584) lives in ``test_query_rea
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
-from m2.corpus import write_manifest, write_scenario
-from m2.manifest import load_scenario
+from m2.corpus import JsonlDigest, write_manifest, write_scenario
+from m2.manifest import load_scenario, sha256_file
 from m2.query import EventStore, QueryError, QueryLimits
 from m2.schema import NormalisedEvent
 from m2.tests.synthetic import SECURITY, SYSMON, build_scenario_dir, make_event
@@ -354,3 +355,74 @@ def test_load_reads_only_the_files_the_manifest_names(corpus_dir: Path):
     store = EventStore.load(corpus_dir)
     assert store.scenario_ids == ("SYN-B",)
     assert store.lookup("SYN-B-SEC-1").status == "found"
+
+
+# --- B7: a manifest file name is a direct child, never a path ----------------------
+
+
+@pytest.mark.parametrize(
+    "filename",
+    # An empty name never reaches this check: `JsonlDigest.filename` already requires one char.
+    ("../SYN-B.jsonl", "sub/SYN-B.jsonl", "sub\\SYN-B.jsonl", "/etc/passwd", "C:\\outside.jsonl", ".", ".."),
+)
+def test_load_rejects_a_manifest_filename_that_is_not_a_direct_child(corpus_dir: Path, filename: str):
+    manifest_path = corpus_dir / "corpus_manifest.json"
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    document["scenarios"][0]["jsonl"]["filename"] = filename
+    manifest_path.write_text(json.dumps(document), encoding="utf-8", newline="\n")
+    with pytest.raises(QueryError, match="plain file name"):
+        EventStore.load(corpus_dir)
+
+
+def test_load_rejects_a_manifest_file_that_symlinks_outside_the_corpus(corpus_dir: Path, tmp_path: Path):
+    outside = tmp_path / "outside.jsonl"
+    outside.write_bytes((corpus_dir / "SYN-B.jsonl").read_bytes())
+    link = corpus_dir / "linked.jsonl"
+    try:
+        link.symlink_to(outside)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks are not available in this environment")
+    manifest_path = corpus_dir / "corpus_manifest.json"
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    document["scenarios"][0]["jsonl"]["filename"] = "linked.jsonl"
+    manifest_path.write_text(json.dumps(document), encoding="utf-8", newline="\n")
+    with pytest.raises(QueryError, match="outside"):
+        EventStore.load(corpus_dir)
+
+
+# --- B12/B13: the store is insulated from its callers, and a bad line is a QueryError --
+
+
+def test_mutating_the_input_event_does_not_reach_the_store():
+    # B12: `EventStore(events)` is public, and a caller that keeps its list can still mutate it.
+    event = make_event(record_id=1, event_data={"TargetUserName": "alice"})
+    store = EventStore([event])
+    event.event_data["TargetUserName"] = "mallory"
+    assert store.lookup("SYN-B-SEC-1").event.event_data["TargetUserName"] == "alice"
+
+
+@pytest.mark.parametrize("payload", ('{"evidence_id": "SYN-B-SEC-1"}\n{"evidence_id": "SYN-B-SEC-2"}\n', "{not json\n"))
+def test_load_reports_a_malformed_line_with_its_number(tmp_path: Path, payload: str):
+    # B13: a line `_verify_jsonl` accepted (its digest matches) must not escape as a bare
+    # pydantic or JSON error; the caller gets a QueryError naming the file and the line.
+    info = load_scenario(build_scenario_dir(tmp_path / "datasets", "lab"))
+    corpus = tmp_path / "corpus"
+    scenario = write_scenario(corpus, info, [make_event(record_id=1)])
+    path = corpus / "SYN-B.jsonl"
+    path.write_text(payload, encoding="utf-8", newline="\n")
+    write_manifest(
+        corpus,
+        [
+            scenario.model_copy(
+                update={
+                    "jsonl": JsonlDigest(
+                        filename="SYN-B.jsonl",
+                        sha256=sha256_file(path),
+                        line_count=len(payload.splitlines()),
+                    )
+                }
+            )
+        ],
+    )
+    with pytest.raises(QueryError, match=r"SYN-B\.jsonl line 1"):
+        EventStore.load(corpus)
