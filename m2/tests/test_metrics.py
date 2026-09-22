@@ -196,14 +196,63 @@ def test_the_report_is_frozen_and_read_only():
 def test_a_shared_flag_is_not_attributed_to_a_rule_that_did_not_emit_it():
     report = score(
         (
-            _run(SCENARIO, _detection(SCENARIO, "R-A", (1,))),
-            _run(SCENARIO, _detection(SCENARIO, "R-C", (2,))),
+            _run(
+                SCENARIO,
+                _detection(SCENARIO, "R-A", (1,)),
+                _detection(SCENARIO, "R-C", (2,)),
+            ),
         ),
         (LabelRow(evidence_id="SYN-B-SEC-1", label="positive"),),
     )
     by_rule = {rule.rule_id: rule.counts for rule in report.rules}
     assert (by_rule["R-A"].tp, by_rule["R-A"].fp) == (1, 0)
     assert (by_rule["R-C"].tp, by_rule["R-C"].fp) == (0, 1)
+
+
+def test_a_label_for_a_scenario_with_no_detection_run_is_rejected():
+    # Phase-4 F1: the check needs no corpus, so it is never optional. SYN-C is not scored here.
+    labels = (LabelRow(evidence_id="SYN-C-SEC-9", label="positive"),)
+    with pytest.raises(ScoreError, match="SYN-C.*no detection run"):
+        score((_run(SCENARIO),), labels)
+    # A label for the one scenario that *does* have a run is still scored.
+    assert score((_run(SCENARIO),), (LabelRow(evidence_id="SYN-B-SEC-1", label="positive"),)).overall.tp == 0
+
+
+def test_two_runs_for_one_scenario_are_rejected():
+    # Phase-4 F2: the per-scenario counts would keep only one run while the per-rule ones union both.
+    runs = (
+        _run(SCENARIO, _detection(SCENARIO, "R-A", (1,))),
+        _run(SCENARIO, _detection(SCENARIO, "R-B", (2,))),
+    )
+    with pytest.raises(ScoreError, match="SYN-B.*more than one detection run"):
+        score(runs, ())
+
+
+def test_runs_from_different_corpora_are_rejected():
+    other_sha = "0" * 64
+    other = DetectionRun(
+        scenario_id=OTHER_SCENARIO,
+        corpus_manifest_sha256=other_sha,
+        rules=(),
+        detections=(_detection(OTHER_SCENARIO, "R-A", (9,)),),
+    )
+    with pytest.raises(ScoreError, match="different corpus manifests"):
+        score((_runs()[0], other), ())
+
+
+def test_a_detections_directory_mixing_two_corpora_is_rejected(tmp_path: Path):
+    directory = tmp_path / "detections"
+    directory.mkdir()
+    other = DetectionRun(
+        scenario_id=OTHER_SCENARIO,
+        corpus_manifest_sha256="0" * 64,
+        rules=(),
+        detections=(_detection(OTHER_SCENARIO, "R-A", (9,)),),
+    )
+    (directory / f"{SCENARIO}.json").write_text(f"{_json(_run(SCENARIO))}\n", encoding="utf-8")
+    (directory / f"{OTHER_SCENARIO}.json").write_text(f"{_json(other)}\n", encoding="utf-8")
+    with pytest.raises(ScoreError, match="different corpus manifests"):
+        load_detection_runs(directory)
 
 
 def test_a_label_naming_an_evidence_id_outside_the_scored_corpus_raises():

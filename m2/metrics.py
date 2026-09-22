@@ -28,6 +28,11 @@ Contract
 * :func:`score` reports **overall**, per **scenario** and per **rule**. An event two rules flagged
   is attributed to each of them, so per-rule TPs do not sum to the overall TP; the overall figure
   is the deduplicated one. Per-rule recall uses the same positive population as the overall one.
+* A label set and a run set that cannot describe one population fail closed rather than being
+  scored: a label whose scenario has no detection run is rejected, two runs for one scenario are
+  rejected, and runs naming different corpus manifests are rejected (:func:`validate_runs`). Give
+  ``known_evidence_ids`` (the CLI reads them from the corpus) and a label naming an event the
+  corpus does not hold is rejected too, so a typo cannot turn into a silent false negative.
 * Everything is frozen, read-only and deterministic: the same inputs produce the same report,
   serialised as sorted-key JSON with ``\\n`` endings and no "now" timestamp. The report is a
   record of arithmetic, not a verdict — it is only as meaningful as the label definitions the
@@ -183,13 +188,16 @@ def score(
 ) -> ScoreReport:
     """Score detection runs against labels, overall, per scenario and per rule.
 
-    ``known_evidence_ids`` is optional: pass the evidence IDs of the corpus being scored and a
-    label naming an event the corpus does not hold raises :class:`ScoreError`. A caller that has
-    only the label file (the CLI, which is not given the corpus) omits it, and the well-formedness
-    and duplicate checks still apply.
+    ``known_evidence_ids`` is optional here but never omitted by the CLI: pass the evidence IDs of
+    the corpus being scored and a label naming an event the corpus does not hold raises
+    :class:`ScoreError` instead of becoming a silent false negative. A caller that has only the
+    label file omits it, and the well-formedness, duplicate, run-set and scenario checks still
+    apply — a label naming a scenario with no detection run is always rejected, because there is
+    no way to score it honestly.
     """
     if unit not in SCORE_UNITS:
         raise ScoreError(f"unit {unit!r} is not supported; the only unit is 'evidence_id'")
+    runs = validate_runs(detection_runs)
     rows = validate_labels(labels, known_evidence_ids=known_evidence_ids)
 
     by_scenario_positives, by_scenario_negatives, by_scenario_excluded = _label_sets_by_scenario(rows)
@@ -197,8 +205,17 @@ def score(
     negatives = _ids_of(rows, "negative")
     excluded = _ids_of(rows, "excluded")
 
-    flagged_overall = _flagged_by_rule(detection_runs)
-    flagged_scenarios = _flagged_by_scenario(detection_runs)
+    flagged_overall = _flagged_by_rule(runs)
+    flagged_scenarios = _flagged_by_scenario(runs)
+    unrun = sorted(
+        (set(by_scenario_positives) | set(by_scenario_negatives) | set(by_scenario_excluded))
+        - set(flagged_scenarios)
+    )
+    if unrun:
+        raise ScoreError(
+            f"label scenario {unrun[0]!r} has no detection run in the scored set; refusing to count "
+            "its labels silently"
+        )
     scenario_ids = sorted(
         set(flagged_scenarios)
         | set(by_scenario_positives)
@@ -239,6 +256,34 @@ def score(
         for rule_id, flagged in sorted(flagged_overall.items())
     )
     return ScoreReport(unit=unit, overall=overall, scenarios=scenarios, rules=rules)
+
+
+def validate_runs(detection_runs: Sequence[DetectionRun]) -> tuple[DetectionRun, ...]:
+    """Return ``detection_runs`` as a tuple, rejecting a set that is not one scoring population.
+
+    A score describes **one corpus revision** and **one run per scenario**. Two runs for one
+    scenario would make the per-scenario counts (only the last run is kept) disagree with the
+    per-rule ones (both are unioned), and runs naming different ``corpus_manifest_sha256`` values
+    would mix two revisions in one report. Both fail closed instead of being merged, because a
+    merge would silently change which events were flagged.
+    """
+    runs = tuple(detection_runs)
+    counts: dict[str, int] = {}
+    for run in runs:
+        counts[run.scenario_id] = counts.get(run.scenario_id, 0) + 1
+    repeated = sorted(scenario_id for scenario_id, count in counts.items() if count > 1)
+    if repeated:
+        raise ScoreError(
+            f"scenario {repeated[0]!r} has more than one detection run; a score describes exactly "
+            "one run per scenario"
+        )
+    digests = sorted({run.corpus_manifest_sha256 for run in runs})
+    if len(digests) > 1:
+        raise ScoreError(
+            f"the detection runs name {len(digests)} different corpus manifests "
+            f"({', '.join(digests[:2])}, ...); a score must describe one corpus revision"
+        )
+    return runs
 
 
 def validate_labels(
@@ -287,7 +332,8 @@ def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
     ``summary.json`` is not a run and is skipped. A file that is not a valid ``DetectionRun`` or
     whose name does not match the scenario inside it fails the whole read rather than being
     ignored, because scoring a partial or mislabelled directory silently would understate or
-    misattribute the flagged set.
+    misattribute the flagged set. A directory holding runs from more than one corpus manifest is
+    rejected for the same reason (see :func:`validate_runs`).
     """
     source = Path(directory)
     if not source.is_dir():
@@ -307,7 +353,7 @@ def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
                 "<scenario_id>.json"
             )
         runs.append(run)
-    return tuple(runs)
+    return validate_runs(runs)
 
 
 def report_to_json(report: ScoreReport) -> str:
