@@ -11,8 +11,10 @@ learning, no anomaly scoring, no LLM call and no automatic response here.
 
 The baseline is **not scored** in this document. There are no labels, no precision, recall or
 F1, and no statement about which detections are correct. Metric definitions are a joint
-M2/M1/M6 decision; the proposal is phase 4's `docs/M2_DETECTION_METRICS_PROPOSAL.md` (not
-written yet).
+M2/M1/M6 decision; M2's proposal is `docs/M2_DETECTION_METRICS_PROPOSAL.md` (DRAFT — not agreed,
+and the baseline must not be scored until it is). The scoring code and the label-file format are
+implemented and tested (`m2/metrics.py`), but they are arithmetic over whatever labels are agreed,
+not a definition of their own.
 
 ## Contents
 
@@ -327,7 +329,7 @@ first failure to the success; `summary.json` records only counts, so its digest 
 * **R-LOG-01 fired exactly once in every scenario**, including the two lab scenarios. This is the
   runbook's log reset, the corpus property M6's interface note describes. Treating it as
   operator/scaffolding activity (tallied separately rather than counted as a detection) is a
-  joint M2/M1/M6 decision, proposed in phase 4's `docs/M2_DETECTION_METRICS_PROPOSAL.md`; it is
+  joint M2/M1/M6 decision, proposed in `docs/M2_DETECTION_METRICS_PROPOSAL.md`; it is
   **not** decided here.
 * **Six rules produced no detection at all on this corpus:** R-AUTH-02, R-EXEC-02, R-EXEC-03 and
   the three persistence rules. The corpus holds no Security 4697 or 4698 record, no Sysmon 13
