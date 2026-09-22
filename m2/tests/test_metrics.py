@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from m2.detection.schema import Detection, DetectionRun
 from m2.metrics import (
@@ -181,6 +182,15 @@ def test_scores_are_deterministic_and_read_only():
         "SYN-B-R-B-SYN-B-SEC-3",
         "SYN-C-R-A-SYN-C-SEC-9",
     ]
+
+
+def test_the_report_is_frozen_and_read_only():
+    report = score(_runs(), _labels())
+    with pytest.raises(ValidationError):
+        report.overall.tp = 99
+    with pytest.raises(ValidationError):
+        report.unit = "window"
+    assert report.overall.tp == 2
 
 
 def test_a_shared_flag_is_not_attributed_to_a_rule_that_did_not_emit_it():
