@@ -156,10 +156,14 @@ provider = M2AuthenticationProvider(store, limits)
 result = investigate(request, provider, FakeLLM())
 ```
 
-* `get_event(evidence_id)` returns `m3.models.AuthenticationEvent | None`. `None` covers a
-  malformed ID, a well-formed ID the corpus does not hold, Sysmon events and every Security
-  event other than `4624`/`4625` — M3's provider contract has one representation for "there is
-  no such authentication event".
+* `get_event(evidence_id)` returns `m3.models.AuthenticationEvent | None`. Exact lookup
+  preserves **any** `Security` record, whatever its Event ID, because M3's provider contract
+  fixture looks up a Security 4634 and requires it back unchanged; `None` covers a malformed ID,
+  a well-formed ID the corpus does not hold, and a Sysmon event (M3's model admits the Security
+  channel only).
+* `query(QueryRequest)` is the narrower door: it offers only the `Security` events whose Event ID
+  the request admits, which for `QueryRequest` is `4624`/`4625` by construction. Agent tools see
+  authentication evidence only; exact lookup is the retrieval path that retains everything.
 * `query(QueryRequest)` returns `m3.models.QueryResult`, ordered by M3's `event_order`, with
   `truncated` set when more events matched than `request.limit` allowed.
 * The adapter calls M3's own `check_bounds`, `matches` and `event_order`; it does not restate

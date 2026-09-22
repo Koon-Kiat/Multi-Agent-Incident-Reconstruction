@@ -231,9 +231,11 @@ result.events[0].evidence_id              # "S02-SEC-43547"
 provider.get_event("S02-SEC-43584")       # m3.models.AuthenticationEvent, or None
 ```
 
-Only Security 4624/4625 become `AuthenticationEvent`; anything else (Sysmon, other Security IDs, a
-malformed ID, an ID the corpus lacks) returns `None`, which is M3's single representation of "no
-such authentication event". M2's own `lookup` keeps the three cases apart when a caller needs them.
+`get_event` preserves **any** `Security` record, whatever its Event ID — M3's own contract fixture
+looks up a Security 4634 and requires it back unchanged. `None` covers a malformed ID, an ID the
+corpus lacks and a Sysmon event (M3's model admits the `Security` channel only); M2's own `lookup`
+keeps those cases apart when a caller needs them. `query` is the narrower door: it offers only the
+`Security` events the request's Event IDs admit, which for `QueryRequest` is 4624/4625 alone.
 `event_data` values are passed through verbatim — M2 never case-folds, strips a domain or trims an
 identifier.
 
