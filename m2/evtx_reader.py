@@ -93,10 +93,20 @@ def read_filetime(record: Record) -> int:
 
 
 def iter_records(path: Path | str) -> Iterator[RawRecord]:
-    """Yield every record of ``path`` in file order, opening the file read-only."""
+    """Yield every record of ``path`` in file order, opening the file read-only.
+
+    Chunks marked *inactive* by the file header are read too. ``FileHeader.chunk_count`` is
+    not trustworthy for the exported S01 files: it declares 1 chunk for a Security file that
+    holds 49 and 1 for a Sysmon file that holds 33, so python-evtx's default chunk iteration
+    silently stops after 93 and 54 records. Counting every 64 KB chunk recovers 1807 and 893
+    records with consecutive record numbers, which is exactly what Windows' own
+    ``Get-WinEvent`` reports for the same files, and leaves the S02/S03 totals unchanged
+    (their extra chunks hold no records).
+    """
     with Evtx(str(path)) as log:
-        for record in log.records():
-            yield _raw_record(record)
+        for chunk in log.get_file_header().chunks(include_inactive=True):
+            for record in chunk.records():
+                yield _raw_record(record)
 
 
 def read_records(path: Path | str) -> tuple[RawRecord, ...]:
