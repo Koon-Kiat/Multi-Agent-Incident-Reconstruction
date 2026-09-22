@@ -128,8 +128,8 @@ exact and case-sensitive.
 
 | ID | Ver. | Sev. | ATT&CK | Logic | Benign lookalikes / known false positives |
 |---|---|---|---|---|---|
-| R-AUTH-01 | 2 | high | T1110 | ≥3 Security 4625 for one `(user, host)` inside **any** 300 s window, then a 4624 for the same `(user, host)` after the window's last failure and inside it | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon |
-| R-AUTH-02 | 2 | medium | T1110 | the same 300 s window with **no** 4624 for that `(user, host)` after its last failure | the same retry patterns with no success; password spraying aimed at one account |
+| R-AUTH-01 | 3 | high | T1110 | ≥3 Security 4625 for one `(user, host)` **and** a 4624 for the same `(user, host)` at or after the last failure, all inside one 300 s span — whatever other failures of the same account surround it | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon |
+| R-AUTH-02 | 3 | medium | T1110 | ≥3 Security 4625 for one `(user, host)` inside one 300 s span that holds **no** 4624 for that account at or after its last failure, and that no R-AUTH-01 span claimed | the same retry patterns with no success; password spraying aimed at one account; the early part of a sustained guessing run whose eventual success falls outside that part's span |
 | R-AUTH-03 | 1 | low | T1078 | every Security 4648 (explicit-credential logon) | `runas`, admin tooling, backup and deployment software using alternate credentials — routine in admin workflows, hence low |
 | R-CRED-01 | 1 | high | T1003.001 | Sysmon 10 where the target image stem is `lsass` and `GrantedAccess` is one of 7 masks (`0x1010`, `0x1410`, `0x1418`, `0x1438`, `0x143a`, `0x1f0fff`, `0x1fffff`) | monitoring/EDR/backup agents that legitimately read `lsass`; the mask is what was *requested*, not what was granted |
 | R-EXEC-01 | 2 | medium (burst) / low (single) | the binary's own technique (see the map above) | ≥3 distinct discovery binaries by one account inside **any** 120 s window is one windowed detection; every matching event outside such a window is its own low detection | routine administration and troubleshooting running `whoami`/`net`/`ipconfig`; installers and scripts that call several discovery tools in a row |
@@ -156,6 +156,26 @@ binaries that never share a window are not a burst. Accepted windows consume the
 so windows never overlap and `detection_id` stays unique. Version 1 clustered from the first
 event of an account's history instead, which silently suppressed such bursts (phase-3 review
 finding F1); the thresholds themselves are unchanged.
+
+**Which failed-logon rule fires (version 3).** R-AUTH-01 and R-AUTH-02 ask one question of the
+same evidence: is there a 4624 for that `(user, host)` inside the 300 s span a group of ≥3 4625s
+occupies, at or after that span's last failure? The answer is computed **with** the span, never
+after a window has already been consumed:
+
+* R-AUTH-01 takes a span of ≥3 failures that also holds the success. Its triggers are those
+  failures plus the earliest qualifying 4624, and the span is measured from the **first** failure
+  of the candidate, so the same run yields the same detection wherever the scan starts.
+* R-AUTH-02 takes the remaining ≥3-failure spans: no 4624 for that account lies in
+  `[first failure, first failure + 300 s]` at or after the span's last failure. Its rationale
+  says exactly that ("inside that same span"), so it never claims an absence the evidence
+  contradicts.
+
+The confirmation being part of the sliding predicate is what version 3 fixes (phase-3 review
+finding F5). Version 2 confirmed only the first window a greedy scan accepted, so failures at 0,
+100, 200, 350 and 360 s with a success at 370 s were reported as R-AUTH-02 on 0/100/200 — a
+medium "no success" finding for an attack that had just succeeded, with a rationale that said the
+opposite of the evidence. Because R-AUTH-02 now scans only the spans R-AUTH-01 did not claim,
+the two rules still partition their triggers and neither `detection_id` can collide.
 
 
 User and host grouping uses the normalised `user` and `host` fields exactly as stored; they are
@@ -216,14 +236,17 @@ Detections per rule per scenario, with the severity of every detection:
 | R-PERSIST-03 | medium | 0 | 0 | 0 |
 | **total** | | **9** | **15** | **14** |
 
-These counts are **unchanged by the version-2 windowing and ATT&CK fixes**. That is the point:
-the sliding window is a spec-conformance fix, not a tuning change. A sliding window can only
-find *more* qualifying windows than the version-1 clustering did, and this corpus contains
-none: the largest number of failures for any one account/host inside any 300 s window is 5 (S02,
-already detected) and 2 (S03), and the largest number of *distinct* discovery binaries for one
-account inside any 120 s window is 1 (S01) and 2 (S02, S03). The scenario-file digests below
-changed because each one records the rules' versions and `params`; `summary.json` records only
-counts, so its digest did not.
+These counts are **unchanged by the version-2 windowing and ATT&CK fixes and by the version-3
+failed-logon confirmation fix**. That is the point: each is a spec-conformance fix, not a tuning
+change. A sliding window can only find *more* qualifying windows than the version-1 clustering
+did, and this corpus contains none: the largest number of failures for any one account/host
+inside any 300 s window is 5 (S02, already detected) and 2 (S03), and the largest number of
+*distinct* discovery binaries for one account inside any 120 s window is 1 (S01) and 2 (S02,
+S03). Confirming the burst against its own span in version 3 likewise changes nothing here: the
+one real burst (S02's five 4625s plus the 4624 at `02:05:30`) already fits in one 20 s span, and
+no other account/host pair reaches three failures in any span at all. The scenario-file digests
+below changed because each one records the rules' versions and `params`; `summary.json` records
+only counts, so its digest did not.
 
 38 detections in total. What the run looked like, descriptively:
 
@@ -257,9 +280,9 @@ Output digests (SHA-256), for reproducing the run byte for byte:
 
 | File | SHA-256 |
 |---|---|
-| `S01.json` | `09b74c52984d525236ae5c6ee3ad7596a21f33b22d351e35575e74dfbb924511` |
-| `S02.json` | `683e4d960d44b9c64eb00410a9e52b807941543544123fc49c8ccd2eadee8913` |
-| `S03.json` | `3aaa0d429bb83ec2d812fd1e5078f05040442064bbb2a02485b974f14c0cfe19` |
+| `S01.json` | `a63bfb0b05bb248b9da314c36ee0340fd69b74fe93d8b6ce2e129d9c56538fd7` |
+| `S02.json` | `6c1a16f6c2c6e5ab79dc50cd5de0093df3064ac9ac08c931de04dd530c4dc68b` |
+| `S03.json` | `94ef74a8fb6a0d8633046a437d46b3a59ba1d44129ca2c058d3a785fe91a2d0c` |
 | `summary.json` | `b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184` |
 
 These are byte-identical across repeated runs, which the real test
@@ -295,3 +318,4 @@ Recorded so far:
 | 2 | R-AUTH-01, R-AUTH-02, R-EXEC-01 | windowed matching moved from first-event clustering to a greedy sliding window | phase-3 review finding F1: a stray early event suppressed a later burst. Spec conformance, not tuning — no threshold changed and no real count moved |
 | 2 | R-EXEC-01 | `attack_technique` is per binary (declared map) instead of the rule-wide `T1033` | phase-3 review finding F2: `systeminfo`/`ipconfig` hits were tagged with the wrong technique |
 | 2 | R-EXEC-03 | `attack_technique` is `T1204` (primary), `T1059` named in the rationale and `params` | phase-3 review finding F2: the rule covers both techniques |
+| 3 | R-AUTH-01, R-AUTH-02 | the confirmation is part of the sliding predicate: a 4624 must lie inside the burst's own 300 s span at or after its last failure; R-AUTH-02 scans only the failures no confirmed span claimed, and its rationale names the span instead of saying "afterwards" | phase-3 review finding F5: a burst that the same run later confirmed was reported as R-AUTH-02 on an earlier window, with a rationale that contradicted the evidence. Spec conformance, not tuning — no threshold changed and no real count moved |
