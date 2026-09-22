@@ -20,12 +20,19 @@ visible verbatim in ``raw_xml``, so nothing is lost. Child elements of ``UserDat
 Optional single-valued fields follow the same rule: an **absent** ``System/Computer`` becomes
 ``None``, while a **present but empty** ``<Computer/>`` becomes ``""``. Collapsing the two
 would make ``host=""`` unfilterable and would report an absent field that is in fact there.
+
+Chunks the file header does not vouch for: ``iter_records`` reads past
+``FileHeader.chunk_count`` because the exported S01 headers are dirty and understate it (see
+:func:`iter_records`). Reading on trust is only acceptable when the chunk can be shown to
+belong to the same capture, so every record-bearing chunk must pass its magic and checksum,
+and one beyond the declared count must also continue the record-number sequence.
+:func:`verify_chunk` holds that decision and fails closed.
 """
 
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -48,6 +55,10 @@ _LEAF_NODE_TYPES = (AttributeNode, ConditionalSubstitutionNode, ValueNode)
 
 class EvtxRecordError(ValueError):
     """A record is missing a field M2 needs, so it cannot be normalised honestly."""
+
+
+class EvtxStructureError(EvtxRecordError):
+    """The EVTX container is not a well-formed log, so its records cannot be trusted."""
 
 
 class RawRecord(BaseModel):
@@ -96,6 +107,57 @@ def read_filetime(record: Record) -> int:
     return int(value.unpack_qword(0))
 
 
+def verify_chunk(
+    *,
+    index: int,
+    header_chunk_count: int,
+    magic_valid: bool,
+    checksum_valid: bool,
+    record_ids: Sequence[int],
+    previous_record_id: int | None,
+) -> None:
+    """Reject a record-bearing chunk that cannot be shown to belong to the same capture.
+
+    ``index`` counts 64 KB chunk slots from the first chunk; slots from ``header_chunk_count``
+    on are the ones the file header does not vouch for. A chunk that yields no records carries
+    no evidence and is ignored, whatever its header says.
+
+    Raises :class:`EvtxStructureError` when a record-bearing chunk has invalid magic or a
+    failing header/data checksum, when its record numbers are not strictly increasing, or when
+    a chunk beyond the declared count repeats or precedes the last record already read.
+
+    Gaps are deliberately allowed: clearing a Windows log can skip record numbers without the
+    file stopping being a real capture. What must never happen is a chunk read on trust that
+    goes *backwards* into an earlier generation of the log, because those records would enter
+    the corpus with fresh-looking IDs and nothing else would notice.
+    """
+    if not record_ids:
+        return
+    if not magic_valid:
+        raise EvtxStructureError(f"chunk {index} yields {len(record_ids)} records but its magic is not a chunk header")
+    if not checksum_valid:
+        raise EvtxStructureError(f"chunk {index} yields {len(record_ids)} records but fails its header or data checksum")
+    if list(record_ids) != sorted(set(record_ids)):
+        raise EvtxStructureError(f"chunk {index} repeats or reorders record numbers: {list(record_ids)[:8]}")
+    if index >= header_chunk_count and previous_record_id is not None and record_ids[0] <= previous_record_id:
+        raise EvtxStructureError(
+            f"chunk {index} is beyond the {header_chunk_count} chunks the file header declares, and its first "
+            f"record {record_ids[0]} does not continue record {previous_record_id}"
+        )
+
+
+def _checksum_valid(chunk: Any) -> bool:
+    """``ChunkHeader.verify()`` as a boolean, including when the check itself cannot run.
+
+    A corrupt ``next_record_offset`` makes the checksum walk overrun the buffer. That is the
+    same fact as a failing checksum and must not escape as an unrelated library exception.
+    """
+    try:
+        return bool(chunk.verify())
+    except Exception:
+        return False
+
+
 def iter_records(path: Path | str) -> Iterator[RawRecord]:
     """Yield every record of ``path`` in file order, opening the file read-only.
 
@@ -106,11 +168,28 @@ def iter_records(path: Path | str) -> Iterator[RawRecord]:
     records with consecutive record numbers, which is exactly what Windows' own
     ``Get-WinEvent`` reports for the same files, and leaves the S02/S03 totals unchanged
     (their extra chunks hold no records).
+
+    Every chunk read this way must pass :func:`verify_chunk`, so a stale or corrupt slot
+    aborts the run instead of quietly adding records to the corpus.
     """
     with Evtx(str(path)) as log:
-        for chunk in log.get_file_header().chunks(include_inactive=True):
-            for record in chunk.records():
-                yield _raw_record(record)
+        header = log.get_file_header()
+        declared_chunks = header.chunk_count()
+        previous_record_id: int | None = None
+        for index, chunk in enumerate(header.chunks(include_inactive=True)):
+            records = [_raw_record(record) for record in chunk.records()]
+            verify_chunk(
+                index=index,
+                header_chunk_count=declared_chunks,
+                magic_valid=chunk.check_magic(),
+                checksum_valid=_checksum_valid(chunk),
+                record_ids=[record.record_id for record in records],
+                previous_record_id=previous_record_id,
+            )
+            for record in records:
+                yield record
+            if records:
+                previous_record_id = records[-1].record_id
 
 
 def read_records(path: Path | str) -> tuple[RawRecord, ...]:

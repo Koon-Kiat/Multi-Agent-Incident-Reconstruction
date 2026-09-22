@@ -15,7 +15,14 @@ from __future__ import annotations
 
 import pytest
 
-from m2.evtx_reader import EVENT_NAMESPACE, RawRecord, _raw_record, iter_records
+from m2.evtx_reader import (
+    EVENT_NAMESPACE,
+    EvtxStructureError,
+    RawRecord,
+    _raw_record,
+    iter_records,
+    verify_chunk,
+)
 from m2.tests.conftest import real_evtx
 from m2.timeutil import filetime_to_ticks, ticks_to_iso
 
@@ -47,6 +54,57 @@ def test_computer_is_passed_through_verbatim(computer: str | None, expected: str
     """An absent element is None; a present-but-empty element stays "", not None."""
     monkeypatch.setattr("m2.evtx_reader.read_filetime", lambda record: 0)
     assert _raw_record(_StubRecord(system_xml(computer=computer))).computer == expected
+
+
+# --- chunk-trust decisions (no EVTX needed) ---------------------------------------
+
+
+def check_chunk(**overrides):
+    """Call the decision function with a healthy continuation, then the overrides."""
+    arguments = {
+        "index": 1,
+        "header_chunk_count": 1,
+        "magic_valid": True,
+        "checksum_valid": True,
+        "record_ids": [5, 6, 7],
+        "previous_record_id": 4,
+    }
+    arguments.update(overrides)
+    verify_chunk(**arguments)
+
+
+def test_verify_chunk_accepts_a_continuing_chunk():
+    check_chunk()
+
+
+def test_verify_chunk_accepts_a_gap_but_not_a_step_backwards():
+    check_chunk(record_ids=[8, 9], previous_record_id=4)
+    with pytest.raises(EvtxStructureError, match="does not continue record 7"):
+        check_chunk(record_ids=[5, 6, 7], previous_record_id=7)
+
+
+def test_verify_chunk_ignores_an_empty_slot():
+    check_chunk(record_ids=[], magic_valid=False, checksum_valid=False, previous_record_id=None)
+
+
+def test_verify_chunk_rejects_a_record_bearing_chunk_with_invalid_magic():
+    with pytest.raises(EvtxStructureError, match="magic"):
+        check_chunk(magic_valid=False)
+
+
+def test_verify_chunk_rejects_a_record_bearing_chunk_with_a_failing_checksum():
+    with pytest.raises(EvtxStructureError, match="checksum"):
+        check_chunk(checksum_valid=False)
+
+
+def test_verify_chunk_rejects_record_numbers_that_do_not_increase():
+    with pytest.raises(EvtxStructureError, match="repeats or reorders"):
+        check_chunk(record_ids=[5, 5, 7])
+
+
+def test_verify_chunk_does_not_judge_the_sequence_inside_the_declared_count():
+    """The file header vouches for those chunks; only chunks read on trust need continuing."""
+    check_chunk(index=0, header_chunk_count=3, record_ids=[9, 10], previous_record_id=100)
 
 EXPECTED = {
     SECURITY: (1807, 31212963, 31214769),
