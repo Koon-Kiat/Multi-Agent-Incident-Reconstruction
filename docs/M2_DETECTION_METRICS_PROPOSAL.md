@@ -189,6 +189,25 @@ excluded-event tallies and the undefined-metric cases.
    labels, or reported separately? Nothing in M2's code assumes an answer.
 4. **Scaffolding as FP or as excluded?** M2 proposes `excluded` (tallied separately); the stricter
    alternative is `negative` (counted as FP). The call should pick the headline view.
+5. **Is `F1 = None` when precision = recall = 0 the convention M1/M6 want?** Mathematically
+   `2PR/(P+R)` is `0/0` there. M2 reports `null` for every metric with a zero denominator, and
+   `F1` is left `null` whenever `P + R = 0`, so a rule with `TP = 0` and `FP > 0` (precision 0.0,
+   recall 0.0) shows `F1 = null` rather than `0.0`. `null` means "not measured"; `0.0` would mean
+   "measured and zero", which would put an undefined ratio into a per-rule table. The code follows
+   the convention already; the call should confirm it, because it changes how those rows read.
+6. **Per-rule recall is measured against the whole positive population.** Each rule's TP/FP/FN is
+   computed over **all** positives, not over the positives that rule was "supposed" to find (M2 has
+   no per-rule expected-population mapping). So per-rule recalls are shares of the same denominator:
+   they are **not** additive, must not be summed, and are not comparable with the overall recall.
+   The per-rule table is an attribution of flags, not a partition of the positives. If the call
+   wants a per-rule "coverage" number instead, that needs an agreed mapping from positives to rules,
+   which is a definitions decision and not something M2 will infer.
+7. **Does M5 want the merged R-AUTH-02 span in the rationale?** A chained uncovered burst can be
+   merged into one detection spanning more than the 300 s window, so the span is not implied by the
+   threshold. M2 has added it to the rationale as `window_span_seconds=…`, exact to the 100 ns,
+   without moving any detection ID (task_plan.md T5.0, amendment A2). The call should say whether M5
+   needs the span as a **structured field** on the detection instead — that would be an additive
+   schema change and is not done yet.
 
 ## What M2 will not do
 
