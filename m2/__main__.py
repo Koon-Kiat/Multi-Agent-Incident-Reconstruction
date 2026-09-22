@@ -1,4 +1,4 @@
-"""Command line interface for M2.
+"""Command line interface for the Event Processing & Detection Engine.
 
 ``normalise`` writes the corpus under ``--out`` (gitignored); no command writes into
 ``datasets/``. ``lookup`` and ``query`` read a written corpus back through
@@ -35,7 +35,7 @@ _CORPUS_DEFAULT = "out/corpus"
 
 
 def _not_implemented(command: str) -> int:
-    print(f"m2 {command}: not implemented yet (phase 0 command surface)")
+    print(f"Event Processing & Detection Engine: {command}: not implemented yet (phase 0 command surface)")
     return EXIT_NOT_IMPLEMENTED
 
 
@@ -43,7 +43,7 @@ def _normalise(args: argparse.Namespace) -> int:
     try:
         manifest = normalise_datasets(Path(args.datasets), Path(args.out))
     except (ValueError, OSError) as error:
-        print(f"m2 normalise: {error}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: normalise: {error}", file=sys.stderr)
         return EXIT_FAILED
     total = 0
     for scenario in manifest.scenarios:
@@ -58,7 +58,7 @@ def _open_corpus(command: str, corpus: str) -> EventStore | int:
     try:
         return EventStore.load(Path(corpus))
     except (QueryError, OSError) as error:
-        print(f"m2 {command}: {error}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: {command}: {error}", file=sys.stderr)
         return EXIT_FAILED
 
 
@@ -68,10 +68,10 @@ def _lookup(args: argparse.Namespace) -> int:
         return store
     result = store.lookup(args.evidence_id)
     if result.status == "invalid_id":
-        print(f"m2 lookup: malformed evidence_id {args.evidence_id!r}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: lookup: malformed evidence_id {args.evidence_id!r}", file=sys.stderr)
         return EXIT_INVALID_INPUT
     if result.status == "not_found" or result.event is None:
-        print(f"m2 lookup: {args.evidence_id} is not in {args.corpus}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: lookup: {args.evidence_id} is not in {args.corpus}", file=sys.stderr)
         return EXIT_FAILED
     print(event_to_json(result.event))
     return EXIT_OK
@@ -93,12 +93,12 @@ def _query(args: argparse.Namespace) -> int:
             limit=args.limit,
         )
     except QueryError as error:
-        print(f"m2 query: {error}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: query: {error}", file=sys.stderr)
         return EXIT_INVALID_INPUT
     for event in result.events:
         print(event_to_json(event))
     if result.truncated:
-        print(f"m2 query: truncated at {len(result.events)} of {result.total_matched} matches", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: query: truncated at {len(result.events)} of {result.total_matched} matches", file=sys.stderr)
     return EXIT_OK
 
 
@@ -108,10 +108,10 @@ def _detect(args: argparse.Namespace) -> int:
         summary = write_detections(Path(args.corpus), Path(args.out))
     except DetectionOutputError as error:
         # An unusable --out is invalid input, not a failed detection: refuse before reading.
-        print(f"m2 detect: {error}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: detect: {error}", file=sys.stderr)
         return EXIT_INVALID_INPUT
     except (ValueError, OSError) as error:
-        print(f"m2 detect: {error}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: detect: {error}", file=sys.stderr)
         return EXIT_FAILED
     total = 0
     for scenario in summary.scenarios:
@@ -140,10 +140,10 @@ def _score(args: argparse.Namespace) -> int:
     detections_dir = Path(args.detections)
     labels_path = Path(args.labels)
     if not labels_path.is_file():
-        print(f"m2 score: label file {labels_path} does not exist", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: score: label file {labels_path} does not exist", file=sys.stderr)
         return EXIT_FAILED
     if not detections_dir.is_dir():
-        print(f"m2 score: detections directory {detections_dir} does not exist", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: score: detections directory {detections_dir} does not exist", file=sys.stderr)
         return EXIT_FAILED
     store = _open_corpus("score", args.corpus)
     if isinstance(store, int):
@@ -156,10 +156,10 @@ def _score(args: argparse.Namespace) -> int:
         )
         path = write_report(report, Path(args.out))
     except ScoreError as error:
-        print(f"m2 score: {error}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: score: {error}", file=sys.stderr)
         return EXIT_INVALID_INPUT
     except OSError as error:
-        print(f"m2 score: {error}", file=sys.stderr)
+        print(f"Event Processing & Detection Engine: score: {error}", file=sys.stderr)
         return EXIT_FAILED
     print(_score_line("overall", report.overall))
     for scenario in report.scenarios:
@@ -170,7 +170,7 @@ def _score(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     """Return the M2 argument parser, including every documented subcommand."""
-    parser = argparse.ArgumentParser(prog="m2", description="Normalise, query and detect over the MAIR EVTX corpus")
+    parser = argparse.ArgumentParser(prog="m2", description="Event Processing & Detection Engine: normalise, query and detect over the MAIR EVTX corpus")
     subcommands = parser.add_subparsers(dest="command", required=True)
 
     normalise = subcommands.add_parser("normalise", help="parse datasets/S0*/raw/*.evtx into a normalised corpus")
@@ -198,7 +198,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--out",
         default="out/detections",
         help=(
-            "a directory detect owns; stale m2 run files left there by an earlier run are removed, "
+            "a directory detect owns; stale detection run files left there by an earlier run are removed, "
             "while every other file is left alone; datasets/ and ground_truth/ are refused"
         ),
     )

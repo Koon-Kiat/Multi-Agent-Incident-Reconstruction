@@ -1,3 +1,7 @@
+> Historical handoff/report: numbered role labels and recorded results are preserved.
+> See [component names and current architecture](ARCHITECTURE.md) and the
+> [current authentication integration report](AUTHENTICATION_CORPUS_INTEGRATION.md) for current status.
+
 This is the historical description for merged PR #6. For subsequent real Qwen3
 testing and integration readiness, see [the current validation report](M3_VALIDATION_AND_INTEGRATION.md).
 

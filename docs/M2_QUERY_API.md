@@ -1,11 +1,15 @@
-# M2 Query API
+# Event Processing & Detection Engine Query API
 
-Owner: M2 (Data Processing & Detection). Status: implemented (`m2/query.py`,
+Owner: Event Processing & Detection Engine. Status: implemented (`m2/query.py`,
 `m2/adapters/m3_provider.py`, `m2/__main__.py`).
 Companion document: [`M2_EVENT_SCHEMA.md`](M2_EVENT_SCHEMA.md) for the events this API returns.
 
 The query layer is **deterministic and read-only**: the same call returns the same events in the
 same order on every run, and nothing a consumer can reach mutates the corpus.
+
+`EventStore.load()` is the tested integration path. Direct constructor callers
+must not mutate their input records: a caller-owned `event_data` dictionary is
+currently retained. See the [reproducer and proposed fix](M3_TO_M2_HANDOFF.md#constructor-snapshot-issue).
 
 ## Contents
 
@@ -13,7 +17,7 @@ same order on every run, and nothing a consumer can reach mutates the corpus.
 * [`lookup` and `lookup_many`](#lookup-and-lookup_many) — exact-ID resolution
 * [`query`](#query) — bounded `[start, end)` windows with exact filters
 * [`process_by_guid`, `children_of`, `window_around`](#helpers) — bounded convenience queries
-* [`M2AuthenticationProvider`](#m3-adapter) — M3's `AuthenticationEventProvider`
+* [`M2AuthenticationProvider`](#authentication-investigation-agent-adapter) — Authentication Investigation Agent's `AuthenticationEventProvider`
 * [Command line](#command-line)
 * [Limits](#limits)
 
@@ -142,7 +146,7 @@ store.children_of("S02", "{6708084d-90a4-6ab0-ca00-000000000e00}").total_matched
 store.window_around(anchor, 1).total_matched   # 12
 ```
 
-## M3 adapter
+## Authentication Investigation Agent adapter
 
 `m2.adapters.m3_provider.M2AuthenticationProvider` implements
 `m3.queries.interface.AuthenticationEventProvider` over a store:
@@ -158,15 +162,15 @@ result = investigate(request, provider, FakeLLM())
 
 * `get_event(evidence_id)` returns `m3.models.AuthenticationEvent | None`. `None` covers a
   malformed ID, a well-formed ID the corpus does not hold, Sysmon events and every Security
-  event other than `4624`/`4625` — M3's provider contract has one representation for "there is
+  event other than `4624`/`4625` — Authentication Investigation Agent's provider contract has one representation for "there is
   no such authentication event".
-* `query(QueryRequest)` returns `m3.models.QueryResult`, ordered by M3's `event_order`, with
+* `query(QueryRequest)` returns `m3.models.QueryResult`, ordered by Authentication Investigation Agent's `event_order`, with
   `truncated` set when more events matched than `request.limit` allowed.
-* The adapter calls M3's own `check_bounds`, `matches` and `event_order`; it does not restate
-  M3's semantics. Field mapping is exact: `event_data` values stay verbatim, `raw_reference` and
-  `record_id` are preserved for M6, and `evidence_id` already equals
+* The adapter calls Authentication Investigation Agent's own `check_bounds`, `matches` and `event_order`; it does not restate
+  Authentication Investigation Agent's semantics. Field mapping is exact: `event_data` values stay verbatim, `raw_reference` and
+  `record_id` are preserved for Evidence Verification & Evaluation, and `evidence_id` already equals
   `m3.models.evidence_id_for`.
-* Pass the same `Limits` the investigation runs with, or M3's requests will exceed the
+* Pass the same `Limits` the investigation runs with, or Authentication Investigation Agent's requests will exceed the
   provider's bound and be rejected rather than clamped.
 
 Verified end to end on real evidence: with `FakeLLM` over S02's own metadata window the

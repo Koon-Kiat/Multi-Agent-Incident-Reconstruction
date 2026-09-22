@@ -1,3 +1,7 @@
+> Historical handoff/report: numbered role labels and recorded results are preserved.
+> See [component names and current architecture](ARCHITECTURE.md) and the
+> [current authentication integration report](AUTHENTICATION_CORPUS_INTEGRATION.md) for current status.
+
 # M6 -> M2: Corpus Constraints and Query Requirements
 
 From: M6 - Evidence Verification & Evaluation

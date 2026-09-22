@@ -1,30 +1,30 @@
-# M2 Detection Metrics Proposal (DRAFT)
+# Event Processing & Detection Engine Detection Metrics Proposal (DRAFT)
 
 > **DRAFT — not agreed. The baseline must not be scored until this is agreed.**
 >
-> M2 owns the scoring *code*, not the definitions. The unit, the positive label and the excluded
-> category below are M2's proposal for the joint M2 + M1 + M6 call that
+> The engine owns the scoring *code*, not the definitions. The unit, the positive label and the excluded
+> category below are the engine's proposal for a joint call with Dataset & Ground Truth Management and Evidence Verification & Evaluation that
 > `docs/M6_TO_M2_INTERFACE_NOTE.md` item 5 asks for. Until that call agrees them, no result of
 > `python -m m2 score` is a reportable number: the code is implemented and tested
 > (`m2/metrics.py`, `m2/tests/test_metrics.py`), the real baseline is **not** scored, and task
 > T4.3 in `task_plan.md` stays BLOCKED.
 
-Owner: M2 (Data Processing & Detection). Status: proposal for the M2/M1/M6 call.
+Owner: Event Processing & Detection Engine. Status: proposal awaiting agreement with Dataset & Ground Truth Management and Evidence Verification & Evaluation.
 Related: [`M2_DETECTION_RULES.md`](M2_DETECTION_RULES.md) (the baseline and its counts),
-[`M6_TO_M2_INTERFACE_NOTE.md`](M6_TO_M2_INTERFACE_NOTE.md) item 5 (M6's ask and its two corpus
+[`M6_TO_M2_INTERFACE_NOTE.md`](M6_TO_M2_INTERFACE_NOTE.md) item 5 (Evidence Verification & Evaluation's ask and its two corpus
 observations).
 
 ## Contents
 
-* [What M2 needs from the call](#what-m2-needs-from-the-call)
+* [What the engine needs from the call](#what-the-engine-needs-from-the-call)
 * [The proposal](#the-proposal)
 * [The excluded category](#the-excluded-category)
-* [The label file M2 will read](#the-label-file-m2-will-read)
+* [The label file the engine will read](#the-label-file-the-engine-will-read)
 * [Worked example](#worked-example)
 * [Open questions for the call](#open-questions-for-the-call)
-* [What M2 will not do](#what-m2-will-not-do)
+* [What the engine will not do](#what-the-engine-will-not-do)
 
-## What M2 needs from the call
+## What the engine needs from the call
 
 Three definitions, before the baseline can be scored:
 
@@ -44,7 +44,7 @@ not over windows and not over scenarios. A detection *flags* exactly the IDs in 
 [window detections](#window-detections-count-only-their-trigger-ids)).
 
 **A positive is an event cited by a malicious ground-truth stage.** The label is produced by
-M1/M6 from the scenario ground truth; M2 never sees, requests or derives it. An event is positive
+Dataset & Ground Truth Management and Evidence Verification & Evaluation from the scenario ground truth; the engine never sees, requests or derives it. An event is positive
 when the ground-truth material attributes it to a stage the evaluation counts as malicious — the
 call should confirm that "cited by a malicious stage" is the whole test, and that an event cited by
 a benign or scaffolding stage is not positive (see [the excluded category](#the-excluded-category)).
@@ -81,15 +81,15 @@ overall TP.
 A detection is a group of events, and some of its
 triggers may not be labelled positive — the failures that confirm a brute force, the benign
 parent process, the surrounding enumeration binaries. The unit is one evidence ID, so only the
-triggers M1/M6 label positive can be TPs; the rest are FPs unless labelled excluded. The call
+triggers Dataset & Ground Truth Management and Evidence Verification & Evaluation label positive can be TPs; the rest are FPs unless labelled excluded. The call
 should confirm this, because the alternative (scoring a whole detection window as one item) would
 turn an unlabelled auxiliary event into a scored unit.
 
 ## The excluded category
 
-M6 proposed this in `docs/M6_TO_M2_INTERFACE_NOTE.md` item 5. M2 agrees, with two parts:
+Evidence Verification & Evaluation proposed this in `docs/M6_TO_M2_INTERFACE_NOTE.md` item 5. The engine agrees, with two parts:
 
-* **Operator / scaffolding activity outside the declared scenario window.** M6's note measures
+* **Operator / scaffolding activity outside the declared scenario window.** Evidence Verification & Evaluation's note measures
   that roughly half of each lab export is the operator's own session that verified and exported
   the logs (S02: 178 of 349 Security events; S03: 189 of 352). The normalised event carries
   `in_scenario_window`, derived from the neutral scenario metadata, so these events can be
@@ -97,8 +97,8 @@ M6 proposed this in `docs/M6_TO_M2_INTERFACE_NOTE.md` item 5. M2 agrees, with tw
   candidate for exclusion, and the call should adopt that rule if it agrees.
 * **The runbook's own Security 1102 audit-log clear.** Each lab export holds exactly one, and
   R-LOG-01 fires on it in **every** scenario (see the baseline run in `M2_DETECTION_RULES.md`).
-  It is a textbook T1070.001 indicator and a real artefact of the runbook, not of an attack. M6
-  proposes treating it as scaffolding; M2 proposes labelling it `excluded` rather than deleting
+  It is a textbook T1070.001 indicator and a real artefact of the runbook, not of an attack. Evidence Verification & Evaluation
+  proposes treating it as scaffolding; the engine proposes labelling it `excluded` rather than deleting
   the rule, so the detection is visible and the choice is recorded.
 
 Excluded events are **tallied separately and reported, never hidden**: the report carries
@@ -109,9 +109,9 @@ a definition change: the code takes the label as given, so the same corpus with 
 labelled `negative` yields the stricter number. The two numbers should both be produced for the
 report, and the call should say which one is headline.
 
-## The label file M2 will read
+## The label file the engine will read
 
-The format M2 implements and tests. M1/M6 produce the file; M2 reads it and nothing else. The
+The format the engine implements and tests. Dataset & Ground Truth Management and Evidence Verification & Evaluation produce the file; the engine reads it and nothing else. The
 evidence IDs below are synthetic — this document states no labels for any real event.
 
 CSV, with a header row:
@@ -176,47 +176,47 @@ excluded-event tallies and the undefined-metric cases.
 1. **Security + Sysmon views of one action.** S02's 02:05:58 discovery activity appears twice —
    `S02-SEC-43662` (Security 4688) and `S02-SYS-25814` (Sysmon 1). At the event level they are two
    events and can be two TPs. Should one action count **once** (deduplicate the two channel views
-   before scoring) or **twice** (score every event)? M2's position: the unit is the event, so
+   before scoring) or **twice** (score every event)? The engine's position: the unit is the event, so
    twice, and any deduplication is a separate reported view — but this is a definitions question,
    not a code question.
 2. **Is the benign-lookalike scenario scored at event level only?** If a scenario exists mainly to
    produce false positives, do its events enter the same precision pool, or are they reported
-   separately? M2 has no rule that special-cases a scenario and will not add one without the call's
+   separately? The engine has no rule that special-cases a scenario and will not add one without the call's
    decision.
 3. **How are S01 events labelled?** S01 is a different host and year from S02/S03, so its
-   `scenario_id`, its manifest shape and its timestamps differ, and M6's note says the record-ID
+   `scenario_id`, its manifest shape and its timestamps differ, and Evidence Verification & Evaluation's note says the record-ID
    collisions do not involve it. Is S01 in scope for the event-level metric, in scope with its own
-   labels, or reported separately? Nothing in M2's code assumes an answer.
-4. **Scaffolding as FP or as excluded?** M2 proposes `excluded` (tallied separately); the stricter
+   labels, or reported separately? Nothing in the engine's code assumes an answer.
+4. **Scaffolding as FP or as excluded?** The engine proposes `excluded` (tallied separately); the stricter
    alternative is `negative` (counted as FP). The call should pick the headline view.
-5. **Is `F1 = None` when precision = recall = 0 the convention M1/M6 want?** Mathematically
-   `2PR/(P+R)` is `0/0` there. M2 reports `null` for every metric with a zero denominator, and
+5. **Is `F1 = None` when precision = recall = 0 the convention Dataset & Ground Truth Management and Evidence Verification & Evaluation want?** Mathematically
+   `2PR/(P+R)` is `0/0` there. The engine reports `null` for every metric with a zero denominator, and
    `F1` is left `null` whenever `P + R = 0`, so a rule with `TP = 0` and `FP > 0` (precision 0.0,
    recall 0.0) shows `F1 = null` rather than `0.0`. `null` means "not measured"; `0.0` would mean
    "measured and zero", which would put an undefined ratio into a per-rule table. The code follows
    the convention already; the call should confirm it, because it changes how those rows read.
 6. **Per-rule recall is measured against the whole positive population.** Each rule's TP/FP/FN is
-   computed over **all** positives, not over the positives that rule was "supposed" to find (M2 has
+   computed over **all** positives, not over the positives that rule was "supposed" to find (the engine has
    no per-rule expected-population mapping). So per-rule recalls are shares of the same denominator:
    they are **not** additive, must not be summed, and are not comparable with the overall recall.
    The per-rule table is an attribution of flags, not a partition of the positives. If the call
    wants a per-rule "coverage" number instead, that needs an agreed mapping from positives to rules,
-   which is a definitions decision and not something M2 will infer.
-7. **Does M5 want the merged R-AUTH-02 span in the rationale?** A chained uncovered burst can be
+   which is a definitions decision and not something the engine will infer.
+7. **Does Incident Reconstruction Orchestrator want the merged R-AUTH-02 span in the rationale?** A chained uncovered burst can be
    merged into one detection spanning more than the 300 s window, so the span is not implied by the
-   threshold. M2 has added it to the rationale as `window_span_seconds=…`, exact to the 100 ns,
-   without moving any detection ID (task_plan.md T5.0, amendment A2). The call should say whether M5
+   threshold. The engine has added it to the rationale as `window_span_seconds=…`, exact to the 100 ns,
+   without moving any detection ID (task_plan.md T5.0, amendment A2). The call should say whether Incident Reconstruction Orchestrator
    needs the span as a **structured field** on the detection instead — that would be an additive
    schema change and is not done yet.
 
-## What M2 will not do
+## What the engine will not do
 
-* M2 will **not** locate, request or open the answer key or a private label file. It reads the
+* The engine will **not** locate, request or open the answer key or a private label file. It reads the
   label file it is given and nothing else.
-* M2 will **not** score the real baseline until this proposal is agreed and a labels file path is
+* The engine will **not** score the real baseline until this proposal is agreed and a labels file path is
   provided (task T4.3 is BLOCKED with that unblock condition).
-* M2 will **not** tune a threshold or a rule to change a metric. Thresholds are frozen constants;
+* The engine will **not** tune a threshold or a rule to change a metric. Thresholds are frozen constants;
   a change is a rule change with a version bump, justified in the progress log.
-* M2 will **not** report a precision, recall or F1 from this document. There are no numbers here
+* The engine will **not** report a precision, recall or F1 from this document. There are no numbers here
   because there are no agreed labels, and inventing an example on real evidence IDs would be
   exactly the contamination the blind-design rule forbids.

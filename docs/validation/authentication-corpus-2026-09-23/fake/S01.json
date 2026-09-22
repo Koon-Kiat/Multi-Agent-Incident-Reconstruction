@@ -1,0 +1,309 @@
+{
+  "case": "S01",
+  "elapsed_seconds": 0.013,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "S01",
+      "start_utc": "2022-08-31T17:46:00Z",
+      "end_utc": "2022-08-31T17:49:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "M3-59378fa7b1061a4c77e50532",
+        "agent_type": "authentication",
+        "scenario_id": "S01",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": "Additional context is needed to interpret this authentication activity; no attack classification is made.",
+        "timestamps": {
+          "first_utc": "2022-08-31T17:46:57.7097785Z",
+          "last_utc": "2022-08-31T17:46:57.7097785Z"
+        },
+        "entities": {
+          "account": "WIN-DC-MHAAG-AT$",
+          "reported_account": "WIN-DC-MHAAG-AT$",
+          "domain": "ATTACKRANGE.LOCAL",
+          "host": "win-dc-mhaag-attack-range-602.attackrange.local",
+          "source_address": "fe80::959e:3f97:328:12b4",
+          "workstation": "-",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "S01-SEC-31213280"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable workstation in S01-SEC-31213280."
+        ]
+      },
+      {
+        "finding_id": "M3-b7123407451161cc01e313f7",
+        "agent_type": "authentication",
+        "scenario_id": "S01",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": "Additional context is needed to interpret this authentication activity; no attack classification is made.",
+        "timestamps": {
+          "first_utc": "2022-08-31T17:46:57.7145368Z",
+          "last_utc": "2022-08-31T17:46:57.7145368Z"
+        },
+        "entities": {
+          "account": "WIN-DC-MHAAG-AT$",
+          "reported_account": "WIN-DC-MHAAG-AT$",
+          "domain": "ATTACKRANGE.LOCAL",
+          "host": "win-dc-mhaag-attack-range-602.attackrange.local",
+          "source_address": "::1",
+          "workstation": "-",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "S01-SEC-31213283"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable workstation in S01-SEC-31213283."
+        ]
+      },
+      {
+        "finding_id": "M3-7ac7e00560197732777e832a",
+        "agent_type": "authentication",
+        "scenario_id": "S01",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": "Additional context is needed to interpret this authentication activity; no attack classification is made.",
+        "timestamps": {
+          "first_utc": "2022-08-31T17:46:57.7183957Z",
+          "last_utc": "2022-08-31T17:46:57.7183957Z"
+        },
+        "entities": {
+          "account": "WIN-DC-MHAAG-AT$",
+          "reported_account": "WIN-DC-MHAAG-AT$",
+          "domain": "ATTACKRANGE.LOCAL",
+          "host": "win-dc-mhaag-attack-range-602.attackrange.local",
+          "source_address": "10.0.1.14",
+          "workstation": "-",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "S01-SEC-31213289"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable workstation in S01-SEC-31213289."
+        ]
+      },
+      {
+        "finding_id": "M3-25b81345e2448b32a520d38c",
+        "agent_type": "authentication",
+        "scenario_id": "S01",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": "Additional context is needed to interpret this authentication activity; no attack classification is made.",
+        "timestamps": {
+          "first_utc": "2022-08-31T17:46:57.8152991Z",
+          "last_utc": "2022-08-31T17:46:57.8152991Z"
+        },
+        "entities": {
+          "account": "WIN-DC-MHAAG-AT$",
+          "reported_account": "WIN-DC-MHAAG-AT$",
+          "domain": "ATTACKRANGE.LOCAL",
+          "host": "win-dc-mhaag-attack-range-602.attackrange.local",
+          "source_address": "fe80::959e:3f97:328:12b4",
+          "workstation": "-",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "S01-SEC-31213296"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable workstation in S01-SEC-31213296."
+        ]
+      },
+      {
+        "finding_id": "M3-2836438d9d1d461b435a1c8d",
+        "agent_type": "authentication",
+        "scenario_id": "S01",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": "Additional context is needed to interpret this authentication activity; no attack classification is made.",
+        "timestamps": {
+          "first_utc": "2022-08-31T17:47:21.8098452Z",
+          "last_utc": "2022-08-31T17:47:21.8098452Z"
+        },
+        "entities": {
+          "account": "WIN-DC-MHAAG-AT$",
+          "reported_account": "WIN-DC-MHAAG-AT$",
+          "domain": "ATTACKRANGE.LOCAL",
+          "host": "win-dc-mhaag-attack-range-602.attackrange.local",
+          "source_address": "::1",
+          "workstation": "-",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "S01-SEC-31214696"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable workstation in S01-SEC-31214696."
+        ]
+      },
+      {
+        "finding_id": "M3-908e9939afbe84ef03e847d7",
+        "agent_type": "authentication",
+        "scenario_id": "S01",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": "Additional context is needed to interpret this authentication activity; no attack classification is made.",
+        "timestamps": {
+          "first_utc": "2022-08-31T17:48:21.8155145Z",
+          "last_utc": "2022-08-31T17:48:21.8155145Z"
+        },
+        "entities": {
+          "account": "WIN-DC-MHAAG-AT$",
+          "reported_account": "WIN-DC-MHAAG-AT$",
+          "domain": "ATTACKRANGE.LOCAL",
+          "host": "win-dc-mhaag-attack-range-602.attackrange.local",
+          "source_address": "::1",
+          "workstation": "-",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "S01-SEC-31214751"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable workstation in S01-SEC-31214751."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "m3-provisional-v1",
+      "prompt_version": "m3-authentication-v2",
+      "configuration_version": "m3-config-v2",
+      "llm": {
+        "runtime": "fake",
+        "model": "deterministic-fake-v1",
+        "corpus_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "0f750924b68b7c346816836fe1dfd5c8b51d79808562561b3e1357c53e92949b",
+      "reply": "{\"action\": \"finish\", \"tool\": null, \"annotations\": [{\"observation_id\": \"M3-59378fa7b1061a4c77e50532\", \"evidence_ids\": [\"S01-SEC-31213280\"], \"interpretation\": \"context_required\"}, {\"observation_id\": \"M3-b7123407451161cc01e313f7\", \"evidence_ids\": [\"S01-SEC-31213283\"], \"interpretation\": \"context_required\"}, {\"observation_id\": \"M3-7ac7e00560197732777e832a\", \"evidence_ids\": [\"S01-SEC-31213289\"], \"interpretation\": \"context_required\"}, {\"observation_id\": \"M3-25b81345e2448b32a520d38c\", \"evidence_ids\": [\"S01-SEC-31213296\"], \"interpretation\": \"context_required\"}, {\"observation_id\": \"M3-2836438d9d1d461b435a1c8d\", \"evidence_ids\": [\"S01-SEC-31214696\"], \"interpretation\": \"context_required\"}, {\"observation_id\": \"M3-908e9939afbe84ef03e847d7\", \"evidence_ids\": [\"S01-SEC-31214751\"], \"interpretation\": \"context_required\"}]}",
+      "elapsed_seconds": 0.0
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S01",
+        "start_utc": "2022-08-31T17:46:00Z",
+        "end_utc": "2022-08-31T17:49:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "S01-SEC-31213280",
+        "S01-SEC-31213283",
+        "S01-SEC-31213289",
+        "S01-SEC-31213296",
+        "S01-SEC-31214696",
+        "S01-SEC-31214751"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S01-SEC-31213280",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S01-SEC-31213283",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S01-SEC-31213289",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S01-SEC-31213296",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S01-SEC-31214696",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S01-SEC-31214751",
+      "found": true
+    }
+  ]
+}

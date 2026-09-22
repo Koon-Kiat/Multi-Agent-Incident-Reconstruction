@@ -1,124 +1,100 @@
-# M3 to M5 integration handoff
+# Incident Reconstruction Orchestrator handoff
 
-Status: M5 is not present in local or fetched `origin/main`, and there were no
-open delivery PRs at the 2026-09-22 refresh. M3's entry point is implemented;
-orchestrator compatibility and the final shared finding contract await M5.
+The Authentication Investigation Agent's existing call boundary is tested with
+the real corpus and local Ollama. The actual Incident Reconstruction Orchestrator
+is not connected or tested. This handoff does not implement dispatch, correlation,
+endpoint investigation or independent evidence verification.
 
-## Calling M3
-
-Use the existing public synchronous entry point:
+## Invoke with the existing provider and local adapter
 
 ```python
+from m2.adapters.m3_provider import M2AuthenticationProvider
+from m2.query import EventStore
 from m3 import InvestigationRequest, investigate
 from m3.config import Limits, OllamaConfig
+from m3.investigate_corpus import local_model_runtime
 from m3.llm.ollama_client import OllamaClient
 
-request = InvestigationRequest(
-    scenario_id="SYN-A",
-    start_utc="2026-01-10T00:00:00Z",
-    end_utc="2026-01-10T00:01:00Z",
-)
-llm = OllamaClient(OllamaConfig(
-    model="qwen3:8b", endpoint="http://localhost:11434", num_ctx=8192, think=False,
-))
-result = investigate(request, m2_authentication_provider, llm, Limits())
+limits = Limits()
+store = EventStore.load("out/corpus")
+provider = M2AuthenticationProvider(store, limits)
+config = OllamaConfig(model="qwen3:8b", endpoint="http://127.0.0.1:11434",
+                      num_ctx=8192, think=False, temperature=0.0, seed=0)
+runtime = local_model_runtime(config)  # Confirm local installed weights first.
+llm = OllamaClient(config)
+request = InvestigationRequest(scenario_id="S02",
+    start_utc="2026-09-21T02:04:30Z", end_utc="2026-09-21T02:06:00Z")
+result = investigate(request, provider, llm, limits)
 payload = result.model_dump(mode="json")
 ```
 
-`m2_authentication_provider` is supplied by M5 after M2 delivers the read-only
-adapter; it implements `AuthenticationEventProvider`. The model shown is the
-user-selected provisional local validation model, not a final team selection.
-Keep Ollama local-only and use an already installed model. No cloud inference or
-model download occurs in this call.
+Required request fields: `scenario_id`, `start_utc`, `end_utc`. UTC bounds must be
+ordered and within configured duration. Check `store.scenario_ids` before dispatch
+if unknown scenarios must differ from empty windows. Use the same limits for
+provider and agent. Load once and reuse the verified read-only snapshot.
+Account/host filters belong to query tools, not the top-level request.
 
-For an async orchestrator, use
+`AuthenticationEventProvider` supplies `query(QueryRequest) -> QueryResult` and
+`get_event(evidence_id) -> AuthenticationEvent | None`. `LLMAdapter` supplies
+`metadata()` and `complete(messages, schema, limits) -> str`.
+For async dispatch use
 `await asyncio.to_thread(investigate, request, provider, llm, limits)`.
-The synchronous Ollama adapter intentionally reports
-`sync_adapter_requires_worker_thread` if called directly inside a running loop.
-Do not block the orchestrator's event loop.
+Direct calls inside an event loop return `sync_adapter_requires_worker_thread`.
+The [real-data CLI](../m3/README.md) runs this boundary;
+`m3/examples/invoke_m3.py` remains the synthetic injection example.
 
-## Runnable synthetic example
+## Consume the existing result
 
-`m3/examples/invoke_m3.py` demonstrates provider and LLM injection without any
-orchestration, endpoint investigation or incident reconstruction:
+`InvestigationResult` remains `m3-provisional-v1`. Export the schema with
+`python -m m3.investigate_corpus --schema`. Consume structured fields:
 
-```powershell
-python -m m3.examples.invoke_m3
-python -m m3.examples.invoke_m3 --scenario SYN-E
-$env:MAIR_OLLAMA_MODEL = 'qwen3:8b'
-$env:MAIR_OLLAMA_ENDPOINT = 'http://127.0.0.1:11435'
-$env:MAIR_OLLAMA_NUM_CTX = '8192'
-$env:MAIR_OLLAMA_THINK = 'off'
-python -m m3.examples.invoke_m3 --ollama
-```
-
-The last command uses the dedicated local-only validation server; see the
-validation report for server startup and exact runtime settings. The example
-does not implement M5 responsibilities. Its success, empty and failure envelopes
-are covered by `m3/tests/test_m5_example.py`.
-
-## Result contract
-
-`InvestigationResult` in `m3/models.py` is the existing provisional schema. Obtain
-the JSON schema with `python -m m3 --schema`. Consume fields directly, not text:
-
-| Outcome | Meaning |
+| Result | Handling |
 | --- | --- |
-| `status='completed'`, findings nonempty | Validated evidence-derived observations with optional tentative interpretation |
-| `status='completed'`, findings empty | No authentication evidence returned for the window; uncertainty states this is not proof of no activity |
-| `status='failed'`, findings empty | Operational/model/contract failure; inspect `error_code`; never treat this as a clean scenario |
+| Completed, nonempty | Evidence-derived observations; retain uncertainty |
+| Completed, empty | No returned authentication evidence; not proof of no activity |
+| Completed, truncation uncertainty | Partial inventory; counts/sequences cover retrieved records |
+| Failed, empty | Operational/model/contract error; inspect `error_code`, never classify as clean |
 
-Each finding has `finding_id`, `agent_type='authentication'`, `scenario_id`,
+Each finding has `finding_id`, `agent_type: authentication`, `scenario_id`,
 `observed_events`, `timestamps`, `entities`, ordered `evidence_ids`, `uncertainty`
-and optional `interpretation`. Counts, entities, timing and evidence references
-are computed in Python. Model interpretation is restricted to qualified phrases;
-it is not an attack/compromise classification or an M6 verification status.
+and nullable `interpretation`. Metadata records versions, LLM settings, limits
+and call counts. Record runtime version/digest from preflight when needed.
 
-Every cited ID must have been retrieved through the approved tools and must
-resolve exactly to the same record in the same scenario at final readback.
-Missing/changed/fabricated/cross-scenario references fail closed, without partial
-findings. Equal timestamps use ID ordering for reproducibility, not causality.
-Truncated queries explicitly limit the completeness of observations.
+Python computes observations. Optional interpretations are qualified phrases:
+review may be warranted or more context is needed. Authentication patterns alone
+never establish compromise or a common actor. No `verification_status` or
+independent evaluation verdict is emitted.
 
-## Errors and budgets
+Keep exact IDs and original timestamp strings. Citations resolve unchanged within
+the request scope at final readback. Missing, fabricated, changed or cross-scenario
+references fail closed with no partial findings. Equal timestamps imply no causal
+precedence. The `M3-` finding-ID prefix remains a compatibility identifier.
 
-`Limits` controls tool calls, query size, window duration, context/event/output
-bytes, output tokens and the model request timeout. The initial query consumes
-one tool call. Every model turn finishes or requests another bounded tool call.
-Ollama requests have both socket timeouts and a total asynchronous deadline.
-Provider latency is not covered by that deadline; M2 must bound its own I/O.
+## Errors, deadlines and outstanding decisions
+
+Defaults: 8 tool calls, 100 events/query, one-hour window and 60 seconds per model
+request. The new CLI uses context 8192 and thinking disabled. Initial retrieval
+uses one tool call; final consistency reads are bounded separately by the retrieved
+union. A whole investigation can span several model deadlines. Provider latency
+and corpus loading are outside that deadline. The synchronous interface cannot
+forcibly cancel a custom blocking provider.
 
 Typical errors include `model_timeout`, `model_connection_failed`,
-`model_not_installed_or_endpoint_missing`, `incomplete_model_response`,
-`invalid_contract_or_model_response`, `tool_budget_exhausted`,
-`invalid_evidence_reference`, `missing_evidence` and `evidence_changed`.
-Schema-valid input construction may itself raise a Pydantic validation error
-before `investigate` is called; validate M5's request before dispatch.
-Treat adapters as trusted Python integrations, not untrusted plugins.
+`incomplete_model_response`, `invalid_evidence_reference`, `evidence_changed`,
+`missing_evidence`, `tool_scope_violation`, `provider_scope_violation`,
+`tool_budget_exhausted`, `context_size_limit` and
+`invalid_contract_or_model_response`. Request/config construction, preflight and
+corpus loading can raise before dispatch. CLI setup diagnostics (exit 2) are not
+typed investigation results. Exit 3 preserves the completed-but-truncated typed
+result without changing the public schema.
 
-Real Qwen3 validation found that an exact requested tool order is not reliable:
-one directed query exercise selected an allowed exact-event lookup instead.
-Mandatory retrieval must remain deterministic in M3/M5 code. Do not rely on the
-model to fulfill an externally prescribed query plan. All natural scenario
-observations remained evidence-correct, and missing lookup plus tool-budget
-exercises failed or completed according to the existing contract. See the
-[actual validation record](M3_VALIDATION_AND_INTEGRATION.md).
+Qwen3 still fails directed tool-selection checks. Required retrieval must remain
+deterministic; do not depend on model execution of a prescribed follow-up plan.
+See [actual results](AUTHENTICATION_CORPUS_INTEGRATION.md). Do not retry the same
+unsupported response indefinitely.
 
-## Remaining contract decisions
-
-Agree the final shared finding envelope, M2 adapter injection/lifetime, scenario
-and window dispatch, model/configuration ownership, provider timeouts, retry
-policy and any continuation strategy for truncated windows. Correlation, shared
-actor attribution and full incident reconstruction remain M5 responsibilities.
-Independent verification/evaluation remain M6 responsibilities.
-
-## Message to send to M5
-
-> M3 exposes `investigate(request, provider, llm, limits) -> InvestigationResult`
-> and a runnable injection example at `m3/examples/invoke_m3.py`. Requests need a
-> scenario ID and bounded UTC window; supply M2's read-only provider and the local
-> Ollama adapter. Results distinguish completed, empty and failed investigations,
-> preserve evidence IDs and uncertainty, and make no independent verification or
-> compromise verdict. Async callers should use `asyncio.to_thread`. Please confirm
-> the shared result envelope, dispatch/retry policy and provider ownership so we
-> can connect M3 when M2 and the orchestrator are ready.
+Outstanding decisions: final envelope agreement, provider lifetime,
+model/configuration ownership, scenario/window dispatch, whole-run deadlines,
+cancellation, bounded retries and continuation for truncated windows. The Endpoint
+Investigation Agent's findings, cross-source correlation and end-to-end
+reconstruction require their owners' implementations and integration tests.

@@ -1,16 +1,16 @@
-# m2 — Data Processing & Detection (MAIR M2)
+# Event Processing & Detection Engine
 
-M2 turns the original EVTX exports in `datasets/S0*/raw/` into a stable, queryable **normalised
+The engine turns the original EVTX exports in `datasets/S0*/raw/` into a stable, queryable **normalised
 event corpus**, exposes a deterministic read-only **query API**, and runs the **conventional
 (non-LLM) detection baseline** over it, with precision/recall/F1 scoring code ready for agreed
 labels.
 
 Everything here is deterministic, read-only and offline. There is no LLM, no machine learning, no
 anomaly model, no automatic response and no verdict logic: a detection is a *finding*, not a
-conclusion, and M2 never sees the ground truth. The answer key decides what a detection is worth;
-M2 only implements the arithmetic (`docs/M2_DETECTION_METRICS_PROPOSAL.md`).
+conclusion, and the engine never sees the ground truth. The answer key decides what a detection is worth;
+The engine only implements the arithmetic (`docs/M2_DETECTION_METRICS_PROPOSAL.md`).
 
-Owner: M2 (Data Processing & Detection). Branch: `m2/normaliser`.
+Delivered in PR #8. The existing package path remains `m2/`.
 
 ## Contents
 
@@ -35,7 +35,7 @@ Owner: M2 (Data Processing & Detection). Branch: `m2/normaliser`.
 | `m2/schema.py` | the frozen, strict `NormalisedEvent` contract (schema version `m2-event-v1`) |
 | `m2/corpus.py` | writes `<scenario>.jsonl` (sorted by `(timestamp_ticks, evidence_id)`) + `corpus_manifest.json` |
 | `m2/query.py` | `EventStore`: verified load, exact `lookup`, `[start, end)` `query`, bounded helpers |
-| `m2/adapters/m3_provider.py` | `M2AuthenticationProvider`, M3's `AuthenticationEventProvider` over one store |
+| `m2/adapters/m3_provider.py` | `M2AuthenticationProvider`, Authentication Investigation Agent's `AuthenticationEventProvider` over one store |
 | `m2/detection/` | 12 rules, the engine, and the run/summary artefacts (`m2-detect-v1`) |
 | `m2/metrics.py` | P/R/F1 over agreed labels (`m2-score-v1`); no definitions of its own |
 | `m2/__main__.py` | the CLI described below |
@@ -44,13 +44,13 @@ Documents: [`../docs/M2_EVENT_SCHEMA.md`](../docs/M2_EVENT_SCHEMA.md) (field by 
 [`../docs/M2_QUERY_API.md`](../docs/M2_QUERY_API.md) (every function and its semantics),
 [`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) (the rules and the baseline run),
 [`../docs/M2_DETECTION_METRICS_PROPOSAL.md`](../docs/M2_DETECTION_METRICS_PROPOSAL.md) (DRAFT metric
-definitions) and [`../docs/M2_RESPONSE_TO_M6.md`](../docs/M2_RESPONSE_TO_M6.md) (the reply to M6's
+definitions) and [`../docs/M2_RESPONSE_TO_M6.md`](../docs/M2_RESPONSE_TO_M6.md) (the reply to Evidence Verification & Evaluation's
 interface note).
 
 ## Install
 
 CI runs **Python 3.11**; 3.13 is what the project currently develops on. The only runtime
-dependency M2 adds is `python-evtx`; `m2/adapters/m3_provider.py` also imports `m3`.
+dependency the engine adds is `python-evtx`; `m2/adapters/m3_provider.py` also imports `m3`.
 
 ```powershell
 python -m venv .venv
@@ -122,7 +122,7 @@ matching and no nearest neighbour.
 ```text
 {"channel": "Security", "event_data": {"TargetUserName": "SYSTEM", ...},
  "evidence_id": "S02-SEC-43547", ...}          <- one JSON line per matching event
-m2 query: truncated at 1 of 6 matches          <- stderr; more events matched than were returned
+The engine: query: truncated at 1 of 6 matches          <- stderr; more events matched than were returned
 ```
 
 The window is UTC **`[start, end)`**: `start` is included, `end` is excluded. Filters
@@ -143,9 +143,9 @@ S03: 14 detections -> S03.json
 total: 38 detections; summary -> out\detections\summary.json
 ```
 
-`--out` is a directory `detect` owns: stale **M2 run files** there from an earlier corpus revision
+`--out` is a directory `detect` owns: stale **the engine run files** there from an earlier corpus revision
 are removed, so `m2 score` never reads a run that no longer describes the corpus. Only a file whose
-name is `<scenario_id>.json`/`summary.json` *and* whose contents carry the M2 detection schema
+name is `<scenario_id>.json`/`summary.json` *and* whose contents carry the the engine detection schema
 marker (`m2-detect-v1`; the summary also carries the `detection-summary` marker) is removed —
 anything else in the directory is left exactly as it is. `detect` refuses a `--out` that resolves
 inside a `datasets/` or `ground_truth/` tree, or that is the corpus directory, and exits `2`
@@ -171,7 +171,7 @@ report -> out\readme-scores\score_report.json
 ```
 
 Those numbers come from a **synthetic** three-failures-then-success corpus built for this README,
-not from the MAIR scenarios: the real baseline must not be scored until the M2/M1/M6 call agrees
+not from the MAIR scenarios: the real baseline must not be scored until the the engine/Dataset & Ground Truth Management and Evidence Verification & Evaluation call agrees
 the definitions, so no real metric appears anywhere in this repository
 (`../docs/M2_DETECTION_METRICS_PROPOSAL.md`, and task T4.3 is BLOCKED). An undefined metric (`0/0`)
 prints `undefined` and serialises as `null`, never `0`.
@@ -207,9 +207,9 @@ Helpers: `lookup_many(ids)`, `scenario_events(id)`, `process_by_guid(scenario, g
 frozen `QueryLimits(max_window_seconds=3600, max_limit=1000)`. Returned events are frozen models,
 so a consumer cannot mutate the store through them.
 
-### The M3 boundary: `M2AuthenticationProvider`
+### The Authentication Investigation Agent boundary: `M2AuthenticationProvider`
 
-Implements `m3.queries.interface.AuthenticationEventProvider`, so an M3 investigation can run over
+Implements `m3.queries.interface.AuthenticationEventProvider`, so an Authentication Investigation Agent investigation can run over
 the real corpus instead of its synthetic provider:
 
 ```python
@@ -226,15 +226,15 @@ request = QueryRequest(
     event_ids=(4624, 4625),
     limit=5,
 )
-result = provider.query(request)          # m3.models.QueryResult, M3's ordering and semantics
+result = provider.query(request)          # m3.models.QueryResult, authentication ordering and semantics
 result.events[0].evidence_id              # "S02-SEC-43547"
 provider.get_event("S02-SEC-43584")       # m3.models.AuthenticationEvent, or None
 ```
 
 Only Security 4624/4625 become `AuthenticationEvent`; anything else (Sysmon, other Security IDs, a
-malformed ID, an ID the corpus lacks) returns `None`, which is M3's single representation of "no
-such authentication event". M2's own `lookup` keeps the three cases apart when a caller needs them.
-`event_data` values are passed through verbatim — M2 never case-folds, strips a domain or trims an
+malformed ID, an ID the corpus lacks) returns `None`, which is Authentication Investigation Agent's single representation of "no
+such authentication event". The engine's own `lookup` keeps the three cases apart when a caller needs them.
+`event_data` values are passed through verbatim — the engine never case-folds, strips a domain or trims an
 identifier.
 
 ### The detections: `DetectionEngine`
@@ -265,11 +265,11 @@ manifest = normalise_datasets("datasets", "out/corpus")   # the CLI's implementa
 
 ## Contracts
 
-The five invariants agreed with M3–M6, and where each is implemented and proved:
+The five invariants agreed with the downstream components, and where each is implemented and proved:
 
 | # | Invariant | Where | Test |
 |---|---|---|---|
-| I1 | `evidence_id` is scoped `scenario + channel + record`, parsed from the right, and equals M3's `evidence_id_for` | `m2/ids.py` | `test_ids.py`, `test_query_real.py::test_the_colliding_record_id_resolves_to_two_different_events` |
+| I1 | `evidence_id` is scoped `scenario + channel + record`, parsed from the right, and equals Authentication Investigation Agent's `evidence_id_for` | `m2/ids.py` | `test_ids.py`, `test_query_real.py::test_the_colliding_record_id_resolves_to_two_different_events` |
 | I2 | full 100 ns precision, integer arithmetic only, canonical `…fffffffZ` strings | `m2/timeutil.py`, `m2/schema.py` | `test_timeutil.py`, `test_schema.py` |
 | I3 | explicit `found`/`not_found`/`invalid_id`, no fuzzy match, `[start, end)`, `(timestamp_ticks, evidence_id)` order, bounds rejected not clamped, read-only | `m2/query.py` | `test_query.py`, `test_query_real.py` |
 | I4 | every required field on every event, missing optional data is a warning rather than a dropped record | `m2/schema.py`, `m2/normalise.py` | `test_schema.py`, `test_normalise.py` |
@@ -297,13 +297,13 @@ Full detail, including the evidence-ID format and why the scenario prefix is man
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q --basetemp .test-tmp            # the full suite (m3 + m2 + contribution checks)
-.\.venv\Scripts\python.exe -m pytest -q m2/tests --basetemp .test-tmp   # M2 only
+.\.venv\Scripts\python.exe -m pytest -q m2/tests --basetemp .test-tmp   # processing tests only
 ```
 
 Unit tests use small synthetic fixtures in `m2/tests/fixtures/` and `m2/tests/synthetic.py` and run
 everywhere. Tests that need the real EVTX exports go through the `real_evtx` / `real_corpus_dir`
 helpers, which **skip with a reason** when a file is missing or is a Git-LFS pointer — so in CI
-(`lfs: false`) the M2 suite is green with those tests skipped, and locally every anchor, count and
+(`lfs: false`) the the engine suite is green with those tests skipped, and locally every anchor, count and
 digest is checked. A test is never weakened to make a change pass.
 
 The datasets root is `<repo>/datasets`. Set **`M2_DATASETS_DIR`** to run the whole suite in the
@@ -314,6 +314,9 @@ test skips with its reason instead of failing:
 $env:M2_DATASETS_DIR = "$env:TEMP/m2-no-evtx"
 .\.venv\Scripts\python.exe -m pytest -q --basetemp .test-tmp
 ```
+
+For the real authentication entry point and current integration findings, see
+[the integration report](../docs/AUTHENTICATION_CORPUS_INTEGRATION.md).
 
 ## Known limitations
 
@@ -328,7 +331,7 @@ $env:M2_DATASETS_DIR = "$env:TEMP/m2-no-evtx"
   narrower field of view than a real deployment would.
 * **Security and Sysmon spell the same person differently.** Security events carry
   `TargetUserName`/`SubjectUserName` (often `mair_user`), Sysmon events carry `User` (often with a
-  domain). M2 normalises neither: no case folding, no domain stripping, values verbatim, so the
+  domain). The engine normalises neither: no case folding, no domain stripping, values verbatim, so the
   two channels can group the same human under two names. Scoring treats each event as its own unit
   (open question 1 in the metrics proposal).
 * **A field the source does not carry is `None` or `""`, not absent.** `host` and `user` can be
@@ -338,7 +341,7 @@ $env:M2_DATASETS_DIR = "$env:TEMP/m2-no-evtx"
   holding a run can mutate that dictionary in place; treat a run as read-only and copy it before
   storing it. The values are always JSON primitives, so serialisation is unaffected.
 * **`detect --out` owns only its own run files, and refuses two locations.** It removes a direct
-  child only when the name is `<scenario_id>.json`/`summary.json` *and* the contents carry the M2
+  child only when the name is `<scenario_id>.json`/`summary.json` *and* the contents carry the the engine
   detection schema marker; every other file in the directory is left alone, so a `manifest.json`,
   a `package.json` or a foreign `S02.json` survives. A `--out` resolving inside `datasets/` or
   `ground_truth/` (any path component, case-insensitive), or equal to the corpus directory, is
@@ -347,4 +350,4 @@ $env:M2_DATASETS_DIR = "$env:TEMP/m2-no-evtx"
   whatever labels it is given; the unit, the positive label and the excluded category are still
   DRAFT (`../docs/M2_DETECTION_METRICS_PROPOSAL.md`), and the real baseline stays unscored until
   they are agreed.
-* **SQLite, dashboards, ML and response actions are out of scope** for M2 by design.
+* **SQLite, dashboards, ML and response actions are out of scope** for the engine by design.

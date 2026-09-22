@@ -1,3 +1,7 @@
+> Historical handoff/report: numbered role labels and recorded results are preserved.
+> See [component names and current architecture](ARCHITECTURE.md) and the
+> [current authentication integration report](AUTHENTICATION_CORPUS_INTEGRATION.md) for current status.
+
 # M2 → M6: Response to "Corpus Constraints and Query Requirements"
 
 From: M2 — Data Processing & Detection

@@ -15,6 +15,7 @@ test = ["pytest>=8,<10"]
 [project.scripts]
 mair-m3 = "m3.__main__:main"
 mair-m2 = "m2.__main__:main"
+mair-investigate-authentication = "m3.investigate_corpus:main"
 
 [tool.setuptools.packages.find]
 include = ["m3*", "m2*"]

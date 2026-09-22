@@ -1,9 +1,9 @@
-# M2 Normalised Event Schema
+# Event Processing & Detection Engine Normalised Event Schema
 
-Owner: M2 (Data Processing & Detection). Status: implemented, `SCHEMA_VERSION = "m2-event-v1"`.
+Owner: Event Processing & Detection Engine. Status: implemented, `SCHEMA_VERSION = "m2-event-v1"`.
 Source of truth: `m2/schema.py`, `m2/ids.py`, `m2/timeutil.py`, `m2/normalise.py`.
 
-The normalised event is what M2 hands to every other member. It is a frozen, strict,
+The normalised event is what the engine hands to every other member. It is a frozen, strict,
 extra-forbid pydantic v2 model: a consumer cannot mutate a corpus event, and a typo or a type
 slip is an error rather than a silent attribute. The corpus itself is written as one JSON
 object per line under `out/corpus/<scenario>.jsonl`, sorted by `(timestamp_ticks, evidence_id)`,
@@ -50,7 +50,7 @@ invalid, and a lookup for one returns `status="invalid_id"`.
 | field | type | rule |
 |---|---|---|
 | `timestamp_utc` | `str` | exactly `YYYY-MM-DDTHH:MM:SS.fffffffZ` — always seven fractional digits, always `Z` |
-| `timestamp_ticks` | `int` | 100 ns units on M3's `utc_ticks` epoch |
+| `timestamp_ticks` | `int` | 100 ns units on Authentication Investigation Agent's `utc_ticks` epoch |
 
 Both come from the **raw 64-bit FILETIME** of the record's `TimeCreated/@SystemTime`, read
 through the binary-XML substitution node. Conversion is **integer-only**: ticks are never passed
@@ -58,7 +58,7 @@ through `datetime`, `float` or `time`, which would silently truncate to microsec
 `S02-SEC-43584` that difference is visible: the record holds `.0430374`, and python-evtx's own
 renderer prints `.043036`.
 
-`timestamp_ticks = filetime + 504912096000000000` (the FILETIME↔M3 epoch offset, i.e.
+`timestamp_ticks = filetime + 504912096000000000` (the FILETIME↔Authentication Investigation Agent epoch offset, i.e.
 `date(1601, 1, 1).toordinal() * 86400 * 10⁷`), which is also
 `.NET TimeCreated.ToUniversalTime().Ticks + 864000000000`. `m2/timeutil.py` equality with
 `m3.models.utc_ticks` is tested on several values, including a six-digit S01 source and a
@@ -133,7 +133,7 @@ half-read.
 | channel field | `source_channel` | `channel` |
 | window fields | `capture_start_utc` / `capture_end_utc` | `scenario_start_utc` / `scenario_end_utc` |
 
-Every declared source file must exist, be real content and match its declared SHA-256 before M2
+Every declared source file must exist, be real content and match its declared SHA-256 before the engine
 parses it, and a record whose `System/Channel` contradicts its file's manifest channel aborts
 the whole run. An unfetched Git LFS pointer is reported as such rather than as a hash mismatch.
 
@@ -211,7 +211,7 @@ The same record number is `S03-SEC-43584`: Event ID `4688`, `dllhost.exe`, at
 }
 ```
 
-Note that Sysmon's own `UtcTime` field has millisecond precision; M2's `timestamp_ticks` keeps
+Note that Sysmon's own `UtcTime` field has millisecond precision; the engine's `timestamp_ticks` keeps
 the record's full 100 ns precision, which is why the two differ.
 
 ## 7. Change control
@@ -220,9 +220,9 @@ the record's full 100 ns precision, which is why the two differ.
   `schema_version = "m2-corpus-v1"` separately, so a change in *how* files are written is
   distinguishable from a change in *what* an event is.
 * A field rename, a type change, a new required field, a change to the ID format or a change to
-  the `""`/`None`, inclusivity or ordering rules **is a contract change**: it affects M3
-  (`m3/queries/interface.py`, `m3/models.py`, `m3/queries/semantics.py`), M5 and M6. It needs a
-  new `SCHEMA_VERSION`, an entry in M2's response to
+  the `""`/`None`, inclusivity or ordering rules **is a contract change**: it affects Authentication Investigation Agent
+  (`m3/queries/interface.py`, `m3/models.py`, `m3/queries/semantics.py`), Incident Reconstruction Orchestrator and Evidence Verification & Evaluation. It needs a
+  new `SCHEMA_VERSION`, an entry in the engine's response to
   [`docs/M6_TO_M2_INTERFACE_NOTE.md`](M6_TO_M2_INTERFACE_NOTE.md) (items 1–4), and reviewer
   approval before it lands.
 * Adding an optional field with a default, or adding a new scenario directory, is not a

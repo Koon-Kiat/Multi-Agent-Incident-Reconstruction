@@ -1,4 +1,4 @@
-"""Deterministic synthetic development assertions, not M6 verification/scoring."""
+"""Deterministic telemetry checks, not independent evidence verification or scoring."""
 
 from collections.abc import Iterable
 
@@ -10,7 +10,7 @@ def check_synthetic_result(
     retrieved: Iterable[AuthenticationEvent],
     expected_error: str | None = None,
 ) -> list[str]:
-    """Check facts against original fixture records, never a model explanation."""
+    """Check facts against retrieved records, never a model explanation."""
     errors: list[str] = []
 
     def require(condition: bool, message: str) -> None:
@@ -41,7 +41,7 @@ def check_synthetic_result(
         require(finding.interpretation in (None,
             "The observed authentication sequence may warrant further investigation; it does not establish compromise.",
             "Additional context is needed to interpret this authentication activity; no attack classification is made."),
-            "interpretation is not one of the qualified M3 phrases")
+            "interpretation is not one of the qualified authentication interpretation phrases")
         if not finding.evidence_ids or any(eid not in original for eid in finding.evidence_ids):
             errors.append("unknown evidence reference")
             continue

@@ -1,6 +1,6 @@
-# M2 Detection Rules and Baseline Run
+# Event Processing & Detection Engine Detection Rules and Baseline Run
 
-Owner: M2 (Data Processing & Detection). Status: implemented (`m2/detection/schema.py`,
+Owner: Event Processing & Detection Engine. Status: implemented (`m2/detection/schema.py`,
 `m2/detection/rules.py`, `m2/detection/engine.py`, `m2/__main__.py`).
 Companion documents: [`M2_EVENT_SCHEMA.md`](M2_EVENT_SCHEMA.md) for the events the rules read,
 [`M2_QUERY_API.md`](M2_QUERY_API.md) for the query layer underneath them.
@@ -11,7 +11,7 @@ learning, no anomaly scoring, no LLM call and no automatic response here.
 
 The baseline is **not scored** in this document. There are no labels, no precision, recall or
 F1, and no statement about which detections are correct. Metric definitions are a joint
-M2/M1/M6 decision; M2's proposal is `docs/M2_DETECTION_METRICS_PROPOSAL.md` (DRAFT — not agreed,
+The engine/Dataset & Ground Truth Management and Evidence Verification & Evaluation decision; the engine's proposal is `docs/M2_DETECTION_METRICS_PROPOSAL.md` (DRAFT — not agreed,
 and the baseline must not be scored until it is). The scoring code and the label-file format are
 implemented and tested (`m2/metrics.py`), but they are arithmetic over whatever labels are agreed,
 not a definition of their own.
@@ -86,7 +86,7 @@ changes later.
 
 `--out` is a directory `detect` owns, but only for the artefacts it writes itself: after writing
 this run, it removes a direct child only when **both** hold — the name is `<scenario_id>.json` or
-`summary.json`, and the contents carry the M2 schema marker (`schema_version` `m2-detect-v1`, with
+`summary.json`, and the contents carry the the engine schema marker (`schema_version` `m2-detect-v1`, with
 a matching `scenario_id` in a scenario file, or the `detection-summary` marker in the summary). A
 run left over from an earlier corpus revision is removed for that reason, because `m2 score` or
 anything that globs the directory would otherwise read it as current. Everything else is left
@@ -132,7 +132,7 @@ never share a trigger. `severity` is the rule's coarse signal strength; it is no
 probability or a priority.
 
 `triggers_for(scenario_id)` returns a scenario's detections ordered by
-`(window_start_utc, detection_id)`, for a consumer that wants to route windows to M3/M4 without
+`(window_start_utc, detection_id)`, for a consumer that wants to route windows to Authentication Investigation Agent/Endpoint Investigation Agent without
 reading the files. `DetectionEngine.run(scenario_id)` returns the full `DetectionRun`.
 
 **Determinism.** Two runs over the same corpus write byte-identical files: sorted keys, `\n`
@@ -349,9 +349,9 @@ phase 5, and only because the file gained the `detection-summary` marker describ
 * **R-FILE-01 fired three times in each lab scenario** and never in S01, always medium.
 * **R-CRED-01 fired only in S01** (two high detections).
 * **R-LOG-01 fired exactly once in every scenario**, including the two lab scenarios. This is the
-  runbook's log reset, the corpus property M6's interface note describes. Treating it as
+  runbook's log reset, the corpus property Evidence Verification & Evaluation's interface note describes. Treating it as
   operator/scaffolding activity (tallied separately rather than counted as a detection) is a
-  joint M2/M1/M6 decision, proposed in `docs/M2_DETECTION_METRICS_PROPOSAL.md`; it is
+  joint the engine/Dataset & Ground Truth Management and Evidence Verification & Evaluation decision, proposed in `docs/M2_DETECTION_METRICS_PROPOSAL.md`; it is
   **not** decided here.
 * **Six rules produced no detection at all on this corpus:** R-AUTH-02, R-EXEC-02, R-EXEC-03 and
   the three persistence rules. The corpus holds no Security 4697 or 4698 record, no Sysmon 13

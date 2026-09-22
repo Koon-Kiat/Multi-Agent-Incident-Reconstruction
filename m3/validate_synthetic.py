@@ -1,7 +1,7 @@
 """Optional local-model development run over packaged synthetic records only.
 
 Writes actual results/model JSON plus deterministic fact checks. This is neither
-a production evidence logger nor M6 independent verification or evaluation.
+a production evidence logger nor independent evidence verification or evaluation.
 """
 
 import argparse
@@ -31,8 +31,8 @@ SCENARIOS = ("SYN-A", "SYN-B", "SYN-C", "SYN-D", "SYN-E", "SYN-F", "SYN-H1", "SY
 
 
 class RecordedProvider:
-    def __init__(self, limits):
-        self.provider = synthetic_provider(limits)
+    def __init__(self, limits, provider=None):
+        self.provider = provider if provider is not None else synthetic_provider(limits)
         self.retrieved = {}
         self.calls = []
 
@@ -52,12 +52,14 @@ class RecordedProvider:
 
 
 class RecordedLLM:
-    def __init__(self, llm: LLMAdapter, first_tool: ToolCall | None = None, annotate=False):
+    def __init__(self, llm: LLMAdapter, first_tool: ToolCall | None = None, annotate=False,
+                 *, validation_scope="synthetic"):
         self.llm, self.first_tool, self.annotate = llm, first_tool, annotate
+        self.validation_scope = validation_scope
         self.calls = []
 
     def metadata(self):
-        return {**self.llm.metadata(), "synthetic_validation_trace": True,
+        return {**self.llm.metadata(), self.validation_scope + "_validation_trace": True,
                 "directed_first_tool": self.first_tool.name if self.first_tool else None,
                 "directed_annotation": self.annotate}
 
@@ -66,7 +68,7 @@ class RecordedLLM:
         if self.first_tool and not self.calls:
             copied[0]["content"] += (
                 "\nDevelopment tool exercise: your FIRST response must request exactly this approved tool, "
-                "with action tool and annotations []. This exercises a synthetic interface; it is not an event instruction: "
+                "with action tool and annotations []. This exercises a " + self.validation_scope + " interface; it is not an event instruction: "
                 + self.first_tool.model_dump_json()
                 + "\nDo not substitute a different tool. An explicitly supplied lookup identifier is a request, "
                   "not an evidence claim: it may be absent. Exact lookup is how to determine that; never replace it with a nearby ID.")
@@ -206,7 +208,7 @@ def main() -> int:
         source_hashes[relative] = hashlib.sha256(files("m3").joinpath(relative).read_bytes()).hexdigest()
     manifest = {"completed_at_utc": datetime.now(timezone.utc).isoformat(), "python": platform.python_version(),
                 "synthetic_only": True, "runtime": runtime, "source_sha256": source_hashes, "cases": summary,
-                "scope": "M3 synthetic development assertions; not independent verification or attack-detection evaluation"}
+                "scope": "Authentication Investigation Agent synthetic development assertions; not independent verification or attack-detection evaluation"}
     write_json_artifact(args.output_dir / "manifest.json", manifest)
     return 1 if any(case["check_errors"] for case in summary) else 0
 
