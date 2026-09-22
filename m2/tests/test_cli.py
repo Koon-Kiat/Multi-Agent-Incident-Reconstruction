@@ -2,21 +2,23 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 
-from m2.__main__ import EXIT_FAILED, EXIT_NOT_IMPLEMENTED, EXIT_OK, build_parser, main
+from m2.__main__ import EXIT_FAILED, EXIT_INVALID_INPUT, EXIT_NOT_IMPLEMENTED, EXIT_OK, build_parser, main
+from m2.corpus import write_manifest, write_scenario
 from m2.evtx_reader import RawRecord
-from m2.tests.synthetic import SECURITY, SYSMON, build_scenario_dir
+from m2.manifest import load_scenario
+from m2.tests.synthetic import SECURITY, SYSMON, build_scenario_dir, make_event
+from m2.timeutil import iso_to_ticks
 
 SUBCOMMANDS = ("normalise", "lookup", "query", "detect", "score")
-UNIMPLEMENTED = (
-    ["lookup", "S02-SEC-43584"],
-    ["query", "S02", "--start", "2026-09-21T02:04:38.9439270Z", "--end", "2026-09-21T02:06:18.3126076Z"],
-    ["detect"],
-    ["score", "--labels", "labels.csv"],
-)
+UNIMPLEMENTED = (["detect"], ["score", "--labels", "labels.csv"])
+
+WINDOW_START = "2026-09-21T02:05:00.0000000Z"
+WINDOW_END = "2026-09-21T02:06:00.0000000Z"
 
 
 def test_help_lists_every_subcommand(capsys):
@@ -73,3 +75,68 @@ def _two_records_per_file(path: Path):
             event_data={},
             raw_xml="<Event/>",
         )
+
+
+def _write_corpus(tmp_path: Path) -> Path:
+    """A verified corpus with one 4624 and one 4625, written the way normalise writes it."""
+    info = load_scenario(build_scenario_dir(tmp_path / "datasets", "lab"))
+    out = tmp_path / "corpus"
+    events = [
+        make_event(record_id=1, event_id=4624, timestamp_ticks=iso_to_ticks("2026-09-21T02:05:30.0000000Z")),
+        make_event(record_id=2, event_id=4625, timestamp_ticks=iso_to_ticks("2026-09-21T02:05:35.0000000Z")),
+    ]
+    write_manifest(out, [write_scenario(out, info, events)])
+    return out
+
+
+def test_lookup_prints_the_event_as_json(tmp_path: Path, capsys):
+    corpus = _write_corpus(tmp_path)
+    assert main(["lookup", "SYN-B-SEC-1", "--corpus", str(corpus)]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert (payload["evidence_id"], payload["record_id"], payload["source_event_id"]) == ("SYN-B-SEC-1", 1, 4624)
+
+
+def test_lookup_separates_absent_from_malformed(tmp_path: Path, capsys):
+    corpus = _write_corpus(tmp_path)
+    assert main(["lookup", "SYN-B-SEC-9", "--corpus", str(corpus)]) == EXIT_FAILED
+    assert "is not in" in capsys.readouterr().err
+    assert main(["lookup", "nope", "--corpus", str(corpus)]) == EXIT_INVALID_INPUT
+    assert "malformed" in capsys.readouterr().err
+
+
+def test_lookup_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, capsys):
+    assert main(["lookup", "SYN-B-SEC-1", "--corpus", str(tmp_path / "absent")]) == EXIT_FAILED
+    assert "corpus manifest" in capsys.readouterr().err
+
+
+def test_query_prints_one_event_per_line_and_filters(tmp_path: Path, capsys):
+    corpus = _write_corpus(tmp_path)
+    argv = [
+        "query",
+        "SYN-B",
+        "--start",
+        WINDOW_START,
+        "--end",
+        WINDOW_END,
+        "--corpus",
+        str(corpus),
+        "--event-id",
+        "4624",
+    ]
+    assert main(argv) == EXIT_OK
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert [line["evidence_id"] for line in lines] == ["SYN-B-SEC-1"]
+
+
+def test_query_reports_truncation_on_stderr(tmp_path: Path, capsys):
+    corpus = _write_corpus(tmp_path)
+    argv = ["query", "SYN-B", "--start", WINDOW_START, "--end", WINDOW_END, "--corpus", str(corpus), "--limit", "1"]
+    assert main(argv) == EXIT_OK
+    assert "truncated at 1 of 2 matches" in capsys.readouterr().err
+
+
+def test_query_rejects_an_unusable_window(tmp_path: Path, capsys):
+    corpus = _write_corpus(tmp_path)
+    argv = ["query", "SYN-B", "--start", WINDOW_END, "--end", WINDOW_START, "--corpus", str(corpus)]
+    assert main(argv) == EXIT_INVALID_INPUT
+    assert "strictly before" in capsys.readouterr().err
