@@ -44,8 +44,9 @@ Documents: [`../docs/M2_EVENT_SCHEMA.md`](../docs/M2_EVENT_SCHEMA.md) (field by 
 [`../docs/M2_QUERY_API.md`](../docs/M2_QUERY_API.md) (every function and its semantics),
 [`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) (the rules and the baseline run),
 [`../docs/M2_DETECTION_METRICS_PROPOSAL.md`](../docs/M2_DETECTION_METRICS_PROPOSAL.md) (DRAFT metric
-definitions) and [`../docs/M2_RESPONSE_TO_M6.md`](../docs/M2_RESPONSE_TO_M6.md) (the reply to M6's
-interface note).
+definitions), [`../docs/M2_RESPONSE_TO_M6.md`](../docs/M2_RESPONSE_TO_M6.md) (the reply to M6's
+interface note) and [`../docs/M2_TO_M3_REPLY.md`](../docs/M2_TO_M3_REPLY.md) (the reply to M3's
+integration handoff, including the provider contract-suite result).
 
 ## Install
 
