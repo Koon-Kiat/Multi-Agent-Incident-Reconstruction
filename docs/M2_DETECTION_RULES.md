@@ -69,7 +69,6 @@ binaries and therefore several techniques: its `attack_technique` field carries 
 its **first trigger**, and its `rationale` names every technique the burst covers. Single hits
 carry their own binary's technique.
 
-
 The exact values travel with every run: each `DetectionRun` records its rules as
 `{rule_id, version, params}`, so a stored run states the thresholds it used even if the source
 changes later.
