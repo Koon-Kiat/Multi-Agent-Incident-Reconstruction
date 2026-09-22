@@ -184,9 +184,9 @@ silent false negative. Every detection run must also name that corpus's manifest
 being scored against the wrong events. An unreadable label file or detection run — bad encoding,
 broken CSV/JSON, a locked or permission-denied file, or a directory sitting where a
 `<scenario>.json` run file is expected — exits `2` with a one-line message, never a traceback.
-`--out` is refused inside `datasets/` or
-`ground_truth/`. The report lists **every rule that ran**, including a rule that flagged nothing
-(its false negatives are part of the picture). The output shape is:
+`--out` is refused inside `datasets/` or `ground_truth/`. The report lists **every rule that ran**,
+including a rule that flagged nothing (its false negatives are part of the picture). The output
+shape is:
 
 ```text
 overall: TP=1 FP=2 FN=0 precision=0.333 recall=1.000 f1=0.500 (flagged=4, positives=1, excluded=1, flagged_excluded=1, unflagged_excluded=0)

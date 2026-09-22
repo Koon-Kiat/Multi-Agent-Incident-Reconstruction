@@ -261,7 +261,8 @@ group and is never merged with `""` or with a real name.
 
 ### R-EXEC-02 (version 2): the image match and double counting
 
-Version 2 asks two separate questions, and the second answer does not need the first.
+Two properties of the version-2 match are worth stating explicitly, because both change how a
+consumer reads the output.
 
 * **The process image can supply "is PowerShell" without the command line naming it.** The rule
   fires when the event's own process image basename is `powershell.exe`/`pwsh.exe` (a 4688
