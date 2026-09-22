@@ -1,0 +1,96 @@
+r"""Shared M2 test helpers.
+
+``real_evtx(scenario, channel)`` returns the path to an original EVTX export and skips the
+test when the file is absent or is a Git LFS pointer. CI checks out the datasets with
+``lfs: false``, so the original evidence is never present there and those tests must skip
+rather than fail. Skips are explicit and name the reason; nothing is marked ``xfail``.
+
+The datasets root is ``<repo>/datasets`` by default. Set ``M2_DATASETS_DIR`` to point the helpers
+somewhere else — an empty directory simulates the CI checkout (every real-data test skips with a
+reason) without touching the real exports, so the CI-shaped suite can be run locally:
+
+```powershell
+$env:M2_DATASETS_DIR = "$env:TEMP/m2-no-evtx"; .\.venv\Scripts\python.exe -m pytest -q m2/tests
+```
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import pytest
+
+from m2.manifest import is_lfs_pointer
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DATASETS_DIR = REPO_ROOT / "datasets"
+M2_DATASETS_DIR_ENV_VAR = "M2_DATASETS_DIR"
+
+CHANNEL_FILENAMES = {
+    "Security": "Security.evtx",
+    "Microsoft-Windows-Sysmon/Operational": "Sysmon.evtx",
+}
+
+
+def datasets_dir() -> Path:
+    """The datasets root: ``$M2_DATASETS_DIR`` when set, else this repository's ``datasets/``."""
+    override = os.environ.get(M2_DATASETS_DIR_ENV_VAR)
+    return Path(override) if override else DATASETS_DIR
+
+
+def _display(path: Path) -> str:
+    """Repo-relative path for messages; absolute when the path lives outside the repo."""
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def real_evtx(scenario: str, channel: str) -> Path:
+    """Return ``datasets/<scenario>/raw/<channel>.evtx``, skipping when it is not usable.
+
+    ``channel`` is the Windows channel name (``Security`` or
+    ``Microsoft-Windows-Sysmon/Operational``), not a filename.
+    """
+    try:
+        filename = CHANNEL_FILENAMES[channel]
+    except KeyError:
+        raise ValueError(f"unknown channel {channel!r}; expected one of {sorted(CHANNEL_FILENAMES)}") from None
+    path = datasets_dir() / scenario / "raw" / filename
+    if not path.is_file():
+        pytest.skip(f"original evidence {_display(path)} is absent (Git LFS content not fetched)")
+    if is_lfs_pointer(path):
+        pytest.skip(f"original evidence {_display(path)} is a Git LFS pointer (Git LFS content not fetched)")
+    return path
+
+
+@pytest.fixture(name="real_evtx_path")
+def real_evtx_path_fixture():
+    """Fixture form of :func:`real_evtx`, for tests that take fixtures."""
+    return real_evtx
+
+
+SCENARIOS = ("S01", "S02", "S03")
+
+
+def real_datasets() -> Path:
+    """Return the datasets root, skipping when any of the six exports is unusable."""
+    for scenario in SCENARIOS:
+        for channel in CHANNEL_FILENAMES:
+            real_evtx(scenario, channel)
+    return datasets_dir()
+
+
+@pytest.fixture(scope="session")
+def real_corpus_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Normalise the real datasets once per session, wherever a test needs a real corpus.
+
+    Skips, through :func:`real_datasets`, when the evidence is absent or an LFS pointer. One
+    session-scoped build keeps the real tests affordable; the corpus is read-only to tests.
+    """
+    from m2.corpus import normalise_datasets
+
+    out = tmp_path_factory.mktemp("m2-real-corpus")
+    normalise_datasets(real_datasets(), out)
+    return out
