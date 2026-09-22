@@ -118,7 +118,7 @@ Two related facts you may want for M5/M6 ordering work:
 Two additions that matter for a verification path: an oversized window or limit is **rejected with
 an error, never silently clamped**, and a result that stopped early reports `truncated=True` with the
 true `total_matched` (`test_query.py::test_an_oversized_window_is_rejected_not_clamped`,
-`::test_truncated_is_reported_with_the_true_total`). Filters are exact, case-sensitive equality;
+`::test_truncation_is_reported_with_the_true_total`). Filters are exact, case-sensitive equality;
 `None` means "no filter" and `""` matches a real empty value only
 (`test_query.py::test_filters_are_exact_and_case_sensitive`, `::test_none_means_no_filter_and_an_empty_collection_matches_nothing`).
 
