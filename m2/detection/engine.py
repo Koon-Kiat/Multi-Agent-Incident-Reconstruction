@@ -55,7 +55,7 @@ from m2.detection.schema import (
     run_to_json,
     summary_to_json,
 )
-from m2.ids import SCENARIO_ID_RE
+from m2.ids import SCENARIO_ID_RE, is_reserved_scenario_id
 from m2.manifest import sha256_file
 from m2.protected_paths import PROTECTED_OUTPUT_TREE_NAMES, protected_output_component
 from m2.query import EventStore
@@ -80,6 +80,12 @@ class DetectionEngine:
     """
 
     def __init__(self, store: EventStore, *, corpus_manifest_sha256: str, rules: tuple[Rule, ...] = RULES) -> None:
+        reserved = sorted(scenario_id for scenario_id in store.scenario_ids if is_reserved_scenario_id(scenario_id))
+        if reserved:
+            raise DetectionError(
+                f"scenario id {reserved[0]!r} is reserved; its run file would collide with "
+                f"detect's own {SUMMARY_FILENAME}"
+            )
         self._store = store
         self._corpus_manifest_sha256 = corpus_manifest_sha256
         self._rules = rules

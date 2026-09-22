@@ -37,6 +37,17 @@ EVIDENCE_ID_RE = re.compile(r"^(?P<scenario>[A-Za-z0-9_-]{1,80})-(?P<code>SEC|SY
 # Same character set as the scenario group of the pattern above (m3.models.ScenarioId).
 SCENARIO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 
+# ``detect`` writes one ``<scenario_id>.json`` per scenario plus its own ``summary.json``, so a
+# scenario whose id is ``summary`` would make the two collide. The name is reserved everywhere a
+# scenario id enters M2 (the dataset manifest and the detection engine), case-insensitively
+# because a Windows filesystem would collide ``Summary.json`` with ``summary.json`` anyway.
+RESERVED_SCENARIO_IDS = frozenset({"summary"})
+
+
+def is_reserved_scenario_id(scenario_id: str) -> bool:
+    """True when ``scenario_id`` is a name an M2 artefact already owns."""
+    return scenario_id.casefold() in RESERVED_SCENARIO_IDS
+
 
 class EvidenceRef(BaseModel):
     """The three parts an ``evidence_id`` round-trips to."""

@@ -309,6 +309,23 @@ def test_detect_refuses_to_write_into_the_corpus_directory(corpus_dir: Path):
     assert (corpus_dir / CORPUS_MANIFEST_FILENAME).is_file()
 
 
+@pytest.mark.parametrize("scenario_id", ["summary", "Summary"])
+def test_detect_refuses_the_reserved_scenario_id_summary(tmp_path: Path, scenario_id: str):
+    # B4: `<scenario>.json` for a scenario named `summary` is `summary.json`, the name detect
+    # reserves for its own counts. Case-insensitively, as a Windows filesystem would collide.
+    info = load_scenario(build_scenario_dir(tmp_path / "datasets", "lab"))
+    reserved = info.model_copy(update={"scenario_id": scenario_id})
+    events = (make_event(scenario_id=scenario_id, record_id=1, event_id=4624),)
+    corpus = tmp_path / "corpus"
+    write_manifest(corpus, [write_scenario(corpus, reserved, events)])
+    out = tmp_path / "detections"
+
+    with pytest.raises(DetectionError, match="reserved"):
+        write_detections(corpus, out)
+
+    assert not out.exists()
+
+
 def test_detect_refuses_to_overwrite_a_foreign_scenario_file(corpus_dir: Path, tmp_path: Path):
     # B5: detect owns `--out`, but a file it did not write is still the caller's data. A foreign
     # `SYN-B.json` must stop the whole run before anything — including summary.json — is written.
