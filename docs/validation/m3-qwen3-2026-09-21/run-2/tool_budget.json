@@ -1,0 +1,77 @@
+{
+  "case": "tool_budget",
+  "elapsed_seconds": 0.926,
+  "check_errors": [],
+  "expected_error": "tool_budget_exhausted",
+  "result": {
+    "status": "failed",
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [],
+    "error_code": "tool_budget_exhausted",
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "m3-provisional-v1",
+      "prompt_version": "m3-authentication-v2",
+      "configuration_version": "m3-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11435",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": "get_authentication_event",
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 1,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "a6b839d6d31580635caff836a76357db70ede58e743241c21b4316dd2e3bfe0f",
+      "reply": "{\"action\":\"tool\",\"tool\":{\"name\":\"get_authentication_event\",\"arguments\":{\"evidence_id\":\"SYN-A-SEC-1\"}},\"annotations\":[]}",
+      "elapsed_seconds": 0.921
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-A",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-A-SEC-1",
+        "SYN-A-SEC-2",
+        "SYN-A-SEC-3",
+        "SYN-A-SEC-4"
+      ],
+      "truncated": false
+    }
+  ]
+}

@@ -40,6 +40,22 @@ The provisional runtime defaults are temperature 0, seed 0 and a 32768-token
 context. They are not a team model selection or a reproducibility guarantee for
 different runtime/model versions or hardware.
 
+Real local validation has now been performed with the user's selected
+`qwen3:8b` (provisional, not a team-wide model decision). The tested profile is
+an 8192-token context and thinking disabled:
+
+```powershell
+$env:MAIR_OLLAMA_MODEL = 'qwen3:8b'
+$env:MAIR_OLLAMA_NUM_CTX = '8192'
+$env:MAIR_OLLAMA_THINK = 'off'
+```
+
+The equivalent CLI flags are `--num-ctx 8192 --think off`. `--think auto` leaves
+the runtime default unchanged; `on` and `off` explicitly select thinking behavior
+for compatible models. These settings do not alter evidence validation or the
+60-second request deadline. See the [validation report](../docs/M3_VALIDATION_AND_INTEGRATION.md)
+for actual successes, initial failures, model limitations and local-only startup.
+
 Use an Ollama server configured for local-only operation. Set
 `OLLAMA_NO_CLOUD=1` in the environment of the **server**, then restart it, or use
 Ollama's `disable_ollama_cloud` server setting. Setting it only in the client shell
@@ -241,8 +257,33 @@ requested; handle that output according to your local evidence policy.
 
 Metadata records the requested model, endpoint, generation configuration, limits,
 prompt/configuration/contract versions and call counts. Runtime binary version,
-model digest and hardware are not automatically captured; record these alongside
-real evaluation runs. The fake mode is deterministic. Local LLM runs may differ.
+and model digest are not automatically captured; record these alongside real
+evaluation runs. Keep personal system specifications out of shared artifacts.
+The fake mode is deterministic. Local LLM runs may differ.
+
+The optional synthetic validation runner captures runtime version, installed model
+digest, source hashes, actual assistant JSON, provider-call receipts, results and
+deterministic development checks:
+
+```powershell
+python -m m3.validate_synthetic --mode ollama --model qwen3:8b --endpoint http://127.0.0.1:11435 --num-ctx 8192 --think off --output-dir .m3-runtime/reproduction
+```
+
+Use a new/empty output directory. This runner only uses packaged synthetic events;
+it is not a production logger, a model-performance benchmark, or M6 verification.
+It exits nonzero if a development check fails. The recorded Qwen run includes a
+failed exact tool-selection exercise; do not present its suite as entirely green.
+The normal scenario findings still passed all factual checks. Unprompted runs
+returned null interpretations; a separate directed exercise produced a qualified
+interpretation. Native Ollama function-calling is not claimed: approved actions
+are emitted through M3's structured JSON action protocol and dispatched by Python.
+
+Focused integration handoffs and ready-to-send messages are available for
+[M2](../docs/M3_TO_M2_HANDOFF.md) and [M5](../docs/M3_TO_M5_HANDOFF.md).
+Run the reusable M2 contract suite with
+`python -m pytest -q m3/tests/test_provider_contract.py`, and the programmatic M5
+example with `python -m m3.examples.invoke_m3` (add `--ollama` for a configured
+local model). M2/M5 delivery and final shared-contract agreement remain pending.
 
 ## Fixtures and tests
 
