@@ -24,6 +24,8 @@ Failed-logon rules (R-AUTH-01/02)
 
 Both rules evaluate each ``(user, host)`` group independently, over that group's events in
 ``(timestamp_ticks, evidence_id)`` order, with ``W`` = :data:`FAILED_LOGON_WINDOW_SECONDS`.
+R-AUTH-01 is evaluated first and R-AUTH-02 is defined as its complement over that group's
+failures, so the two rules are **disjoint**: no failure is a trigger of both.
 
 * **R-AUTH-01 is anchored on each success.** For every 4624 ``S`` of the group, ``F(S)`` is the
   4625s of the group with ``t(S) - W <= t(F) < t(S)``: the failures inside the W seconds that end
@@ -31,19 +33,20 @@ Both rules evaluate each ``(user, host)`` group independently, over that group's
   attempt in the same 100 ns tick) does not count. When ``len(F(S)) >= FAILED_LOGON_MIN_EVENTS``,
   ``S`` yields one detection whose triggers are ``F(S)`` followed by ``S`` and whose window is
   ``[min t(F(S)), t(S)]``. Failures *after* ``S`` are none of this detection's business.
-* **R-AUTH-02 is anchored on the failure burst.** Split the group's failures into maximal runs
-  where each consecutive pair is at most ``W`` apart, then slide a W-window over each run: a
-  burst is any set of at least ``FAILED_LOGON_MIN_EVENTS`` failures inside one W window. A burst
-  qualifies only when **no** 4624 of the group lies in ``(t(first failure), t(last failure) + W]``.
-  The open lower bound is what lets failures that follow a success be judged on their own; the
-  upper bound is what makes the rule's "no successful logon inside that same span" literally
-  true. Overlapping qualifying bursts merge, per maximal run, into one detection holding every
-  failure of the merged segment — the merged span is exactly the union of those bursts' spans,
-  so the claim holds for the whole segment.
+* **R-AUTH-02 is anchored on the failure burst**, over the group's **uncovered** failures only:
+  the failures that are not a trigger of any R-AUTH-01 detection in the group. A burst starts at
+  each uncovered failure ``t_i`` and covers the uncovered failures in ``[t_i, t_i + W)``; it
+  qualifies with at least ``FAILED_LOGON_MIN_EVENTS`` of them, and overlapping qualifying bursts
+  merge into one detection holding every uncovered failure of the merged segment. So the rule's
+  claim — ``FAILED_LOGON_MIN_EVENTS`` failed logons not followed by a qualifying successful
+  logon — is true of every detection it emits, and a burst no success can confirm is reported
+  even when an unrelated 4624 sits nearby.
 
-Neither decision depends on where a grouping window happened to start, and R-AUTH-02's triggers
-are never inside an R-AUTH-01 ``F(S)``: a failure that some success had claimed would have put
-that success inside the burst's span and disqualified the burst.
+Neither decision depends on where a grouping window happened to start. A failure and a success
+logged in the same 100 ns tick are not an ordered pair: R-AUTH-01's ``F(S)`` excludes the failure
+because it is not strictly before ``S``, so that failure is uncovered and R-AUTH-02 judges it on
+its own (three such failures are a burst). That is accepted and documented rather than
+special-cased.
 
 Windowed rule (``_windows``, used by R-EXEC-01)
 -----------------------------------------------
@@ -249,7 +252,8 @@ def detect_failed_logon_then_success(events: Sequence[NormalisedEvent]) -> tuple
     Anchored on each success, per task_plan.md T3.2 (see the module docstring): the confirming
     failures are the 4625s of the same ``(user, host)`` group in ``[t(S) - W, t(S))``. Two close
     successes can confirm the same failures, and each still yields its own detection with its own
-    ``detection_id`` (named after its success).
+    ``detection_id`` (named after its success). The failures these detections trigger on are
+    exactly the complement R-AUTH-02 works from (amendment A1).
     """
     spec = _SPEC_BY_ID["R-AUTH-01"]
     detections: list[Detection] = []
@@ -274,31 +278,46 @@ def detect_failed_logon_then_success(events: Sequence[NormalisedEvent]) -> tuple
 
 
 def detect_failed_logon_burst(events: Sequence[NormalisedEvent]) -> tuple[Detection, ...]:
-    """R-AUTH-02: every failed-logon burst no success of that account can claim (T1110).
+    """R-AUTH-02: every failed-logon burst no R-AUTH-01 detection claims (T1110).
 
-    Anchored on the failures, per task_plan.md T3.2 (see the module docstring): a burst is
-    ``FAILED_LOGON_MIN_EVENTS`` failures inside one ``W``-second window of a maximal run, and it
-    is only reported when no 4624 of the group lies in ``(first failure, last failure + W]``.
-    Failures after a success are judged on their own, so a burst that follows one is reported
-    only when no success follows it within ``W``.
+    Anchored on the burst, per task_plan.md T3.2's "Planner amendment A1" (see the module
+    docstring): the rule sees only the group's **uncovered** failures — those no R-AUTH-01
+    detection triggers on — and reports each merged run of ``FAILED_LOGON_MIN_EVENTS`` uncovered
+    failures that fit inside one ``W``-second window. Because the triggers are exactly the
+    failures no success could confirm, the rule's claim is true by construction and the two
+    failed-logon rules never share a failure.
     """
     spec = _SPEC_BY_ID["R-AUTH-02"]
+    claimed = _claimed_trigger_ids(events)
     detections: list[Detection] = []
     for account in _failed_logon_accounts(events):
-        failures, successes = _failed_logon_group(events, account)
-        for segment in _unclaimed_failed_logon_segments(failures, successes):
+        failures, _ = _failed_logon_group(events, account)
+        for segment in _uncovered_burst_segments(failures, claimed):
             detections.append(
                 _detection(
                     spec,
                     segment,
                     rationale=(
-                        f"{len(segment)} failed logons for {_describe_account(*account)}, with no "
-                        f"successful logon for the same account inside that same span (from its "
-                        f"first failure until {FAILED_LOGON_WINDOW_SECONDS}s after its last)"
+                        f"{len(segment)} failed logons for {_describe_account(*account)}, not "
+                        "followed by a qualifying successful logon (R-AUTH-01)"
                     ),
                 )
             )
     return _ordered(detections)
+
+
+def _claimed_trigger_ids(events: Sequence[NormalisedEvent]) -> frozenset[str]:
+    """Every evidence id an R-AUTH-01 detection triggers on, for A1's uncovered complement.
+
+    Taking the ids from the rule's own detections (rather than re-deriving ``F(S)``) is what
+    makes "a trigger of an R-AUTH-01 detection" literally the condition A1 names, and keeps the
+    two rules disjoint even if R-AUTH-01's anchor rule changes later.
+    """
+    return frozenset(
+        evidence_id
+        for detection in detect_failed_logon_then_success(events)
+        for evidence_id in detection.trigger_evidence_ids
+    )
 
 
 def _failed_logon_accounts(
@@ -355,71 +374,32 @@ def _confirming_failures(
     )
 
 
-def _unclaimed_failed_logon_segments(
-    failures: Sequence[NormalisedEvent], successes: Sequence[NormalisedEvent]
+def _uncovered_burst_segments(
+    failures: Sequence[NormalisedEvent], claimed: frozenset[str]
 ) -> tuple[tuple[NormalisedEvent, ...], ...]:
-    """Every failure segment whose burst no 4624 of the group can claim (T3.2).
+    """Every merged burst of the failures no R-AUTH-01 detection claims (A1).
 
-    Within each maximal run, a candidate burst is the failures inside one ``W``-second window
-    from an anchor at every failure. A candidate qualifies when it holds
-    :data:`FAILED_LOGON_MIN_EVENTS` failures and no success lies in
-    ``(t(first failure), t(last failure) + W]``; qualifying bursts that overlap in the run merge
-    into one segment, and a segment's triggers are every failure it spans.
+    A candidate burst starts at each uncovered failure ``t_i`` and covers the uncovered failures
+    in ``[t_i, t_i + W)`` — the anchor is included, the far end is not, exactly as
+    :func:`_confirming_failures` is half-open at the other end. A candidate qualifies when it
+    holds :data:`FAILED_LOGON_MIN_EVENTS` failures; candidates that overlap in the uncovered
+    sequence merge into one segment, and a segment's triggers are every uncovered failure it
+    spans, in ``(timestamp_ticks, evidence_id)`` order.
     """
     span = FAILED_LOGON_WINDOW_SECONDS * TICKS_PER_SECOND
-    segments: list[tuple[NormalisedEvent, ...]] = []
-    for run in _maximal_runs(failures, span):
-        merged: list[list[int]] = []
-        for anchor in range(len(run)):
-            last = _burst_end(run, anchor, span)
-            if last - anchor < FAILED_LOGON_MIN_EVENTS:
-                continue
-            if _success_inside(run[anchor], run[last - 1], successes, span):
-                continue
-            if merged and anchor <= merged[-1][1]:
-                merged[-1][1] = max(merged[-1][1], last - 1)
-            else:
-                merged.append([anchor, last - 1])
-        segments.extend(tuple(run[start : end + 1]) for start, end in merged)
-    return tuple(segments)
-
-
-def _maximal_runs(
-    failures: Sequence[NormalisedEvent], span: int
-) -> tuple[tuple[NormalisedEvent, ...], ...]:
-    """``failures`` split wherever two consecutive failures are more than ``span`` apart (T3.2)."""
-    runs: list[list[NormalisedEvent]] = []
-    for event in failures:
-        if runs and event.timestamp_ticks - runs[-1][-1].timestamp_ticks <= span:
-            runs[-1].append(event)
+    uncovered = [event for event in failures if event.evidence_id not in claimed]
+    segments: list[list[int]] = []
+    for anchor in range(len(uncovered)):
+        end = anchor
+        while end < len(uncovered) and uncovered[end].timestamp_ticks - uncovered[anchor].timestamp_ticks < span:
+            end += 1
+        if end - anchor < FAILED_LOGON_MIN_EVENTS:
+            continue
+        if segments and anchor < segments[-1][1]:
+            segments[-1][1] = max(segments[-1][1], end)
         else:
-            runs.append([event])
-    return tuple(tuple(run) for run in runs)
-
-
-def _burst_end(
-    run: Sequence[NormalisedEvent], anchor: int, span: int
-) -> int:
-    """The exclusive end index of the W-window anchored at ``run[anchor]``."""
-    end = anchor
-    while end < len(run) and run[end].timestamp_ticks - run[anchor].timestamp_ticks <= span:
-        end += 1
-    return end
-
-
-def _success_inside(
-    first: NormalisedEvent,
-    last: NormalisedEvent,
-    successes: Sequence[NormalisedEvent],
-    span: int,
-) -> bool:
-    """Does a 4624 of the group lie in ``(t(first), t(last) + W]``? (T3.2's R-AUTH-02 condition.)
-
-    The lower bound is open: a success logged in the same tick as the burst's first failure is
-    not "inside" the span the burst opens.
-    """
-    limit = last.timestamp_ticks + span
-    return any(first.timestamp_ticks < event.timestamp_ticks <= limit for event in successes)
+            segments.append([anchor, end])
+    return tuple(tuple(uncovered[start:end]) for start, end in segments)
 
 
 def detect_explicit_credential_logon(events: Sequence[NormalisedEvent]) -> tuple[Detection, ...]:
@@ -864,8 +844,8 @@ _SPECS: tuple[RuleSpec, ...] = (
     ),
     RuleSpec(
         rule_id="R-AUTH-02",
-        version="4",
-        description="Failed-logon burst for the same account and host with no successful logon",
+        version="5",
+        description="Failed-logon burst for the same account and host that no successful logon confirms",
         attack_technique="T1110",
         severity="medium",
         params={
