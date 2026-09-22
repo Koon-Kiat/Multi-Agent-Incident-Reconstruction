@@ -16,6 +16,10 @@ precision and, for S02-SEC-43584, prints ``.043036`` where the record holds ``.0
 a ``Data`` element without a ``Name`` attribute cannot be keyed and is skipped — it stays
 visible verbatim in ``raw_xml``, so nothing is lost. Child elements of ``UserData`` are not
 ``EventData`` fields and are left to ``raw_xml``.
+
+Optional single-valued fields follow the same rule: an **absent** ``System/Computer`` becomes
+``None``, while a **present but empty** ``<Computer/>`` becomes ``""``. Collapsing the two
+would make ``host=""`` unfilterable and would report an absent field that is in fact there.
 """
 
 from __future__ import annotations
@@ -128,7 +132,9 @@ def _raw_record(record: Record) -> RawRecord:
         record_id=_required_int(system, "EventRecordID"),
         event_id=_required_int(system, "EventID"),
         channel=channel,
-        computer=computer or None,
+        # findtext gives None for an absent element and "" for a present-but-empty one; both
+        # facts are kept apart, exactly like user fields.
+        computer=computer,
         filetime=read_filetime(record),
         event_data=_event_data(element),
         raw_xml=xml,

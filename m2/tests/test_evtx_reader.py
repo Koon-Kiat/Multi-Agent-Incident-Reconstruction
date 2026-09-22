@@ -15,12 +15,38 @@ from __future__ import annotations
 
 import pytest
 
-from m2.evtx_reader import RawRecord, iter_records
+from m2.evtx_reader import EVENT_NAMESPACE, RawRecord, _raw_record, iter_records
 from m2.tests.conftest import real_evtx
 from m2.timeutil import filetime_to_ticks, ticks_to_iso
 
 SECURITY = "Security"
 SYSMON = "Microsoft-Windows-Sysmon/Operational"
+
+
+class _StubRecord:
+    """Only what ``_raw_record`` reads from a python-evtx ``Record``."""
+
+    def __init__(self, xml: str) -> None:
+        self._xml = xml
+
+    def xml(self) -> str:
+        return self._xml
+
+
+def system_xml(*, computer: str | None) -> str:
+    element = "" if computer is None else f"<Computer>{computer}</Computer>"
+    return (
+        f'<Event xmlns="{EVENT_NAMESPACE}"><System>'
+        "<EventRecordID>7</EventRecordID><EventID>4688</EventID>"
+        f"<Channel>{SECURITY}</Channel>{element}</System></Event>"
+    )
+
+
+@pytest.mark.parametrize(("computer", "expected"), [(None, None), ("", ""), ("MAIR-WIN11-LAB", "MAIR-WIN11-LAB")])
+def test_computer_is_passed_through_verbatim(computer: str | None, expected: str | None, monkeypatch):
+    """An absent element is None; a present-but-empty element stays "", not None."""
+    monkeypatch.setattr("m2.evtx_reader.read_filetime", lambda record: 0)
+    assert _raw_record(_StubRecord(system_xml(computer=computer))).computer == expected
 
 EXPECTED = {
     SECURITY: (1807, 31212963, 31214769),

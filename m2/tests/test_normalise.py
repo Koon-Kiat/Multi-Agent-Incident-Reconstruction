@@ -140,6 +140,12 @@ def test_missing_computer_gives_none_and_a_warning():
     assert event.parse_warnings == ("System/Computer is absent; host set to None",)
 
 
+def test_empty_computer_field_is_kept_as_an_empty_string_without_a_warning():
+    event = normalise(raw_record(computer=""))
+    assert event.host == ""
+    assert event.parse_warnings == ()
+
+
 def test_values_are_kept_verbatim_without_case_folding_or_domain_stripping():
     event = normalise(raw_record(event_data={"SubjectUserName": "MAIR\\Administrator", "Extra": "MiXeD"}, event_id=4688))
     assert event.user == "MAIR\\Administrator"
