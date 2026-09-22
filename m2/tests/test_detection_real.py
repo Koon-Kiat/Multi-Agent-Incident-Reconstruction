@@ -32,11 +32,13 @@ BASELINE_COUNTS = {
 }
 
 # The four SHA-256 values in the doc's "Output digests" table, pinned here so a rule change
-# cannot leave the doc quoting stale bytes without a test failing.
+# cannot leave the doc quoting stale bytes without a test failing. Re-pinned after the phase-3
+# F5 fix (R-AUTH-01/02 rule_version 3): the counts are unchanged, only the version bytes inside
+# each scenario file moved — `summary.json` records counts alone and so is byte-identical.
 BASELINE_DIGESTS = {
-    "S01.json": "09b74c52984d525236ae5c6ee3ad7596a21f33b22d351e35575e74dfbb924511",
-    "S02.json": "683e4d960d44b9c64eb00410a9e52b807941543544123fc49c8ccd2eadee8913",
-    "S03.json": "3aaa0d429bb83ec2d812fd1e5078f05040442064bbb2a02485b974f14c0cfe19",
+    "S01.json": "a63bfb0b05bb248b9da314c36ee0340fd69b74fe93d8b6ce2e129d9c56538fd7",
+    "S02.json": "6c1a16f6c2c6e5ab79dc50cd5de0093df3064ac9ac08c931de04dd530c4dc68b",
+    "S03.json": "94ef74a8fb6a0d8633046a437d46b3a59ba1d44129ca2c058d3a785fe91a2d0c",
     "summary.json": "b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184",
 }
 

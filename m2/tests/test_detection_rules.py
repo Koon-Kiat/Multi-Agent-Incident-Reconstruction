@@ -124,10 +124,12 @@ def test_the_rule_catalogue_is_sorted_unique_and_fully_specified():
         "R-PERSIST-03",
     ]
     # Version 2: the windowed rules moved to a sliding window (phase-3 F1) and the two exec
-    # rules gained per-binary / dual ATT&CK attribution (phase-3 F2). Everything else is v1.
+    # rules gained per-binary / dual ATT&CK attribution (phase-3 F2). Version 3: the two
+    # failed-logon rules confirm a burst against its own span instead of the first greedy window
+    # (phase-3 F5). Everything else is v1.
     expected_versions = {
-        "R-AUTH-01": "2",
-        "R-AUTH-02": "2",
+        "R-AUTH-01": "3",
+        "R-AUTH-02": "3",
         "R-EXEC-01": "2",
         "R-EXEC-03": "2",
     }
@@ -296,6 +298,95 @@ def test_failures_that_never_share_a_window_still_do_not_fire():
     events = [_auth(1, 4625, 0), _auth(2, 4625, 10), _auth(3, 4625, 400), _auth(4, 4625, 410)]
     assert run_rule("R-AUTH-01", events) == ()
     assert run_rule("R-AUTH-02", events) == ()
+
+
+def test_a_success_that_confirms_a_later_window_of_the_same_run_is_r_auth_01():
+    # Phase-3 F5 (the reviewer's first reproduction). Failures at 0, 100, 200, 350 and 360 s with
+    # a 4624 at 370 s: failures 100/200/350/360 and the success all fall inside one 300 s span, so
+    # R-AUTH-01 must fire. Confirming only against the first greedy window (0/100/200) reported
+    # this run as R-AUTH-02, whose rationale claimed no success followed it.
+    events = [
+        _auth(1, 4625, 0),
+        _auth(2, 4625, 100),
+        _auth(3, 4625, 200),
+        _auth(4, 4625, 350),
+        _auth(5, 4625, 360),
+        _auth(6, 4624, 370),
+    ]
+    detections = run_rule("R-AUTH-01", events)
+    assert len(detections) == 1
+    assert detections[0].trigger_evidence_ids == (
+        "SYN-B-SEC-2",
+        "SYN-B-SEC-3",
+        "SYN-B-SEC-4",
+        "SYN-B-SEC-5",
+        "SYN-B-SEC-6",
+    )
+    assert (detections[0].window_start_utc, detections[0].window_end_utc) == (at(100), at(370))
+    assert "followed by a successful logon" in detections[0].rationale
+    assert run_rule("R-AUTH-02", events) == ()
+
+
+def test_a_sustained_brute_force_that_ends_in_a_success_is_r_auth_01():
+    # Phase-3 F5 (the reviewer's second reproduction): failures every 2 s from 0 s to 602 s, then
+    # a 4624 at 605 s. The last 300 s span holds hundreds of failures and the success, so
+    # R-AUTH-01 must fire however the greedily consumed windows fall on the grid.
+    events = [_auth(number + 1, 4625, number * 2) for number in range(302)]
+    events.append(_auth(303, 4624, 605))
+    detections = run_rule("R-AUTH-01", events)
+    assert len(detections) == 1
+    assert detections[0].trigger_evidence_ids[-1] == "SYN-B-SEC-303"
+    # The confirmed span is 306..605 s: 149 failures plus the success.
+    assert (detections[0].window_start_utc, detections[0].window_end_utc) == (at(306), at(605))
+    assert len(detections[0].trigger_evidence_ids) == 150
+    # R-AUTH-02 still reports the earlier part of the run, which no single 300 s span holds
+    # together with the success; its trigger set must not overlap R-AUTH-01's.
+    unconfirmed = run_rule("R-AUTH-02", events)
+    assert [len(detection.trigger_evidence_ids) for detection in unconfirmed] == [151]
+    assert unconfirmed[0].trigger_evidence_ids[-1] == "SYN-B-SEC-151"
+    assert "inside that same span" in unconfirmed[0].rationale
+    confirmed_ids = set(detections[0].trigger_evidence_ids)
+    unconfirmed_ids = {evidence_id for detection in unconfirmed for evidence_id in detection.trigger_evidence_ids}
+    assert confirmed_ids & unconfirmed_ids == set()
+
+
+def test_a_success_within_the_window_of_only_two_of_its_failures_does_not_confirm_them():
+    # Failures at 0, 100 and 200 s with a success at 310 s: the success is within 300 s of the
+    # last failure, but no 300 s span holds all three failures *and* the success (a span ending
+    # at 310 s starts after 0 s and so holds only two failures). The burst stays R-AUTH-02.
+    events = [_auth(1, 4625, 0), _auth(2, 4625, 100), _auth(3, 4625, 200), _auth(4, 4624, 310)]
+    assert run_rule("R-AUTH-01", events) == ()
+    detections = run_rule("R-AUTH-02", events)
+    assert [detection.trigger_evidence_ids for detection in detections] == [
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3")
+    ]
+    assert "inside that same span" in detections[0].rationale
+
+
+def test_a_confirmed_burst_and_an_earlier_unconfirmed_one_partition_their_triggers():
+    events = [
+        _auth(1, 4625, 0),
+        _auth(2, 4625, 10),
+        _auth(3, 4625, 20),
+        _auth(4, 4625, 500),
+        _auth(5, 4625, 510),
+        _auth(6, 4625, 520),
+        _auth(7, 4624, 530),
+    ]
+    confirmed = run_rule("R-AUTH-01", events)
+    unconfirmed = run_rule("R-AUTH-02", events)
+    assert [detection.trigger_evidence_ids for detection in confirmed] == [
+        ("SYN-B-SEC-4", "SYN-B-SEC-5", "SYN-B-SEC-6", "SYN-B-SEC-7")
+    ]
+    assert [detection.trigger_evidence_ids for detection in unconfirmed] == [
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3")
+    ]
+    triggers = {
+        evidence_id
+        for detection in (*confirmed, *unconfirmed)
+        for evidence_id in detection.trigger_evidence_ids
+    }
+    assert len(triggers) == 7
 
 
 # --- R-AUTH-03 ---------------------------------------------------------------------

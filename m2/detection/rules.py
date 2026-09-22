@@ -27,6 +27,13 @@ a qualifying window is found wherever it occurs. Accepted windows consume their 
 windows never overlap, one event triggers at most one detection of a rule, and the derived
 ``detection_id`` stays unique.
 
+R-AUTH-01/02 ask a second question of the window: is there a 4624 for the same account inside
+the window's own W-second span, at or after its last failure? R-AUTH-01 needs yes, R-AUTH-02 no.
+That confirmation is part of the sliding predicate, not a filter applied after a window has been
+consumed, because a greedy scan that grouped the first three failures of a longer run would
+otherwise confirm a 4624 that arrived after the run and report it as R-AUTH-02. R-AUTH-02 scans
+only the failures no confirmed window claimed, so the two rules still partition their triggers.
+
 Blind design (task_plan.md phase 3)
 -----------------------------------
 
@@ -229,43 +236,100 @@ def _failed_logon_detections(
 ) -> tuple[Detection, ...]:
     """Shared body of R-AUTH-01 and R-AUTH-02.
 
-    ``requires_success`` splits the two rules: a qualifying window with a successful logon
-    after its last failure is R-AUTH-01's, and one without is R-AUTH-02's. Exactly one of the
-    two fires per window, which keeps their ``detection_id`` values distinct.
+    ``requires_success`` splits the two rules on one question, asked of **the burst itself**
+    rather than of whichever window a scan happened to group first: is there a successful logon
+    for the same account inside a ``FAILED_LOGON_WINDOW_SECONDS`` span that also holds at least
+    ``FAILED_LOGON_MIN_EVENTS`` failures, at or after the span's last failure? Yes is R-AUTH-01;
+    no is R-AUTH-02. R-AUTH-02 therefore scans only the failures no confirmed span claimed, so
+    the two rules never share a trigger and their ``detection_id`` values stay distinct.
     """
     failures = [event for event in events if _matches_event_id(event, SECURITY_CHANNEL, SECURITY_FAILED_LOGON)]
     successes = [event for event in events if _matches_event_id(event, SECURITY_CHANNEL, SECURITY_SUCCESSFUL_LOGON)]
     detections: list[Detection] = []
     for account in sorted({_account(event) for event in failures}, key=_account_sort_key):
         group = [event for event in failures if _account(event) == account]
-        for window in _windows(group, FAILED_LOGON_WINDOW_SECONDS, _is_failed_logon_burst):
-            # The last failure plus the window's own span, not the first failure's: the window
-            # is the burst the rule actually matched.
-            deadline = window[0].timestamp_ticks + FAILED_LOGON_WINDOW_SECONDS * TICKS_PER_SECOND
-            confirmations = [
-                event
-                for event in successes
-                if _account(event) == account and window[-1].timestamp_ticks <= event.timestamp_ticks <= deadline
-            ]
-            if requires_success != bool(confirmations):
-                continue
-            triggers = (*window, *confirmations[:1])
-            outcome = (
-                "followed by a successful logon for the same account"
-                if requires_success
-                else "with no successful logon for the same account afterwards"
-            )
+        account_successes = sorted(
+            (event for event in successes if _account(event) == account), key=event_sort_key
+        )
+        confirmed = _confirmed_failed_logon_windows(group, account_successes)
+        if requires_success:
+            for window, confirmation in confirmed:
+                detections.append(
+                    _detection(
+                        spec,
+                        (*window, confirmation),
+                        rationale=(
+                            f"{len(window)} failed logons for {_describe_account(*account)} inside "
+                            f"{FAILED_LOGON_WINDOW_SECONDS}s, followed by a successful logon "
+                            "for the same account"
+                        ),
+                    )
+                )
+            continue
+        claimed = {event.evidence_id for window, _ in confirmed for event in window}
+        unconfirmed = [event for event in group if event.evidence_id not in claimed]
+        for window in _windows(unconfirmed, FAILED_LOGON_WINDOW_SECONDS, _is_failed_logon_burst):
             detections.append(
                 _detection(
                     spec,
-                    triggers,
+                    window,
                     rationale=(
                         f"{len(window)} failed logons for {_describe_account(*account)} inside "
-                        f"{FAILED_LOGON_WINDOW_SECONDS}s, {outcome}"
+                        f"{FAILED_LOGON_WINDOW_SECONDS}s, with no successful logon for the same "
+                        f"account inside that same span"
                     ),
                 )
             )
     return _ordered(detections)
+
+
+def _confirmed_failed_logon_windows(
+    failures: Sequence[NormalisedEvent], successes: Sequence[NormalisedEvent]
+) -> tuple[tuple[tuple[NormalisedEvent, ...], NormalisedEvent], ...]:
+    """Every brute-force burst that a successful logon confirms, as ``(failures, success)``.
+
+    A burst is confirmed when at least :data:`FAILED_LOGON_MIN_EVENTS` failures for one account
+    and a later 4624 for that same account all fall inside one
+    :data:`FAILED_LOGON_WINDOW_SECONDS` span. The span is measured from a candidate's **first**
+    failure, so the check does not depend on where an earlier grouping started, and a candidate
+    that is too short *or* unconfirmed advances the sliding scan by one failure
+    (:func:`_windows`), which is what lets a later span inside the same run be found.
+
+    ``successes`` must already be ordered by ``(timestamp_ticks, evidence_id)``: the span's
+    confirmation is the earliest qualifying success, so the choice is deterministic.
+    """
+
+    def qualifies(candidate: Sequence[NormalisedEvent]) -> bool:
+        return (
+            len(candidate) >= FAILED_LOGON_MIN_EVENTS
+            and _confirmation(candidate, successes) is not None
+        )
+
+    confirmed: list[tuple[tuple[NormalisedEvent, ...], NormalisedEvent]] = []
+    for window in _windows(failures, FAILED_LOGON_WINDOW_SECONDS, qualifies):
+        confirmation = _confirmation(window, successes)
+        if confirmation is not None:
+            confirmed.append((window, confirmation))
+    return tuple(confirmed)
+
+
+def _confirmation(
+    window: Sequence[NormalisedEvent], successes: Sequence[NormalisedEvent]
+) -> NormalisedEvent | None:
+    """The earliest 4624 inside ``[first failure, first failure + the window]``, if any.
+
+    The upper bound is the **first** failure's tick plus the window length, because the claim
+    is that the failures and the success all fit inside one window. The lower bound is the last
+    failure's tick: a success that precedes it did not follow the burst.
+    """
+    if not window:
+        return None
+    deadline = window[0].timestamp_ticks + FAILED_LOGON_WINDOW_SECONDS * TICKS_PER_SECOND
+    last_failure = window[-1].timestamp_ticks
+    for event in successes:
+        if last_failure <= event.timestamp_ticks <= deadline:
+            return event
+    return None
 
 
 def detect_explicit_credential_logon(events: Sequence[NormalisedEvent]) -> tuple[Detection, ...]:
@@ -699,7 +763,7 @@ def _ordered(detections: Sequence[Detection]) -> tuple[Detection, ...]:
 _SPECS: tuple[RuleSpec, ...] = (
     RuleSpec(
         rule_id="R-AUTH-01",
-        version="2",
+        version="3",
         description="Failed-logon burst followed by a successful logon for the same account and host",
         attack_technique="T1110",
         severity="high",
@@ -711,7 +775,7 @@ _SPECS: tuple[RuleSpec, ...] = (
     ),
     RuleSpec(
         rule_id="R-AUTH-02",
-        version="2",
+        version="3",
         description="Failed-logon burst for the same account and host with no successful logon",
         attack_technique="T1110",
         severity="medium",
