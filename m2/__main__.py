@@ -1,16 +1,22 @@
 """Command line interface for M2.
 
-Phase 0 defines the command surface only. Every handler currently reports that it is not
-implemented yet and exits with status 2, so an unimplemented command can never look like
-a successful run. The corpus is always written under ``--out`` (gitignored); no command
-writes into ``datasets/``.
+``normalise`` writes the corpus under ``--out`` (gitignored); no command writes into
+``datasets/``. Every other handler still reports that it is not implemented yet and exits
+with status 2, so an unimplemented command can never look like a successful run. A command
+that fails for a real reason exits 1 and explains itself on stderr.
 """
 
 from __future__ import annotations
 
 import argparse
+import sys
 from collections.abc import Sequence
+from pathlib import Path
 
+from m2.corpus import CORPUS_MANIFEST_FILENAME, normalise_datasets
+
+EXIT_OK = 0
+EXIT_FAILED = 1
 EXIT_NOT_IMPLEMENTED = 2
 
 _CORPUS_DEFAULT = "out/corpus"
@@ -19,6 +25,20 @@ _CORPUS_DEFAULT = "out/corpus"
 def _not_implemented(command: str) -> int:
     print(f"m2 {command}: not implemented yet (phase 0 command surface)")
     return EXIT_NOT_IMPLEMENTED
+
+
+def _normalise(args: argparse.Namespace) -> int:
+    try:
+        manifest = normalise_datasets(Path(args.datasets), Path(args.out))
+    except (ValueError, OSError) as error:
+        print(f"m2 normalise: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    total = 0
+    for scenario in manifest.scenarios:
+        total += scenario.jsonl.line_count
+        print(f"{scenario.scenario_id}: {scenario.jsonl.line_count} events -> {scenario.jsonl.filename}")
+    print(f"total: {total} events; manifest -> {Path(args.out) / CORPUS_MANIFEST_FILENAME}")
+    return EXIT_OK
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -58,6 +78,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "normalise":
+        return _normalise(args)
     return _not_implemented(args.command)
 
 

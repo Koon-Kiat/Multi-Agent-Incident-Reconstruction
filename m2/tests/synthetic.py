@@ -15,6 +15,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from m2.ids import make_evidence_id
+from m2.normalise import make_raw_reference
+from m2.schema import CHANNEL_SOURCE_TYPES, NormalisedEvent
+from m2.timeutil import iso_to_ticks, ticks_to_iso
+
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 PAYLOAD_PREFIX = b"M2 synthetic evidence payload: "
 
@@ -22,6 +27,46 @@ SHAPES = {
     "s01": ("manifest_s01_shape.json", "scenario_metadata_s01_shape.json"),
     "lab": ("manifest_lab_shape.json", "scenario_metadata_lab_shape.json"),
 }
+
+SECURITY = "Security"
+SYSMON = "Microsoft-Windows-Sysmon/Operational"
+CHANNEL_FILENAMES = {SECURITY: "Security.evtx", SYSMON: "Sysmon.evtx"}
+SAMPLE_TICKS = iso_to_ticks("2026-09-21T02:05:30.0430374Z")
+SAMPLE_SHA256 = "D396CE599723189331D440EDD55CC055C28EB4B6AD45A421D07A8E83A2F0EBA7"
+
+
+def make_event(
+    *,
+    scenario_id: str = "SYN-B",
+    channel: str = SECURITY,
+    record_id: int = 1,
+    event_id: int = 4688,
+    timestamp_ticks: int = SAMPLE_TICKS,
+    host: str | None = "MAIR-WIN11-LAB",
+    user: str | None = "analyst",
+    event_data: dict[str, str] | None = None,
+    in_scenario_window: bool = True,
+    parse_warnings: tuple[str, ...] = (),
+) -> NormalisedEvent:
+    """A small, valid normalised event; every field can be overridden."""
+    return NormalisedEvent(
+        evidence_id=make_evidence_id(scenario_id, channel, record_id),
+        scenario_id=scenario_id,
+        channel=channel,
+        source_type=CHANNEL_SOURCE_TYPES[channel],
+        record_id=record_id,
+        source_event_id=event_id,
+        timestamp_utc=ticks_to_iso(timestamp_ticks),
+        timestamp_ticks=timestamp_ticks,
+        host=host,
+        user=user,
+        event_data={"SubjectUserName": "analyst"} if event_data is None else event_data,
+        raw_reference=make_raw_reference(scenario_id, CHANNEL_FILENAMES[channel], record_id),
+        source_sha256=SAMPLE_SHA256,
+        raw_xml="<Event><System><EventID>4688</EventID></System></Event>",
+        in_scenario_window=in_scenario_window,
+        parse_warnings=parse_warnings,
+    )
 
 
 def synthetic_payload(filename: str) -> bytes:

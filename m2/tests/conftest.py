@@ -53,3 +53,14 @@ def real_evtx(scenario: str, channel: str) -> Path:
 def real_evtx_path_fixture():
     """Fixture form of :func:`real_evtx`, for tests that take fixtures."""
     return real_evtx
+
+
+SCENARIOS = ("S01", "S02", "S03")
+
+
+def real_datasets() -> Path:
+    """Return the ``datasets/`` root, skipping when any of the six exports is unusable."""
+    for scenario in SCENARIOS:
+        for channel in CHANNEL_FILENAMES:
+            real_evtx(scenario, channel)
+    return DATASETS_DIR
