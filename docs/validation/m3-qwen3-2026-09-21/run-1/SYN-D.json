@@ -1,0 +1,308 @@
+{
+  "case": "SYN-D",
+  "elapsed_seconds": 0.991,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-D",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "M3-f9d22a05cb3df6a10636f3a1",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-D",
+        "observed_events": {
+          "description": "Retrieved 1 failed logon(s) and 0 successful logon(s) with these recorded entity values.",
+          "failed_logons": 1,
+          "successful_logons": 0,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000000Z",
+          "last_utc": "2026-01-10T00:00:01.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-D-SEC-1"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      },
+      {
+        "finding_id": "M3-da283b3cde76103537dc74f9",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-D",
+        "observed_events": {
+          "description": "Retrieved 1 failed logon(s) and 0 successful logon(s) with these recorded entity values.",
+          "failed_logons": 1,
+          "successful_logons": 0,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:02.0000000Z",
+          "last_utc": "2026-01-10T00:00:02.0000000Z"
+        },
+        "entities": {
+          "account": "second.user",
+          "reported_account": "second.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-D-SEC-2"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      },
+      {
+        "finding_id": "M3-7e0b2099b9a97dd74c9a2277",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-D",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:03.0000000Z",
+          "last_utc": "2026-01-10T00:00:03.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-B",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-D-SEC-3"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      },
+      {
+        "finding_id": "M3-72e51ad243ae0a1358a36da5",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-D",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:04.0000000Z",
+          "last_utc": "2026-01-10T00:00:04.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "198.51.100.20",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-D-SEC-4"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      },
+      {
+        "finding_id": "M3-4a56072840a5488d30bbd4aa",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-D",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:05.0000000Z",
+          "last_utc": "2026-01-10T00:00:05.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "10"
+        },
+        "evidence_ids": [
+          "SYN-D-SEC-5"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      },
+      {
+        "finding_id": "M3-723b74c4b474d2b6f2bd9852",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-D",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:06.0000000Z",
+          "last_utc": "2026-01-10T00:00:06.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-OTHER",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-D-SEC-6"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "m3-provisional-v1",
+      "prompt_version": "m3-authentication-v2",
+      "configuration_version": "m3-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11435",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "aa2469b7b829976cbf91ac1843438d58062b2250a787519483b31e93250a3f20",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
+      "elapsed_seconds": 0.988
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-D",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-D-SEC-1",
+        "SYN-D-SEC-2",
+        "SYN-D-SEC-3",
+        "SYN-D-SEC-4",
+        "SYN-D-SEC-5",
+        "SYN-D-SEC-6"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-D-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-D-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-D-SEC-3",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-D-SEC-4",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-D-SEC-5",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-D-SEC-6",
+      "found": true
+    }
+  ]
+}

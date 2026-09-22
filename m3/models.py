@@ -6,7 +6,7 @@ import re
 from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, AfterValidator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, AfterValidator, RootModel, model_validator
 
 TICKS_PER_SECOND = 10_000_000
 AUTH_EVENT_IDS = (4624, 4625)
@@ -139,18 +139,36 @@ class ToolCall(Model):
     arguments: dict[str, JsonValue]
 
 
-class ModelReply(Model):
-    action: Literal["tool", "finish"]
-    tool: ToolCall | None
+class _ToolReply(Model):
+    action: Literal["tool"]
+    tool: ToolCall
+    annotations: Annotated[tuple[Annotation, ...], Field(max_length=0)]
+
+
+class _FinishReply(Model):
+    action: Literal["finish"]
+    tool: None
     annotations: tuple[Annotation, ...]
 
-    @model_validator(mode="after")
-    def valid_action(self) -> ModelReply:
-        if (self.action == "tool") != (self.tool is not None):
-            raise ValueError("tool action requires exactly one tool; finish requires null")
-        if self.action == "tool" and self.annotations:
-            raise ValueError("annotations are only allowed on finish")
-        return self
+
+class ModelReply(RootModel[_ToolReply | _FinishReply]):
+    """Same wire shape, with action constraints visible to structured decoding.
+
+    A Python-only cross-field validator was invisible in Ollama's JSON schema,
+    allowing tool calls and final annotations to be generated together.
+    """
+
+    @property
+    def action(self) -> Literal["tool", "finish"]:
+        return self.root.action
+
+    @property
+    def tool(self) -> ToolCall | None:
+        return self.root.tool
+
+    @property
+    def annotations(self) -> tuple[Annotation, ...]:
+        return self.root.annotations
 
 
 class RunMetadata(Model):

@@ -30,6 +30,8 @@ class OllamaClient:
                    "stream": False, "options": {"temperature": self.config.temperature,
                    "seed": self.config.seed, "num_ctx": self.config.num_ctx,
                    "num_predict": limits.max_output_tokens}}
+        if self.config.think is not None:
+            payload["think"] = self.config.think
         try:
             async with asyncio.timeout(limits.model_timeout_seconds):
                 async with httpx.AsyncClient(transport=self._transport, timeout=limits.model_timeout_seconds,

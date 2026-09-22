@@ -29,6 +29,8 @@ def main() -> int:
     parser.add_argument("--end", help="exclusive UTC ISO 8601 timestamp")
     parser.add_argument("--model", default=os.getenv("MAIR_OLLAMA_MODEL"))
     parser.add_argument("--endpoint", default=os.getenv("MAIR_OLLAMA_ENDPOINT", "http://localhost:11434"))
+    parser.add_argument("--num-ctx", type=int, default=os.getenv("MAIR_OLLAMA_NUM_CTX", "32768"))
+    parser.add_argument("--think", choices=("auto", "on", "off"), default=os.getenv("MAIR_OLLAMA_THINK", "auto"))
     parser.add_argument("--schema", action="store_true", help="print the provisional result JSON schema")
     parser.add_argument("--max-tool-calls", type=int, default=8)
     parser.add_argument("--max-events", type=int, default=100)
@@ -46,7 +48,11 @@ def main() -> int:
         request = InvestigationRequest(scenario_id=args.scenario, start_utc=args.start, end_utc=args.end)
         limits = Limits(max_tool_calls=args.max_tool_calls, max_events_per_query=args.max_events,
                         max_window_seconds=args.max_window_seconds, model_timeout_seconds=args.timeout)
-        llm = FakeLLM() if args.mode == "fake" else OllamaClient(OllamaConfig(model=args.model, endpoint=args.endpoint))
+        thinking = {"auto": None, "on": True, "off": False}.get(args.think)
+        if args.think not in ("auto", "on", "off"):
+            raise ValueError("invalid MAIR_OLLAMA_THINK")
+        llm = FakeLLM() if args.mode == "fake" else OllamaClient(OllamaConfig(
+            model=args.model, endpoint=args.endpoint, num_ctx=args.num_ctx, think=thinking))
         result = investigate(request, synthetic_provider(limits), llm, limits)
     except (ValidationError, ValueError):
         print(json.dumps({"status": "failed", "error_code": "invalid_configuration_or_fixture", "findings": []}))

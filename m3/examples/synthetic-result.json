@@ -47,8 +47,8 @@
   "uncertainty": [],
   "metadata": {
     "contract_version": "m3-provisional-v1",
-    "prompt_version": "m3-authentication-v1",
-    "configuration_version": "m3-config-v1",
+    "prompt_version": "m3-authentication-v2",
+    "configuration_version": "m3-config-v2",
     "llm": {
       "runtime": "fake",
       "model": "deterministic-fake-v1"
