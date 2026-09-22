@@ -47,6 +47,7 @@ def make_event(
     event_data: dict[str, str] | None = None,
     in_scenario_window: bool = True,
     parse_warnings: tuple[str, ...] = (),
+    filename: str | None = None,
 ) -> NormalisedEvent:
     """A small, valid normalised event; every field can be overridden."""
     return NormalisedEvent(
@@ -61,7 +62,7 @@ def make_event(
         host=host,
         user=user,
         event_data={"SubjectUserName": "analyst"} if event_data is None else event_data,
-        raw_reference=make_raw_reference(scenario_id, CHANNEL_FILENAMES[channel], record_id),
+        raw_reference=make_raw_reference(scenario_id, filename or CHANNEL_FILENAMES[channel], record_id),
         source_sha256=SAMPLE_SHA256,
         raw_xml="<Event><System><EventID>4688</EventID></System></Event>",
         in_scenario_window=in_scenario_window,

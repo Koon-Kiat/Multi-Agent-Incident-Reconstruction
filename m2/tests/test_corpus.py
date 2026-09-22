@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -14,7 +15,9 @@ from m2.corpus import (
     duplicate_evidence_ids,
     event_sort_key,
     normalise_datasets,
+    require_record_channel,
     scenario_directories,
+    source_filename_of,
     write_manifest,
     write_scenario,
 )
@@ -148,9 +151,10 @@ def test_normalise_datasets_writes_a_verifiable_corpus(tmp_path: Path, monkeypat
 
 def test_duplicate_evidence_ids_abort_before_anything_is_written(tmp_path: Path, monkeypatch):
     datasets = tmp_path / "datasets"
-    build_scenario_dir(datasets, "lab")
-    # Both source files claim Security records with the same record numbers.
-    _stub_reader(monkeypatch, channel_for=lambda path: SECURITY)
+    directory = build_scenario_dir(datasets, "lab")
+    _add_second_security_file(directory)
+    # Two declared Security files hand back the same record numbers, so the same evidence_id.
+    _stub_reader(monkeypatch, channel_for=lambda path: SECURITY if path.name.startswith("Security") else SYSMON)
     out = tmp_path / "corpus"
 
     with pytest.raises(CorpusError, match="duplicate evidence_id"):
@@ -179,3 +183,96 @@ def test_datasets_without_scenarios_raises(tmp_path: Path):
     (tmp_path / "datasets").mkdir()
     with pytest.raises(CorpusError, match="no scenario directories"):
         normalise_datasets(tmp_path / "datasets", tmp_path / "corpus")
+
+
+# --- channel attribution and per-file counts (phase-1 F2) -------------------------
+
+
+def _raw(channel: str, record_id: int = 1) -> RawRecord:
+    return RawRecord(
+        record_id=record_id,
+        event_id=1 if channel == SYSMON else 4688,
+        channel=channel,
+        computer="MAIR-WIN11-LAB",
+        filetime=0,
+        event_data={"User": "analyst"} if channel == SYSMON else {"SubjectUserName": "analyst"},
+        raw_xml="<Event/>",
+    )
+
+
+def test_require_record_channel_accepts_a_match_and_rejects_a_mismatch(tmp_path: Path):
+    info = load_scenario(build_scenario_dir(tmp_path / "datasets", "lab"))
+    security, sysmon = info.files
+    require_record_channel(security, _raw(SECURITY))
+    require_record_channel(sysmon, _raw(SYSMON))
+    with pytest.raises(CorpusError, match="manifest declares channel"):
+        require_record_channel(security, _raw(SYSMON))
+
+
+def test_a_record_from_another_channel_aborts_before_anything_is_written(tmp_path: Path, monkeypatch):
+    datasets = tmp_path / "datasets"
+    build_scenario_dir(datasets, "lab")
+    # Every file hands back Sysmon records, so the Security file contradicts its manifest.
+    _stub_reader(monkeypatch, channel_for=lambda path: SYSMON)
+    out = tmp_path / "corpus"
+
+    with pytest.raises(CorpusError, match="manifest declares channel"):
+        normalise_datasets(datasets, out)
+
+    assert list(out.glob("*.jsonl")) == []
+    assert not (out / CORPUS_MANIFEST_FILENAME).exists()
+
+
+def test_source_filename_of_requires_a_declared_source_file(tmp_path: Path):
+    info = load_scenario(build_scenario_dir(tmp_path / "datasets", "lab"))
+    with pytest.raises(CorpusError, match="does not reference any file"):
+        source_filename_of(info, make_event(record_id=1, filename="Other.evtx"))
+
+
+def _add_second_security_file(directory: Path) -> None:
+    """Declare a second Security file in a synthetic lab manifest, with payload and digest."""
+    manifest_path = directory / "metadata" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    entry = dict(manifest["files"][0])
+    entry["filename"] = "Security2.evtx"
+    payload = synthetic_payload(entry["filename"])
+    (directory / "raw" / entry["filename"]).write_bytes(payload)
+    entry["size_bytes"] = len(payload)
+    entry["sha256"] = hashlib.sha256(payload).hexdigest()
+    manifest["files"].append(entry)
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def test_event_count_is_attributed_to_each_source_file(tmp_path: Path):
+    """Two files on one channel must not each claim the whole channel's count."""
+    directory = build_scenario_dir(tmp_path / "datasets", "lab")
+    _add_second_security_file(directory)
+    info = load_scenario(directory)
+    events = [
+        make_event(record_id=1, filename="Security.evtx"),
+        make_event(record_id=2, filename="Security2.evtx"),
+        make_event(record_id=3, channel=SYSMON, filename="Sysmon.evtx"),
+    ]
+
+    corpus = write_scenario(tmp_path / "corpus", info, events)
+
+    assert [(source.filename, source.event_count) for source in corpus.files] == [
+        ("Security.evtx", 1),
+        ("Sysmon.evtx", 1),
+        ("Security2.evtx", 1),
+    ]
+    assert corpus.counts_by_channel == {SECURITY: 2, SYSMON: 1}
+
+
+def test_written_manifest_counts_real_files_per_source(tmp_path: Path, monkeypatch):
+    datasets = tmp_path / "datasets"
+    build_scenario_dir(datasets, "lab")
+    _stub_reader(monkeypatch, channel_for=lambda path: SYSMON if path.name == "Sysmon.evtx" else SECURITY)
+    out = tmp_path / "corpus"
+
+    manifest = normalise_datasets(datasets, out)
+
+    assert [(source.filename, source.event_count) for source in manifest.scenarios[0].files] == [
+        ("Security.evtx", 2),
+        ("Sysmon.evtx", 2),
+    ]
