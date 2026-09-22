@@ -109,15 +109,16 @@ detection's own events back goes through
 `store.query(scenario_id, window_start_utc, window_end_utc + 1 tick)`, or through the trigger
 IDs, which are exact. A single-event detection has `window_start_utc == window_end_utc`.
 
-Every rule **partitions** the events it fires on, with one deliberate exception: R-AUTH-01 is
-anchored on each successful logon (T3.2), so two successes inside one 300 s span confirm the
-*same* failures and produce two detections that share them. That is why `detection_id` names the
-detection's **closing** trigger rather than its first: the closing trigger is the success for
-R-AUTH-01, the last failure of a burst for R-AUTH-02 and the last binary of a burst for
-R-EXEC-01, and it identifies the detection uniquely even when trigger sets overlap. Every
-`detection_id` in a run is unique — the artefact and the engine both fail closed if one ever is
-not — and R-AUTH-01 and R-AUTH-02 never share a trigger. `severity` is the rule's coarse signal
-strength; it is not a verdict, a probability or a priority.
+Every rule **partitions** the events it fires on, except R-AUTH-01: it is anchored on each
+successful logon (T3.2), so two successes inside one 300 s span confirm the *same* failures and
+produce two detections that share them. That is why `detection_id` names the detection's
+**closing** trigger rather than its first — a rule T3.2's amendment ratifies, keeping the
+`schema_version` at `m2-detect-v1`. The closing trigger is the success for R-AUTH-01, the last
+failure of a burst for R-AUTH-02 and the last binary of a burst for R-EXEC-01, and it identifies
+the detection uniquely even when trigger sets overlap. Every `detection_id` in a run is unique —
+the artefact and the engine both fail closed if one ever is not — and R-AUTH-01 and R-AUTH-02
+never share a trigger. `severity` is the rule's coarse signal strength; it is not a verdict, a
+probability or a priority.
 
 `triggers_for(scenario_id)` returns a scenario's detections ordered by
 `(window_start_utc, detection_id)`, for a consumer that wants to route windows to M3/M4 without
