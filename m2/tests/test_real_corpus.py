@@ -45,10 +45,9 @@ DOCUMENTED_S01_EXAMPLE_ID = "S01-SEC-31213331"
 
 
 @pytest.fixture(scope="module")
-def corpus_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    out = tmp_path_factory.mktemp("m2-real-corpus")
-    normalise_datasets(real_datasets(), out)
-    return out
+def corpus_dir(real_corpus_dir: Path) -> Path:
+    """The session-wide real corpus (see ``conftest.real_corpus_dir``)."""
+    return real_corpus_dir
 
 
 @pytest.fixture(scope="module")

@@ -64,3 +64,17 @@ def real_datasets() -> Path:
         for channel in CHANNEL_FILENAMES:
             real_evtx(scenario, channel)
     return DATASETS_DIR
+
+
+@pytest.fixture(scope="session")
+def real_corpus_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Normalise the real datasets once per session, wherever a test needs a real corpus.
+
+    Skips, through :func:`real_datasets`, when the evidence is absent or an LFS pointer. One
+    session-scoped build keeps the real tests affordable; the corpus is read-only to tests.
+    """
+    from m2.corpus import normalise_datasets
+
+    out = tmp_path_factory.mktemp("m2-real-corpus")
+    normalise_datasets(real_datasets(), out)
+    return out
