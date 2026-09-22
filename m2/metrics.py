@@ -284,24 +284,29 @@ def load_labels(
 def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
     """Read every ``<scenario>.json`` run written by ``python -m m2 detect``, sorted by file name.
 
-    ``summary.json`` is not a run and is skipped. A file that is not a valid ``DetectionRun``
-    fails the whole read rather than being ignored, because scoring a partial directory silently
-    would understate the flagged set.
+    ``summary.json`` is not a run and is skipped. A file that is not a valid ``DetectionRun`` or
+    whose name does not match the scenario inside it fails the whole read rather than being
+    ignored, because scoring a partial or mislabelled directory silently would understate or
+    misattribute the flagged set.
     """
     source = Path(directory)
     if not source.is_dir():
         raise ScoreError(f"detections directory {source} does not exist")
-    paths = sorted(
-        path for path in source.glob("*.json") if path.name != SUMMARY_FILENAME
-    )
+    paths = sorted(path for path in source.glob("*.json") if path.name != SUMMARY_FILENAME)
     if not paths:
         raise ScoreError(f"detections directory {source} holds no run files")
     runs = []
     for path in paths:
         try:
-            runs.append(DetectionRun.model_validate_json(path.read_text(encoding="utf-8")))
+            run = DetectionRun.model_validate_json(path.read_text(encoding="utf-8"))
         except ValidationError as error:
             raise ScoreError(f"{path} is not a valid detection run: {error}") from error
+        if path.stem != run.scenario_id:
+            raise ScoreError(
+                f"{path} holds the run for scenario {run.scenario_id!r}; a run file must be named "
+                "<scenario_id>.json"
+            )
+        runs.append(run)
     return tuple(runs)
 
 

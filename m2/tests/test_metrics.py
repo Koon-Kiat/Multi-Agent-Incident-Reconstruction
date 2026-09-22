@@ -344,6 +344,15 @@ def test_a_file_that_is_not_a_detection_run_is_rejected(tmp_path: Path):
         load_detection_runs(directory)
 
 
+def test_a_run_file_whose_name_disagrees_with_its_scenario_is_rejected(tmp_path: Path):
+    directory = tmp_path / "detections"
+    directory.mkdir()
+    run = _run(SCENARIO, _detection(SCENARIO, "R-A", (1,)))
+    (directory / f"{OTHER_SCENARIO}.json").write_text(f"{_json(run)}\n", encoding="utf-8")
+    with pytest.raises(ScoreError, match="must be named"):
+        load_detection_runs(directory)
+
+
 def test_the_report_is_written_as_deterministic_sorted_key_json(tmp_path: Path):
     report = score(_runs(), _labels())
     first = write_report(report, tmp_path / "first")
