@@ -42,6 +42,22 @@ def test_running_event_loop_requires_worker_thread():
     asyncio.run(check())
 
 
+@pytest.mark.parametrize("think", [None, False, True])
+def test_explicit_thinking_and_context_settings_reach_runtime(think):
+    def handler(request):
+        payload = json.loads(request.content)
+        assert payload["options"]["num_ctx"] == 8192
+        assert payload["options"]["num_predict"] == 2048
+        if think is None:
+            assert "think" not in payload
+        else:
+            assert payload["think"] is think
+        return httpx.Response(200, json={"done": True, "message": {"content": '{"action":"finish","tool":null,"annotations":[]}'}})
+    client = OllamaClient(OllamaConfig(model="test-local", num_ctx=8192, think=think), httpx.MockTransport(handler))
+    client.complete([], ModelReply.model_json_schema(), Limits())
+    assert client.metadata()["think"] is think
+
+
 @pytest.mark.parametrize("status,code", [(404, "model_not_installed_or_endpoint_missing"), (500, "ollama_http_error"), (302, "ollama_http_error")])
 def test_http_failures(status, code):
     client = OllamaClient(OllamaConfig(model="test-local"), httpx.MockTransport(lambda _: httpx.Response(status, text="private data", headers={"location": "https://example.invalid"})))
@@ -81,7 +97,10 @@ def test_model_must_be_explicit_local(model):
 def test_installed_ollama_smoke(provider, request_a):
     model = os.getenv("MAIR_OLLAMA_MODEL")
     assert model, "MAIR_OLLAMA_MODEL must select an installed local model"
-    client = OllamaClient(OllamaConfig(model=model, endpoint=os.getenv("MAIR_OLLAMA_ENDPOINT", "http://localhost:11434")))
+    client = OllamaClient(OllamaConfig(model=model,
+        endpoint=os.getenv("MAIR_OLLAMA_ENDPOINT", "http://localhost:11434"),
+        num_ctx=int(os.getenv("MAIR_OLLAMA_NUM_CTX", "32768")),
+        think={"auto": None, "on": True, "off": False}[os.getenv("MAIR_OLLAMA_THINK", "auto")]))
     result = investigate(request_a, provider, client)
     assert result.status == "completed", result.error_code
     assert result.findings[0].observed_events.failed_logons == 3
