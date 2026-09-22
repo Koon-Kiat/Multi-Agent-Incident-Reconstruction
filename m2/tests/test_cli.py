@@ -355,6 +355,37 @@ def test_score_rejects_a_label_naming_an_event_the_corpus_does_not_hold(tmp_path
     assert "not in the corpus being scored" in capsys.readouterr().err
 
 
+def test_score_rejects_runs_that_do_not_describe_the_scored_corpus(tmp_path: Path, capsys):
+    # B1: `--corpus` must be the corpus the detection runs were computed from. A second corpus
+    # with the same scenario but one more event has a different manifest digest.
+    _, detections = _detect_fixture(tmp_path)
+    base = iso_to_ticks("2026-09-21T02:05:30.0000000Z")
+    events = [
+        make_event(record_id=record, event_id=4625, timestamp_ticks=base + record * TICKS_PER_SECOND)
+        for record in (1, 2, 3)
+    ]
+    events.append(make_event(record_id=4, event_id=4624, timestamp_ticks=base + 4 * TICKS_PER_SECOND))
+    events.append(make_event(record_id=99, event_id=4624, timestamp_ticks=base + 99 * TICKS_PER_SECOND))
+    second = _write_corpus(tmp_path / "second", events)
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-4,positive\n", encoding="utf-8")
+
+    argv = [
+        "score",
+        "--detections",
+        str(detections),
+        "--labels",
+        str(labels),
+        "--corpus",
+        str(second),
+        "--out",
+        str(tmp_path / "scores"),
+    ]
+    assert main(argv) == EXIT_FAILED
+    assert "do not describe" in capsys.readouterr().err
+    assert not (tmp_path / "scores").exists()
+
+
 def test_score_reports_a_missing_label_file_without_a_traceback(tmp_path: Path, capsys):
     corpus, detections = _detect_fixture(tmp_path)
     argv = [

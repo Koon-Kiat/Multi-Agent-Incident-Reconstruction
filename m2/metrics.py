@@ -187,6 +187,7 @@ def score(
     *,
     unit: str = "evidence_id",
     known_evidence_ids: Collection[str] | None = None,
+    corpus_manifest_sha256: str | None = None,
 ) -> ScoreReport:
     """Score detection runs against labels, overall, per scenario and per rule.
 
@@ -196,10 +197,16 @@ def score(
     label file omits it, and the well-formedness, duplicate, run-set and scenario checks still
     apply — a label naming a scenario with no detection run is always rejected, because there is
     no way to score it honestly.
+
+    ``corpus_manifest_sha256`` is the digest of the corpus the labels name. Give it (the CLI
+    always does) and every run must have been computed from that same revision; otherwise
+    :func:`validate_corpus_manifest` rejects the set rather than scoring two revisions together.
     """
     if unit not in SCORE_UNITS:
         raise ScoreError(f"unit {unit!r} is not supported; the only unit is 'evidence_id'")
     runs = validate_runs(detection_runs)
+    if corpus_manifest_sha256 is not None:
+        validate_corpus_manifest(runs, corpus_manifest_sha256)
     rows = validate_labels(labels, known_evidence_ids=known_evidence_ids)
 
     by_scenario_positives, by_scenario_negatives, by_scenario_excluded = _label_sets_by_scenario(rows)
@@ -284,6 +291,26 @@ def validate_runs(detection_runs: Sequence[DetectionRun]) -> tuple[DetectionRun,
         raise ScoreError(
             f"the detection runs name {len(digests)} different corpus manifests "
             f"({', '.join(digests[:2])}, ...); a score must describe one corpus revision"
+        )
+    return runs
+
+
+def validate_corpus_manifest(
+    detection_runs: Sequence[DetectionRun], corpus_manifest_sha256: str
+) -> tuple[DetectionRun, ...]:
+    """Return ``detection_runs``, rejecting any that names another corpus revision than scored.
+
+    The run set alone already rejects a run that disagrees with *another run*
+    (:func:`validate_runs`). This is the complementary check against the corpus the labels
+    describe: scoring a run from one revision against the labels of another would attribute
+    flagged events to a corpus that may not even hold them.
+    """
+    runs = tuple(detection_runs)
+    mismatched = sorted({run.scenario_id for run in runs if run.corpus_manifest_sha256 != corpus_manifest_sha256})
+    if mismatched:
+        raise ScoreError(
+            f"detection run(s) for {', '.join(mismatched)} do not describe the corpus being scored "
+            f"(corpus manifest sha256 {corpus_manifest_sha256})"
         )
     return runs
 
@@ -474,8 +501,16 @@ def _flagged_by_scenario(
 
 
 def _flagged_by_rule(detection_runs: Sequence[DetectionRun]) -> dict[str, frozenset[str]]:
+    """Every rule that ran, with the evidence IDs it flagged (empty for a zero-hit rule).
+
+    The catalogue comes from ``DetectionRun.rules``, not from the detections: a rule that fired
+    nothing is still part of the scored run, and dropping it would hide its false negatives and
+    make a rule's absence from the report indistinguishable from it not being run (B14).
+    """
     flagged: dict[str, set[str]] = {}
     for run in detection_runs:
+        for rule in run.rules:
+            flagged.setdefault(rule.rule_id, set())
         for detection in run.detections:
             flagged.setdefault(detection.rule_id, set()).update(detection.trigger_evidence_ids)
     return {rule_id: frozenset(ids) for rule_id, ids in flagged.items()}

@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from m2.detection.schema import Detection, DetectionRun
+from m2.detection.schema import Detection, DetectionRun, RuleRecord
 from m2.metrics import (
     SCORE_REPORT_FILENAME,
     LabelRow,
@@ -228,6 +228,35 @@ def test_two_runs_for_one_scenario_are_rejected():
     )
     with pytest.raises(ScoreError, match="SYN-B.*more than one detection run"):
         score(runs, ())
+
+
+def test_a_run_that_does_not_describe_the_scored_corpus_is_rejected():
+    # B1: the same corpus revision check `--corpus` performs, available to API callers.
+    with pytest.raises(ScoreError, match="do not describe"):
+        score(_runs(), _labels(), corpus_manifest_sha256="0" * 64)
+    assert score(_runs(), _labels(), corpus_manifest_sha256=SHA).overall.tp == 2
+
+
+def test_every_declared_rule_is_reported_even_when_it_flagged_nothing():
+    # B14: `DetectionRun.rules` is the rule catalogue that was run; a rule with no hits still has
+    # to appear so its false negatives are visible (and so it cannot vanish from the report).
+    only = DetectionRun(
+        scenario_id=SCENARIO,
+        corpus_manifest_sha256=SHA,
+        rules=(RuleRecord(rule_id="R-A", version="1"), RuleRecord(rule_id="R-Z", version="1")),
+        detections=(_detection(SCENARIO, "R-A", (1,)),),
+    )
+    labels = (
+        LabelRow(evidence_id="SYN-B-SEC-1", label="positive"),
+        LabelRow(evidence_id="SYN-B-SEC-5", label="positive"),
+    )
+    report = score((only,), labels)
+    by_rule = {rule.rule_id: rule.counts for rule in report.rules}
+    assert sorted(by_rule) == ["R-A", "R-Z"]
+    assert (by_rule["R-A"].flagged, by_rule["R-A"].tp, by_rule["R-A"].fn) == (1, 1, 1)
+    assert (by_rule["R-Z"].flagged, by_rule["R-Z"].tp, by_rule["R-Z"].fp, by_rule["R-Z"].fn) == (0, 0, 0, 2)
+    assert by_rule["R-Z"].precision is None
+    assert by_rule["R-Z"].recall == 0.0
 
 
 def test_runs_from_different_corpora_are_rejected():

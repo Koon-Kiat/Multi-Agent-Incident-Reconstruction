@@ -19,8 +19,22 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from m2.corpus import CORPUS_MANIFEST_FILENAME, CorpusOutputError, normalise_datasets
-from m2.detection.engine import SUMMARY_FILENAME, DetectionOutputError, write_detections
-from m2.metrics import ScoreCounts, ScoreError, load_detection_runs, load_labels, score, write_report
+from m2.detection.engine import (
+    SUMMARY_FILENAME,
+    DetectionError,
+    DetectionOutputError,
+    corpus_manifest_digest,
+    write_detections,
+)
+from m2.metrics import (
+    ScoreCounts,
+    ScoreError,
+    load_detection_runs,
+    load_labels,
+    score,
+    validate_corpus_manifest,
+    write_report,
+)
 from m2.protected_paths import ProtectedOutputError, refuse_protected_output
 from m2.query import EventStore, QueryError
 from m2.schema import event_to_json
@@ -159,13 +173,31 @@ def _score(args: argparse.Namespace) -> int:
     if isinstance(store, int):
         return store
     try:
+        digest = corpus_manifest_digest(Path(args.corpus))
+    except DetectionError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    try:
+        runs = load_detection_runs(detections_dir)
+        rows = load_labels(labels_path)
+    except ScoreError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
+    try:
+        # B1: a run computed from another corpus revision is a failed run, not malformed input.
+        validate_corpus_manifest(runs, digest)
+    except ScoreError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    try:
         report = score(
-            load_detection_runs(detections_dir),
-            load_labels(labels_path),
+            runs,
+            rows,
             known_evidence_ids=store.evidence_ids,
+            corpus_manifest_sha256=digest,
         )
         path = write_report(report, Path(args.out))
-    except ScoreError as error:
+    except (ScoreError, ProtectedOutputError) as error:
         print(f"m2 score: {error}", file=sys.stderr)
         return EXIT_INVALID_INPUT
     except OSError as error:
