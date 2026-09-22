@@ -1,0 +1,17 @@
+{
+    "schema_version": "1.0",
+    "scenario_id": "SYN-A",
+    "host": "win-dc-mhaag-attack-range-602",
+    "capture_start_utc": "2022-08-31T17:46:45.197821Z",
+    "capture_end_utc": "2022-08-31T17:48:41.545700Z",
+    "telemetry": [
+        {
+            "file": "raw/Security.evtx",
+            "channel": "Security"
+        },
+        {
+            "file": "raw/Sysmon.evtx",
+            "channel": "Microsoft-Windows-Sysmon/Operational"
+        }
+    ]
+}

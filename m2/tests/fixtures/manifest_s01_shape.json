@@ -1,0 +1,22 @@
+{
+    "schema_version": "1.0",
+    "scenario_id": "SYN-A",
+    "generated_at_utc": "2026-09-20T21:51:41.7788887Z",
+    "file_count": 2,
+    "files": [
+        {
+            "filename": "Security.evtx",
+            "relative_path": "raw/Security.evtx",
+            "size_bytes": 0,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "source_channel": "Security"
+        },
+        {
+            "filename": "Sysmon.evtx",
+            "relative_path": "raw/Sysmon.evtx",
+            "size_bytes": 0,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "source_channel": "Microsoft-Windows-Sysmon/Operational"
+        }
+    ]
+}

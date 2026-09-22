@@ -27,5 +27,19 @@ ground_truth/*_private.csv
 *.egg-info/
 build/
 dist/
-.test-tmp/
+.test-tmp*/
 .m3-runtime/
+
+# Local agent workflow (M2 implementer/reviewer scaffolding, not shared)
+AGENTS.md
+task_plan.md
+.agent/
+.claude/agents/m2-reviewer.md
+opencode.json
+.opencode/
+
+# Generated M2 corpus / detection output (regenerate with `python -m m2`)
+out/
+
+# Team role agreement PDF (local reference copy)
+MAIR_Six_Member_Roles_and_Boundaries.pdf
