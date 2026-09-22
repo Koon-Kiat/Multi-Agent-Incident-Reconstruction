@@ -192,6 +192,11 @@ class EventStore:
         ``None`` for a filter means "no filter"; an empty collection matches nothing. An
         unknown scenario yields an empty result rather than an error, exactly like a scenario
         that holds no event in the window.
+
+        A filter that cannot be answered raises instead of matching nothing: a bare ``str``
+        where a collection is expected would otherwise be read as a set of characters, and an
+        ``event_ids`` entry of the wrong type could never equal a Windows Event ID. Both would
+        return an empty result that is indistinguishable from "this scenario had no activity".
         """
         start = _ticks(start_utc)
         end = _ticks(end_utc)
@@ -206,8 +211,8 @@ class EventStore:
             scenario_id,
             start,
             end,
-            channels=None if channels is None else frozenset(channels),
-            event_ids=None if event_ids is None else frozenset(event_ids),
+            channels=_channel_filter(channels),
+            event_ids=_event_id_filter(event_ids),
             host=host,
             user=user,
             limit=_checked_limit(limit, self._limits),
@@ -306,6 +311,32 @@ def _detached(event: NormalisedEvent) -> NormalisedEvent:
 
 def _field(event: NormalisedEvent, name: str) -> str | None:
     return event.event_data.get(name)
+
+
+def _channel_filter(channels: Iterable[str] | None) -> frozenset[str] | None:
+    """Normalise a channel filter, refusing anything that could never equal a channel name."""
+    if channels is None:
+        return None
+    if isinstance(channels, (str, bytes)):
+        raise QueryError(f"channels must be a collection of channel names, not a single {type(channels).__name__}")
+    names = frozenset(channels)
+    for name in names:
+        if not isinstance(name, str):
+            raise QueryError(f"channels member {name!r} is not a str")
+    return names
+
+
+def _event_id_filter(event_ids: Iterable[int] | None) -> frozenset[int] | None:
+    """Normalise an Event ID filter; ``bool`` is excluded even though it is an ``int``."""
+    if event_ids is None:
+        return None
+    if isinstance(event_ids, (str, bytes)):
+        raise QueryError(f"event_ids must be a collection of ints, not a single {type(event_ids).__name__}")
+    ids = frozenset(event_ids)
+    for value in ids:
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise QueryError(f"event_ids member {value!r} is not an int")
+    return ids
 
 
 def _ticks(value: str) -> int:

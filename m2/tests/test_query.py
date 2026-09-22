@@ -178,6 +178,26 @@ def test_none_means_no_filter_and_an_empty_collection_matches_nothing(store: Eve
     assert store.query("SYN-B", *window, event_ids=()).total_matched == 0
 
 
+def test_a_filter_that_could_only_match_nothing_by_mistake_is_rejected(store: EventStore):
+    # frozenset("Security") is a set of characters, so this would answer 0 to a Security query.
+    with pytest.raises(QueryError, match="not a single str"):
+        store.query("SYN-B", at(0), at(20), channels=SECURITY)  # type: ignore[arg-type]
+    with pytest.raises(QueryError, match="not a single str"):
+        store.query("SYN-B", at(0), at(20), event_ids="4625")  # type: ignore[arg-type]
+    with pytest.raises(QueryError, match="not a single bytes"):
+        store.query("SYN-B", at(0), at(20), channels=b"Security")  # type: ignore[arg-type]
+    with pytest.raises(QueryError, match="is not a str"):
+        store.query("SYN-B", at(0), at(20), channels=(SECURITY, 1))  # type: ignore[arg-type]
+    with pytest.raises(QueryError, match="is not an int"):
+        store.query("SYN-B", at(0), at(20), event_ids=("4625",))  # type: ignore[arg-type]
+    # bool is an int subclass but can never be a Windows Event ID.
+    with pytest.raises(QueryError, match="is not an int"):
+        store.query("SYN-B", at(0), at(20), event_ids=(True,))  # type: ignore[arg-type]
+    # The well-typed filters still answer normally.
+    assert store.query("SYN-B", at(0), at(20), channels=(SECURITY,)).total_matched == 3
+    assert store.query("SYN-B", at(0), at(20), event_ids=(4625,)).total_matched == 1
+
+
 def test_truncation_is_reported_with_the_true_total(store: EventStore):
     result = store.query("SYN-B", at(0), at(20), limit=2)
     assert [event.evidence_id for event in result.events] == ["SYN-B-SEC-1", "SYN-B-SEC-2"]
