@@ -29,6 +29,12 @@ the SHA-256 the manifest declares *before* parsing a line. A missing file, an al
 event of the wrong scenario or a duplicate `evidence_id` raises `QueryError`; a stale `*.jsonl`
 left in the directory by an earlier run is never opened, because the manifest does not name it.
 
+A manifest `filename` must be a **plain direct-child name**: an absolute path, a separator, `.` or
+`..` is a malformed manifest, and a symlink that resolves outside the corpus directory is refused
+rather than read. A line whose digest matched but whose JSON is malformed or invalid becomes a
+`QueryError` naming the file and the line number, never a bare parse error. The manifest's
+`schema_version` is pinned to `m2-corpus-v1`.
+
 ```python
 from m2.query import EventStore
 
@@ -38,7 +44,8 @@ store.limits                  # QueryLimits(max_window_seconds=3600, max_limit=1
 ```
 
 `EventStore(events)` builds a store straight from events (used by unit tests); it applies the
-same duplicate check and the same ordering.
+same duplicate check and the same ordering, and **deep-copies every event before indexing it**, so
+a caller that keeps its own list cannot change a later answer by mutating an event it handed in.
 
 ## `lookup` and `lookup_many`
 

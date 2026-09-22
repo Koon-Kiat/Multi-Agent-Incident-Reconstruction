@@ -94,7 +94,11 @@ total: 6661 events; manifest -> out\corpus\corpus_manifest.json
 ```
 
 Every source file's SHA-256 is verified against its manifest before a record is parsed, and the
-command aborts on a mismatch or on a duplicated `evidence_id`. It never writes into `datasets/`.
+command aborts on a mismatch or on a duplicated `evidence_id`. A scenario id may not be `summary`
+(reserved for `detect`'s own run summary; case-insensitive). `--out` is checked **before anything
+is created**: it must not resolve inside a `datasets/` or `ground_truth/` tree, and it must not be
+the `--datasets` root or a directory under it — so a `--out` typo can never overwrite evidence or
+mix generated output into the tree the next run parses. Both refusals exit `2`.
 
 ### `lookup` — resolve one evidence ID
 
@@ -150,9 +154,12 @@ name is `<scenario_id>.json`/`summary.json` *and* whose contents carry the M2 de
 marker (`m2-detect-v1`; the summary also carries the `detection-summary` marker) is removed —
 anything else in the directory is left exactly as it is. `detect` refuses a `--out` that resolves
 inside a `datasets/` or `ground_truth/` tree, or that is the corpus directory, and exits `2`
-without writing. See [`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) for all 12
-rules, their frozen thresholds, their benign lookalikes and what is deliberately not covered. The
-baseline is **not scored**: there are no agreed labels yet.
+without writing. Before it writes anything it also refuses a run whose target name already holds a
+file that is not an M2 detection artefact — a foreign `S02.json` or `summary.json` — exiting `1`
+and writing nothing rather than overwriting the caller's data. See
+[`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) for all 12 rules, their frozen
+thresholds, their benign lookalikes and what is deliberately not covered. The baseline is **not
+scored**: there are no agreed labels yet.
 
 ### `score` — P/R/F1 once the labels are agreed
 
@@ -163,7 +170,12 @@ baseline is **not scored**: there are no agreed labels yet.
 
 `--labels` and `--corpus` go together: every labelled `evidence_id` is checked against the corpus
 being scored, and a label naming an event the corpus does not hold exits `2` instead of becoming a
-silent false negative. The output shape is:
+silent false negative. Every detection run must also name that corpus's manifest digest as its
+`corpus_manifest_sha256`; a run computed from a different corpus revision exits `1` rather than
+being scored against the wrong events. An unreadable label file (bad encoding, broken CSV/JSON)
+exits `2` with a one-line message, never a traceback. `--out` is refused inside `datasets/` or
+`ground_truth/`. The report lists **every rule that ran**, including a rule that flagged nothing
+(its false negatives are part of the picture). The output shape is:
 
 ```text
 overall: TP=1 FP=2 FN=0 precision=0.333 recall=1.000 f1=0.500 (flagged=4, positives=1, excluded=1, flagged_excluded=1, unflagged_excluded=0)
