@@ -134,11 +134,13 @@ def test_the_rule_catalogue_is_sorted_unique_and_fully_specified():
     # (phase-3 F5). Version 4: the same two rules moved to the T3.2 planner-fixed semantics —
     # R-AUTH-01 anchored on each success, R-AUTH-02 on the failure burst (phase-3 F7). Version 5:
     # R-AUTH-02 was redefined by T3.2's "Planner amendment A1" to report only the failures no
-    # R-AUTH-01 detection claims. Everything else is v1.
+    # R-AUTH-01 detection claims. Phase 6 (B6): R-EXEC-02's PowerShell test became a whole-executable
+    # match, a logic change, so it moved to v2. Everything else is v1.
     expected_versions = {
         "R-AUTH-01": "4",
         "R-AUTH-02": "5",
         "R-EXEC-01": "2",
+        "R-EXEC-02": "2",
         "R-EXEC-03": "2",
     }
     for rule in RULES:

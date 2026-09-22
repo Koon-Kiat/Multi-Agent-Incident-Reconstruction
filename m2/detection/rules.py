@@ -932,8 +932,11 @@ _SPECS: tuple[RuleSpec, ...] = (
     ),
     RuleSpec(
         rule_id="R-EXEC-02",
-        version="1",
-        description="PowerShell command line with an encoded, hidden-window or downloader marker",
+        version="2",
+        description=(
+            "PowerShell process (whole executable name, never a substring) whose command line "
+            "carries an encoded, hidden-window or downloader marker"
+        ),
         attack_technique="T1059.001",
         severity="high",
         params={
