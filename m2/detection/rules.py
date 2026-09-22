@@ -15,6 +15,18 @@ scenario never share a trigger event, so their deterministic ``detection_id`` va
 rules only** — a basename, a key path and a command line are detection heuristics, not query
 API behaviour, which stays exact and case-sensitive.
 
+Windowed rules (``_windows``)
+-----------------------------
+
+The windowed rules ask "do at least N qualifying events fall inside one window of W seconds".
+The scan is greedy and sliding: it starts a candidate at the first event it has not consumed,
+takes every following event within W seconds of that anchor, and keeps the window only when
+the candidate meets the rule's count. A rejected candidate advances the scan by **one** event,
+so a stray early failure (or one ``whoami``) can never hide a burst that starts after it, and
+a qualifying window is found wherever it occurs. Accepted windows consume their events, so
+windows never overlap, one event triggers at most one detection of a rule, and the derived
+``detection_id`` stays unique.
+
 Blind design (task_plan.md phase 3)
 -----------------------------------
 
@@ -32,8 +44,12 @@ Declared thresholds and vocabularies
 ``DISCOVERY_MIN_BINARIES`` = 3          R-EXEC-01: three *distinct* discovery tools is enumeration.
 ``DISCOVERY_WINDOW_SECONDS`` = 120      R-EXEC-01: two minutes for one enumeration burst.
 ``DISCOVERY_BINARIES``                  R-EXEC-01: built-in discovery binaries (T1033/T1082/T1016).
+``DISCOVERY_TECHNIQUES``                R-EXEC-01: the ATT&CK technique each discovery binary is attributed to.
 ``SUSPICIOUS_PARENT_IMAGES``            R-EXEC-03: document/browser/WMI hosts that should not spawn a shell.
 ``SHELL_IMAGES``                        R-EXEC-03: the scripting and proxy-execution children.
+``SUSPICIOUS_PARENT_TECHNIQUE`` = T1204 R-EXEC-03: the artefact's technique field (user execution).
+``SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE`` = T1059
+                                        R-EXEC-03: the spawned interpreter, named in the rationale.
 ``ENCODED_COMMAND_PATTERNS``            R-EXEC-02: encoded/hidden/downloader PowerShell markers.
 ``POWERSHELL_COMMAND_MARKERS``          R-EXEC-02: the command line must actually be a PowerShell one.
 ``LSASS_ACCESS_MASKS``                  R-CRED-01: documented PROCESS_VM_READ / ALL_ACCESS combos.
@@ -111,11 +127,37 @@ DISCOVERY_BINARIES = frozenset(
     }
 )
 
+# R-EXEC-01's ATT&CK attribution, one technique per discovery binary, so a detection is tagged
+# with the technique of the binary that actually ran instead of one rule-wide label. The plan
+# named T1033/T1082/T1016; the remaining names are the standard ATT&CK techniques for those
+# tools, mapped here rather than mislabelled. A tool that covers several kinds of discovery gets
+# the technique ATT&CK lists for its dominant use (``net view`` enumerates network shares).
+DISCOVERY_TECHNIQUES: dict[str, str] = {
+    "whoami": "T1033",  # System Owner/User Discovery
+    "quser": "T1033",
+    "qwinsta": "T1033",
+    "systeminfo": "T1082",  # System Information Discovery
+    "tasklist": "T1057",  # Process Discovery
+    "ipconfig": "T1016",  # System Network Configuration Discovery
+    "arp": "T1016",
+    "route": "T1016",
+    "net": "T1135",  # Network Share Discovery
+    "net1": "T1135",
+    "nltest": "T1482",  # Domain Trust Discovery
+    "dsquery": "T1087.002",  # Domain Account Discovery
+}
+
 SUSPICIOUS_PARENT_IMAGES = frozenset(
     {"winword", "excel", "powerpnt", "outlook", "msedge", "chrome", "firefox", "wmiprvse", "mshta"}
 )
 
 SHELL_IMAGES = frozenset({"cmd", "powershell", "pwsh", "wscript", "cscript", "rundll32", "regsvr32"})
+
+# R-EXEC-03 is user execution (T1204) that reaches a command/scripting interpreter (T1059). The
+# artefact's ``attack_technique`` field carries one technique, so it carries the primary T1204,
+# and the rationale names both. Both values are also recorded in the rule's ``params``.
+SUSPICIOUS_PARENT_TECHNIQUE = "T1204"
+SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE = "T1059"
 
 # ``-enc``/``-EncodedCommand`` is matched as a parameter token, so ``-Encoding`` never matches.
 ENCODED_COMMAND_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
@@ -187,27 +229,27 @@ def _failed_logon_detections(
 ) -> tuple[Detection, ...]:
     """Shared body of R-AUTH-01 and R-AUTH-02.
 
-    ``requires_success`` splits the two rules: a qualifying cluster with a successful logon
+    ``requires_success`` splits the two rules: a qualifying window with a successful logon
     after its last failure is R-AUTH-01's, and one without is R-AUTH-02's. Exactly one of the
-    two fires per cluster, which keeps their ``detection_id`` values distinct.
+    two fires per window, which keeps their ``detection_id`` values distinct.
     """
     failures = [event for event in events if _matches_event_id(event, SECURITY_CHANNEL, SECURITY_FAILED_LOGON)]
     successes = [event for event in events if _matches_event_id(event, SECURITY_CHANNEL, SECURITY_SUCCESSFUL_LOGON)]
     detections: list[Detection] = []
     for account in sorted({_account(event) for event in failures}, key=_account_sort_key):
         group = [event for event in failures if _account(event) == account]
-        for cluster in _clusters(group, FAILED_LOGON_WINDOW_SECONDS):
-            if len(cluster) < FAILED_LOGON_MIN_EVENTS:
-                continue
-            deadline = cluster[0].timestamp_ticks + FAILED_LOGON_WINDOW_SECONDS * TICKS_PER_SECOND
+        for window in _windows(group, FAILED_LOGON_WINDOW_SECONDS, _is_failed_logon_burst):
+            # The last failure plus the window's own span, not the first failure's: the window
+            # is the burst the rule actually matched.
+            deadline = window[0].timestamp_ticks + FAILED_LOGON_WINDOW_SECONDS * TICKS_PER_SECOND
             confirmations = [
                 event
                 for event in successes
-                if _account(event) == account and cluster[-1].timestamp_ticks <= event.timestamp_ticks <= deadline
+                if _account(event) == account and window[-1].timestamp_ticks <= event.timestamp_ticks <= deadline
             ]
             if requires_success != bool(confirmations):
                 continue
-            triggers = (*cluster, *confirmations[:1])
+            triggers = (*window, *confirmations[:1])
             outcome = (
                 "followed by a successful logon for the same account"
                 if requires_success
@@ -218,7 +260,7 @@ def _failed_logon_detections(
                     spec,
                     triggers,
                     rationale=(
-                        f"{len(cluster)} failed logons for {_describe_account(*account)} inside "
+                        f"{len(window)} failed logons for {_describe_account(*account)} inside "
                         f"{FAILED_LOGON_WINDOW_SECONDS}s, {outcome}"
                     ),
                 )
@@ -333,6 +375,11 @@ def detect_discovery_binaries(events: Sequence[NormalisedEvent]) -> tuple[Detect
 
     The rule partitions the matching events: an event inside a burst is reported by the burst
     detection only, an event outside every burst is reported as its own low-severity hit.
+
+    Every detection carries the ATT&CK technique of the binary it reports
+    (:data:`DISCOVERY_TECHNIQUES`). A burst spans several binaries and therefore several
+    techniques, so its field carries the technique of its first trigger and its rationale names
+    every technique the burst covers.
     """
     spec = _SPEC_BY_ID["R-EXEC-01"]
     candidates = [
@@ -344,19 +391,20 @@ def detect_discovery_binaries(events: Sequence[NormalisedEvent]) -> tuple[Detect
     in_a_burst: set[str] = set()
     for account in sorted({_account(event) for event in candidates}, key=_account_sort_key):
         group = [event for event in candidates if _account(event) == account]
-        for cluster in _clusters(group, DISCOVERY_WINDOW_SECONDS):
-            binaries = sorted({_process_image_stem(event) for event in cluster})
-            if len(binaries) < DISCOVERY_MIN_BINARIES:
-                continue
-            in_a_burst.update(event.evidence_id for event in cluster)
+        for window in _windows(group, DISCOVERY_WINDOW_SECONDS, _is_discovery_burst):
+            binaries = sorted({_process_image_stem(event) for event in window})
+            techniques = sorted({DISCOVERY_TECHNIQUES[stem] for stem in binaries})
+            in_a_burst.update(event.evidence_id for event in window)
             detections.append(
                 _detection(
                     spec,
-                    cluster,
+                    window,
                     severity="medium",
+                    attack_technique=DISCOVERY_TECHNIQUES[_process_image_stem(window[0])],
                     rationale=(
                         f"{len(binaries)} distinct discovery binaries ({', '.join(binaries)}) run by "
-                        f"{_describe_account(*account)} inside {DISCOVERY_WINDOW_SECONDS}s"
+                        f"{_describe_account(*account)} inside {DISCOVERY_WINDOW_SECONDS}s, "
+                        f"covering {'/'.join(techniques)}"
                     ),
                 )
             )
@@ -365,8 +413,10 @@ def detect_discovery_binaries(events: Sequence[NormalisedEvent]) -> tuple[Detect
             spec,
             (event,),
             severity="low",
+            attack_technique=DISCOVERY_TECHNIQUES[_process_image_stem(event)],
             rationale=(
-                f"discovery binary {_process_image_stem(event)!r} run by "
+                f"discovery binary {_process_image_stem(event)!r} "
+                f"({DISCOVERY_TECHNIQUES[_process_image_stem(event)]}) run by "
                 f"{_describe_account(event.user, event.host)} outside any enumeration burst"
             ),
         )
@@ -400,7 +450,12 @@ def detect_encoded_powershell(events: Sequence[NormalisedEvent]) -> tuple[Detect
 
 
 def detect_suspicious_parent_shell(events: Sequence[NormalisedEvent]) -> tuple[Detection, ...]:
-    """R-EXEC-03: a document/browser/WMI host spawning a shell or script engine (T1204/T1059)."""
+    """R-EXEC-03: a document/browser/WMI host spawning a shell or script engine (T1204/T1059).
+
+    The detection's ``attack_technique`` is the primary :data:`SUSPICIOUS_PARENT_TECHNIQUE`
+    (user execution) and its rationale names the secondary
+    :data:`SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE` the spawned shell belongs to.
+    """
     spec = _SPEC_BY_ID["R-EXEC-03"]
     detections: list[Detection] = []
     for event in events:
@@ -414,7 +469,10 @@ def detect_suspicious_parent_shell(events: Sequence[NormalisedEvent]) -> tuple[D
                 _detection(
                     spec,
                     (event,),
-                    rationale=f"parent image {parent_image!r} spawned {child!r}",
+                    rationale=(
+                        f"parent image {parent_image!r} spawned {child!r} "
+                        f"({SUSPICIOUS_PARENT_TECHNIQUE}/{SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE})"
+                    ),
                 )
             )
     return _ordered(detections)
@@ -523,25 +581,49 @@ def _describe_account(user: str | None, host: str | None) -> str:
     return f"account {user!r} on host {host!r}"
 
 
-def _clusters(events: Sequence[NormalisedEvent], window_seconds: int) -> tuple[tuple[NormalisedEvent, ...], ...]:
-    """Split events into non-overlapping clusters, each anchored at its first event.
+def _is_failed_logon_burst(window: Sequence[NormalisedEvent]) -> bool:
+    """R-AUTH-01/02: does this candidate window hold a failed-logon burst?"""
+    return len(window) >= FAILED_LOGON_MIN_EVENTS
 
-    A cluster holds every following event within ``window_seconds`` of the **anchor**, so the
-    clusters are disjoint and every cluster has a distinct first event. That is what keeps the
-    derived ``detection_id`` unique per rule and scenario.
+
+def _is_discovery_burst(window: Sequence[NormalisedEvent]) -> bool:
+    """R-EXEC-01: does this candidate window hold enough *distinct* discovery binaries?"""
+    return len({_process_image_stem(event) for event in window}) >= DISCOVERY_MIN_BINARIES
+
+
+def _windows(
+    events: Sequence[NormalisedEvent],
+    window_seconds: int,
+    qualifies: Callable[[Sequence[NormalisedEvent]], bool],
+) -> tuple[tuple[NormalisedEvent, ...], ...]:
+    """Every qualifying window ``[t, t + window_seconds]``, greedily and without overlap.
+
+    The scan starts a candidate at the first event it has not consumed and takes every following
+    event within ``window_seconds`` of that anchor. A candidate the predicate accepts consumes
+    its own events, so no later candidate can reuse them; a candidate it rejects advances the
+    scan by a **single** event.
+
+    Anchoring a candidate at each unconsumed event is what makes the rule fire on any qualifying
+    window rather than only on one that begins at the account's first event: a stray early
+    failure (or one ``whoami``) can no longer hide a burst that starts after it. Consumed
+    windows never overlap, which keeps one event a trigger of at most one detection of a rule
+    and the derived ``detection_id`` unique.
     """
     ordered = sorted(events, key=event_sort_key)
     span = window_seconds * TICKS_PER_SECOND
-    clusters: list[tuple[NormalisedEvent, ...]] = []
-    current: list[NormalisedEvent] = []
-    for event in ordered:
-        if current and event.timestamp_ticks - current[0].timestamp_ticks > span:
-            clusters.append(tuple(current))
-            current = []
-        current.append(event)
-    if current:
-        clusters.append(tuple(current))
-    return tuple(clusters)
+    windows: list[tuple[NormalisedEvent, ...]] = []
+    index = 0
+    while index < len(ordered):
+        end = index
+        while end < len(ordered) and ordered[end].timestamp_ticks - ordered[index].timestamp_ticks <= span:
+            end += 1
+        candidate = tuple(ordered[index:end])
+        if qualifies(candidate):
+            windows.append(candidate)
+            index = end
+        else:
+            index += 1
+    return tuple(windows)
 
 
 def _is_powershell_command_line(command_line: str) -> bool:
@@ -617,7 +699,7 @@ def _ordered(detections: Sequence[Detection]) -> tuple[Detection, ...]:
 _SPECS: tuple[RuleSpec, ...] = (
     RuleSpec(
         rule_id="R-AUTH-01",
-        version="1",
+        version="2",
         description="Failed-logon burst followed by a successful logon for the same account and host",
         attack_technique="T1110",
         severity="high",
@@ -629,7 +711,7 @@ _SPECS: tuple[RuleSpec, ...] = (
     ),
     RuleSpec(
         rule_id="R-AUTH-02",
-        version="1",
+        version="2",
         description="Failed-logon burst for the same account and host with no successful logon",
         attack_technique="T1110",
         severity="medium",
@@ -660,7 +742,7 @@ _SPECS: tuple[RuleSpec, ...] = (
     ),
     RuleSpec(
         rule_id="R-EXEC-01",
-        version="1",
+        version="2",
         description="Discovery tooling: an enumeration burst, plus single hits",
         attack_technique="T1033",
         severity="low",
@@ -668,6 +750,9 @@ _SPECS: tuple[RuleSpec, ...] = (
             "min_distinct_binaries": DISCOVERY_MIN_BINARIES,
             "window_seconds": DISCOVERY_WINDOW_SECONDS,
             "binaries": ",".join(sorted(DISCOVERY_BINARIES)),
+            # Each detection is tagged with the technique of its own binary; a burst's field is
+            # its first binary's, and its rationale names every technique the burst covers.
+            "techniques": ",".join(f"{stem}={DISCOVERY_TECHNIQUES[stem]}" for stem in sorted(DISCOVERY_BINARIES)),
             "burst_severity": "medium",
             "single_hit_severity": "low",
         },
@@ -685,13 +770,15 @@ _SPECS: tuple[RuleSpec, ...] = (
     ),
     RuleSpec(
         rule_id="R-EXEC-03",
-        version="1",
+        version="2",
         description="Document, browser or WMI host spawning a shell or script engine",
-        attack_technique="T1059",
+        attack_technique=SUSPICIOUS_PARENT_TECHNIQUE,
         severity="high",
         params={
             "parents": ",".join(sorted(SUSPICIOUS_PARENT_IMAGES)),
             "children": ",".join(sorted(SHELL_IMAGES)),
+            # The field carries the primary technique; both are recorded here and in rationale.
+            "techniques": f"{SUSPICIOUS_PARENT_TECHNIQUE},{SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE}",
         },
     ),
     RuleSpec(

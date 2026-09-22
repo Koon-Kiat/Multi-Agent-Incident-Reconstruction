@@ -8,11 +8,14 @@ asserts anything about real data.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 
 import pytest
 
 from m2.detection.rules import (
+    DISCOVERY_BINARIES,
+    DISCOVERY_TECHNIQUES,
     DISCOVERY_WINDOW_SECONDS,
     FAILED_LOGON_WINDOW_SECONDS,
     RULES,
@@ -120,8 +123,16 @@ def test_the_rule_catalogue_is_sorted_unique_and_fully_specified():
         "R-PERSIST-02",
         "R-PERSIST-03",
     ]
+    # Version 2: the windowed rules moved to a sliding window (phase-3 F1) and the two exec
+    # rules gained per-binary / dual ATT&CK attribution (phase-3 F2). Everything else is v1.
+    expected_versions = {
+        "R-AUTH-01": "2",
+        "R-AUTH-02": "2",
+        "R-EXEC-01": "2",
+        "R-EXEC-03": "2",
+    }
     for rule in RULES:
-        assert rule.spec.version == "1"
+        assert rule.spec.version == expected_versions.get(rule.spec.rule_id, "1"), rule.spec.rule_id
         assert rule.spec.description
         assert rule.spec.severity in ("low", "medium", "high")
         assert rule.spec.record().rule_id == rule.spec.rule_id
@@ -247,6 +258,44 @@ def test_two_separate_bursts_are_two_detections():
         ("SYN-B-SEC-4", "SYN-B-SEC-5", "SYN-B-SEC-6"),
     ]
     assert len({detection.detection_id for detection in detections}) == 2
+
+
+def test_a_burst_after_a_lone_early_failure_still_fires():
+    # Phase-3 F1: the earlier failure at 0 s sits outside the 0..300 s window of the 250..320 s
+    # burst. A cluster anchored at 0 s would split the burst and swallow it; a sliding window
+    # anchored at each unconsumed event finds it. (Reviewer's reproduction case.)
+    events = [
+        _auth(1, 4625, 0),
+        _auth(2, 4625, 250),
+        _auth(3, 4625, 310),
+        _auth(4, 4625, 320),
+        _auth(5, 4624, 330),
+    ]
+    detections = run_rule("R-AUTH-01", events)
+    assert len(detections) == 1
+    assert detections[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-2"
+    assert detections[0].trigger_evidence_ids == ("SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4", "SYN-B-SEC-5")
+    assert detections[0].window_start_utc == at(250)
+    assert "3 failed logons" in detections[0].rationale
+    assert run_rule("R-AUTH-02", events) == ()
+
+
+def test_a_burst_after_a_lone_early_failure_without_a_success_is_r_auth_02():
+    events = [_auth(1, 4625, 0), _auth(2, 4625, 250), _auth(3, 4625, 310), _auth(4, 4625, 320)]
+    assert run_rule("R-AUTH-01", events) == ()
+    detections = run_rule("R-AUTH-02", events)
+    assert [detection.trigger_evidence_ids for detection in detections] == [
+        ("SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4")
+    ]
+    assert detections[0].severity == "medium"
+
+
+def test_failures_that_never_share_a_window_still_do_not_fire():
+    # The benign counterpart of the sliding window: two failures on each side of a gap wider
+    # than the window are two pairs, and neither pair is a burst.
+    events = [_auth(1, 4625, 0), _auth(2, 4625, 10), _auth(3, 4625, 400), _auth(4, 4625, 410)]
+    assert run_rule("R-AUTH-01", events) == ()
+    assert run_rule("R-AUTH-02", events) == ()
 
 
 # --- R-AUTH-03 ---------------------------------------------------------------------
@@ -446,6 +495,96 @@ def test_sysmon_process_creation_can_also_supply_discovery_events():
     assert detections[0].trigger_evidence_ids == ("SYN-B-SYS-1", "SYN-B-SYS-2", "SYN-B-SYS-3")
 
 
+def test_a_burst_after_a_stray_early_binary_still_fires():
+    # Phase-3 F1: whoami at 0 s is 100 s before the first of the three binaries that really are
+    # a burst. A cluster anchored at whoami would pair it with net and stop; a sliding window
+    # starts a fresh candidate at net and finds the burst. (Reviewer's reproduction case.)
+    events = [
+        _proc(1, 0, image="C:\\Windows\\System32\\whoami.exe"),
+        _proc(2, 100, image="C:\\Windows\\System32\\net.exe"),
+        _proc(3, 130, image="C:\\Windows\\System32\\ipconfig.exe"),
+        _proc(4, 140, image="C:\\Windows\\System32\\systeminfo.exe"),
+    ]
+    detections = run_rule("R-EXEC-01", events)
+    assert [detection.severity for detection in detections] == ["low", "medium"]
+    burst = detections[1]
+    assert burst.trigger_evidence_ids == ("SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4")
+    assert detections[0].trigger_evidence_ids == ("SYN-B-SEC-1",)
+    assert "ipconfig" in burst.rationale and "systeminfo" in burst.rationale
+
+
+def test_binaries_that_never_share_a_window_are_single_hits():
+    # Benign counterpart: two distinct binaries on each side of a gap wider than the window are
+    # not an enumeration burst, so each stays a low single hit.
+    events = [
+        _proc(1, 0, image="C:\\Windows\\System32\\whoami.exe"),
+        _proc(2, 10, image="C:\\Windows\\System32\\net.exe"),
+        _proc(3, 400, image="C:\\Windows\\System32\\ipconfig.exe"),
+        _proc(4, 410, image="C:\\Windows\\System32\\systeminfo.exe"),
+    ]
+    detections = run_rule("R-EXEC-01", events)
+    assert [detection.severity for detection in detections] == ["low", "low", "low", "low"]
+
+
+def test_two_adjacent_bursts_are_two_disjoint_medium_detections():
+    # A window that qualifies consumes its own events, so the next burst is found from the next
+    # unconsumed binary and no trigger belongs to two detections.
+    events = [
+        _proc(1, 0, image="C:\\Windows\\System32\\whoami.exe"),
+        _proc(2, 10, image="C:\\Windows\\System32\\net.exe"),
+        _proc(3, 20, image="C:\\Windows\\System32\\ipconfig.exe"),
+        _proc(4, 130, image="C:\\Windows\\System32\\arp.exe"),
+        _proc(5, 140, image="C:\\Windows\\System32\\route.exe"),
+        _proc(6, 150, image="C:\\Windows\\System32\\tasklist.exe"),
+    ]
+    detections = run_rule("R-EXEC-01", events)
+    assert [detection.severity for detection in detections] == ["medium", "medium"]
+    assert [detection.trigger_evidence_ids for detection in detections] == [
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3"),
+        ("SYN-B-SEC-4", "SYN-B-SEC-5", "SYN-B-SEC-6"),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("image", "technique"),
+    (
+        ("C:\\Windows\\System32\\whoami.exe", "T1033"),
+        ("C:\\Windows\\System32\\systeminfo.exe", "T1082"),
+        ("C:\\Windows\\System32\\ipconfig.exe", "T1016"),
+    ),
+)
+def test_a_discovery_single_hit_carries_the_technique_of_its_own_binary(image: str, technique: str):
+    # Phase-3 F2: the rule used to tag every hit T1033, including systeminfo (T1082) and
+    # ipconfig (T1016).
+    detections = run_rule("R-EXEC-01", [_proc(1, 0, image=image)])
+    assert len(detections) == 1
+    assert detections[0].attack_technique == technique
+
+
+def test_the_discovery_technique_map_covers_exactly_the_discovery_binaries():
+    assert set(DISCOVERY_TECHNIQUES) == set(DISCOVERY_BINARIES)
+    for stem, technique in DISCOVERY_TECHNIQUES.items():
+        assert re.fullmatch(r"T[0-9]{4}(\.[0-9]{3})?", technique), (stem, technique)
+    assert DISCOVERY_TECHNIQUES["whoami"] == "T1033"
+    assert DISCOVERY_TECHNIQUES["systeminfo"] == "T1082"
+    assert DISCOVERY_TECHNIQUES["ipconfig"] == "T1016"
+
+
+def test_a_discovery_burst_is_tagged_with_its_first_binary_and_names_every_technique():
+    events = [
+        _proc(1, 0, image="C:\\Windows\\System32\\whoami.exe"),
+        _proc(2, 5, image="C:\\Windows\\System32\\ipconfig.exe"),
+        _proc(3, 10, image="C:\\Windows\\System32\\systeminfo.exe"),
+    ]
+    (burst,) = run_rule("R-EXEC-01", events)
+    assert burst.severity == "medium"
+    # The documented rule for a multi-binary burst: the field carries the first trigger's
+    # binary's technique, and the rationale names every technique the burst covers.
+    assert burst.attack_technique == "T1033"
+    for technique in ("T1033", "T1016", "T1082"):
+        assert technique in burst.rationale
+
+
 # --- R-EXEC-02 ---------------------------------------------------------------------
 
 
@@ -505,6 +644,15 @@ def test_a_document_host_spawning_a_shell_is_a_high_detection():
     assert len(detections) == 1
     assert detections[0].severity == "high"
     assert "WINWORD.EXE" in detections[0].rationale
+
+
+def test_a_parent_shell_detection_records_both_techniques():
+    # Phase-3 F2: the artefact field carries the primary T1204 (user execution) and the
+    # rationale names the secondary T1059 (command and scripting interpreter) as well.
+    (detection,) = run_rule("R-EXEC-03", [_proc(1, 0, image=CMD, parent=WINWORD)])
+    assert detection.attack_technique == "T1204"
+    assert "T1204" in detection.rationale
+    assert "T1059" in detection.rationale
 
 
 def test_a_wmi_host_spawning_a_script_engine_is_a_detection():
@@ -644,6 +792,7 @@ def every_suspicious_event() -> tuple[NormalisedEvent, ...]:
 
 
 def test_the_whole_catalogue_gives_unique_ids_and_a_trigger_per_detection():
+    versions = {rule.spec.rule_id: rule.spec.version for rule in RULES}
     detections = [detection for rule in RULES for detection in rule.fn(every_suspicious_event())]
     ids = [detection.detection_id for detection in detections]
     assert len(set(ids)) == len(ids)
@@ -651,9 +800,9 @@ def test_the_whole_catalogue_gives_unique_ids_and_a_trigger_per_detection():
     for detection in detections:
         assert detection.scenario_id == SCENARIO
         assert detection.trigger_evidence_ids
-        assert detection.rule_id in {rule.spec.rule_id for rule in RULES}
+        assert detection.rule_id in versions
         assert detection.rationale
-        assert detection.rule_version == "1"
+        assert detection.rule_version == versions[detection.rule_id]
     # And no rule fires on the empty scenario.
     for rule in RULES:
         assert rule.fn(()) == (), rule.spec.rule_id
