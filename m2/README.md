@@ -143,11 +143,15 @@ S03: 14 detections -> S03.json
 total: 38 detections; summary -> out\detections\summary.json
 ```
 
-`--out` is a directory `detect` owns: stale run files there from an earlier corpus revision are
-removed, so `m2 score` never reads a run that no longer describes the corpus. See
-[`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) for all 12 rules, their frozen
-thresholds, their benign lookalikes and what is deliberately not covered. The baseline is **not
-scored**: there are no agreed labels yet.
+`--out` is a directory `detect` owns: stale **M2 run files** there from an earlier corpus revision
+are removed, so `m2 score` never reads a run that no longer describes the corpus. Only a file whose
+name is `<scenario_id>.json`/`summary.json` *and* whose contents carry the M2 detection schema
+marker (`m2-detect-v1`; the summary also carries the `detection-summary` marker) is removed —
+anything else in the directory is left exactly as it is. `detect` refuses a `--out` that resolves
+inside a `datasets/` or `ground_truth/` tree, or that is the corpus directory, and exits `2`
+without writing. See [`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) for all 12
+rules, their frozen thresholds, their benign lookalikes and what is deliberately not covered. The
+baseline is **not scored**: there are no agreed labels yet.
 
 ### `score` — P/R/F1 once the labels are agreed
 
@@ -324,9 +328,12 @@ digest is checked. A test is never weakened to make a change pass.
 * **`RuleRecord.params` is a plain `dict`** inside the otherwise frozen `DetectionRun`. A consumer
   holding a run can mutate that dictionary in place; treat a run as read-only and copy it before
   storing it. The values are always JSON primitives, so serialisation is unaffected.
-* **`detect --out` is owned by `detect`.** It removes run files it did not write this run (to stop
-  stale scenarios being scored). Do not point it at a directory that holds anything else, and never
-  at the corpus directory — that is refused.
+* **`detect --out` owns only its own run files, and refuses two locations.** It removes a direct
+  child only when the name is `<scenario_id>.json`/`summary.json` *and* the contents carry the M2
+  detection schema marker; every other file in the directory is left alone, so a `manifest.json`,
+  a `package.json` or a foreign `S02.json` survives. A `--out` resolving inside `datasets/` or
+  `ground_truth/` (any path component, case-insensitive), or equal to the corpus directory, is
+  refused with exit `2` before anything is read or written.
 * **Metrics are arithmetic, not definitions.** `m2/metrics.py` reports precision/recall/F1 for
   whatever labels it is given; the unit, the positive label and the excluded category are still
   DRAFT (`../docs/M2_DETECTION_METRICS_PROPOSAL.md`), and the real baseline stays unscored until

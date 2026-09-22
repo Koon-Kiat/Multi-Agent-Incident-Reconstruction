@@ -84,10 +84,16 @@ changes later.
 <out>/summary.json      per-scenario, per-rule counts
 ```
 
-`--out` is a directory `detect` owns: after writing this run, it removes any other direct `*.json`
-file there, because a run left over from an earlier corpus revision would be read as current by
-`m2 score` or by anything that globs the directory. Nothing outside `--out`, and no
-subdirectory, is touched, and `--out` may not be the corpus directory itself.
+`--out` is a directory `detect` owns, but only for the artefacts it writes itself: after writing
+this run, it removes a direct child only when **both** hold — the name is `<scenario_id>.json` or
+`summary.json`, and the contents carry the M2 schema marker (`schema_version` `m2-detect-v1`, with
+a matching `scenario_id` in a scenario file, or the `detection-summary` marker in the summary). A
+run left over from an earlier corpus revision is removed for that reason, because `m2 score` or
+anything that globs the directory would otherwise read it as current. Everything else is left
+untouched: a `manifest.json`, a `package.json`, a foreign `S02.json` that lacks the marker, or a
+malformed file all survive. Nothing outside `--out`, and no subdirectory, is touched. `detect`
+refuses an `--out` that resolves inside a `datasets/` or `ground_truth/` tree (any path component,
+case-insensitive) or that is the corpus directory itself, and exits `2` without writing.
 
 ```python
 from m2.detection.engine import DetectionEngine, write_detections
@@ -320,7 +326,9 @@ and no success in the corpus has failures after it. **Version 5 also leaves the 
 4624 closes, so R-AUTH-01 claims every one of them and no uncovered burst exists anywhere in this
 corpus. The scenario-file digests below changed because each one records the rules' versions and
 `params` — and between versions 3 and 4 because S02's one R-AUTH-01 `detection_id` moved from the
-first failure to the success; `summary.json` records only counts, so its digest has never moved.
+first failure to the success. `summary.json` records only counts, so its digest moved once, in
+phase 5, and only because the file gained the `detection-summary` marker described under
+[Detection artefacts](#detection-artefacts).
 
 38 detections in total. What the run looked like, descriptively:
 
@@ -361,7 +369,7 @@ Output digests (SHA-256), for reproducing the run byte for byte:
 | `S01.json` | `25743d539f4edc6e41404255b1fb7029f384b6c6a75d93939b222457ce3aa29a` |
 | `S02.json` | `539546b50cb0515aea419159f62947d2a03ad2a9bc6baa755a2a8a8bb02e3103` |
 | `S03.json` | `5c13bb8bfe34beedaae75a25c531b6c5731a409c8b4981fd3d613943b712e30b` |
-| `summary.json` | `b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184` |
+| `summary.json` | `62c5ce9ebd8291b80efb990c8ec07cab88680340879518796347410e752974fa` |
 
 These are byte-identical across repeated runs, which the real test
 `m2/tests/test_detection_real.py::test_two_real_runs_are_byte_identical` checks; the four

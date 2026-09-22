@@ -184,6 +184,37 @@ def test_detect_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, c
     assert "corpus manifest" in capsys.readouterr().err
 
 
+def test_detect_refuses_an_out_directory_under_datasets(tmp_path: Path, capsys):
+    # F1: a plausible `--out`/`--corpus` typo must not make detect write into the evidence tree.
+    corpus = _write_corpus(tmp_path)
+    out = tmp_path / "datasets" / "S02" / "metadata"
+    assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_INVALID_INPUT
+    assert "datasets" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_detect_refuses_an_out_directory_under_ground_truth(tmp_path: Path, capsys):
+    corpus = _write_corpus(tmp_path)
+    out = tmp_path / "ground_truth" / "private"
+    assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_INVALID_INPUT
+    assert "read-only" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_detect_leaves_files_it_did_not_write_alone(tmp_path: Path, capsys):
+    # Through the CLI: a foreign JSON is not a stale m2 run just because detect was pointed at it.
+    corpus = _write_corpus(tmp_path)
+    out = tmp_path / "detections"
+    out.mkdir()
+    foreign = out / "manifest.json"
+    foreign.write_text('{"important": true}\n', encoding="utf-8", newline="\n")
+
+    assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_OK
+    assert "total: 0 detections" in capsys.readouterr().out
+    assert foreign.read_text(encoding="utf-8") == '{"important": true}\n'
+    assert (out / "SYN-B.json").is_file()
+
+
 def _detect_fixture(tmp_path: Path) -> tuple[Path, Path]:
     """Run `detect` over a 3-failures-then-success corpus; return (corpus, detections)."""
     base = iso_to_ticks("2026-09-21T02:05:30.0000000Z")

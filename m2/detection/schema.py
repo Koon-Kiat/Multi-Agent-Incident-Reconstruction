@@ -52,6 +52,9 @@ from m2.schema import SHA256_PATTERN
 from m2.timeutil import iso_to_ticks, ticks_to_iso
 
 DETECTION_RUN_SCHEMA_VERSION = "m2-detect-v1"
+# ``summary.json`` carries this marker as well as the schema version, so a file that merely
+# happens to be called ``summary.json`` is never mistaken for an artefact this package wrote.
+DETECTION_SUMMARY_MARKER = "detection-summary"
 
 ATTACK_TECHNIQUE_PATTERN = r"^T[0-9]{4}(\.[0-9]{3})?$"
 
@@ -161,10 +164,16 @@ class ScenarioSummary(BaseModel):
 
 
 class DetectionSummary(BaseModel):
-    """``summary.json``: per-scenario, per-rule detection counts for one corpus."""
+    """``summary.json``: per-scenario, per-rule detection counts for one corpus.
+
+    ``artifact`` is a schema marker, together with ``schema_version``, that lets ``detect``
+    recognise its own ``summary.json`` before it removes a stale one (see
+    :mod:`m2.detection.engine`): a foreign file with the same name is left untouched.
+    """
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
+    artifact: Literal["detection-summary"] = DETECTION_SUMMARY_MARKER
     schema_version: str = DETECTION_RUN_SCHEMA_VERSION
     corpus_manifest_sha256: str = Field(pattern=SHA256_PATTERN)
     scenarios: tuple[ScenarioSummary, ...]

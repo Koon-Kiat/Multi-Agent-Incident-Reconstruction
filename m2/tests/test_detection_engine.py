@@ -17,11 +17,12 @@ from m2.detection.engine import (
     SUMMARY_FILENAME,
     DetectionEngine,
     DetectionError,
+    DetectionOutputError,
     corpus_manifest_digest,
     write_detections,
 )
 from m2.detection.rules import RULES
-from m2.detection.schema import DetectionRun, DetectionSummary
+from m2.detection.schema import DetectionRun, DetectionSummary, run_to_json
 from m2.manifest import load_scenario, sha256_file
 from m2.query import EventStore, QueryError
 from m2.schema import NormalisedEvent
@@ -220,21 +221,84 @@ def test_detect_removes_stale_run_files_from_its_own_output_directory(corpus_dir
     out = tmp_path / "detections"
     out.mkdir()
     stale = out / "SYN-GONE.json"
-    stale.write_text("{}\n", encoding="utf-8")
-    keep = out / "summary.json"
-    keep.write_text("{}\n", encoding="utf-8")
+    stale.write_text(_stale_run_payload("SYN-GONE"), encoding="utf-8", newline="\n")
     elsewhere = tmp_path / "elsewhere"
     elsewhere.mkdir()
     untouched = elsewhere / "SYN-GONE.json"
-    untouched.write_text("{}\n", encoding="utf-8")
+    untouched.write_text(_stale_run_payload("SYN-GONE"), encoding="utf-8", newline="\n")
 
     write_detections(corpus_dir, out)
 
     assert not stale.exists()
     assert sorted(path.name for path in out.iterdir()) == sorted([f"{SCENARIO}.json", SUMMARY_FILENAME])
-    assert untouched.read_text(encoding="utf-8") == "{}\n"  # only --out is touched
+    assert untouched.read_text(encoding="utf-8") == _stale_run_payload("SYN-GONE")  # only --out is touched
     # The written run parses, so the removal left a usable directory rather than a hole.
     assert DetectionRun.model_validate_json((out / f"{SCENARIO}.json").read_text(encoding="utf-8")).scenario_id == SCENARIO
+
+
+def _stale_run_payload(scenario_id: str) -> str:
+    """A genuine M2 run document for a scenario the corpus no longer holds."""
+    return (
+        run_to_json(
+            DetectionRun(
+                scenario_id=scenario_id,
+                corpus_manifest_sha256=SHA,
+                rules=(),
+                detections=(),
+            )
+        )
+        + "\n"
+    )
+
+
+def test_detect_leaves_every_file_it_did_not_write_untouched(corpus_dir: Path, tmp_path: Path):
+    # F1: the removal is narrowed to a file that carries both an M2 detection name and the M2
+    # schema marker. `manifest.json` and `package.json` also match the scenario-id name pattern,
+    # so only the marker can tell them apart from a real run.
+    out = tmp_path / "detections"
+    out.mkdir()
+    survivors = {
+        "manifest.json": '{"important": true}\n',
+        "package.json": '{"name": "not-a-detection", "version": "1.0.0"}\n',
+        "S02.json": '{"caller": "a foreign file, not an m2 run"}\n',
+        "SYN-MISMATCH.json": json.dumps({"schema_version": "m2-detect-v1", "scenario_id": "SYN-GONE"}) + "\n",
+        "SYN-BROKEN.json": "{not json at all\n",
+    }
+    for name, payload in survivors.items():
+        (out / name).write_text(payload, encoding="utf-8", newline="\n")
+
+    write_detections(corpus_dir, out)
+
+    for name, payload in survivors.items():
+        assert (out / name).read_text(encoding="utf-8") == payload, name
+    assert (out / SUMMARY_FILENAME).is_file()
+
+
+def test_a_run_file_that_carries_the_marker_is_removed(corpus_dir: Path, tmp_path: Path):
+    # The complement of the test above: a real stale artefact, however minimal, still goes.
+    out = tmp_path / "detections"
+    out.mkdir()
+    stale = out / "SYN-GONE.json"
+    stale.write_text(_stale_run_payload("SYN-GONE"), encoding="utf-8", newline="\n")
+
+    write_detections(corpus_dir, out)
+
+    assert not stale.exists()
+
+
+@pytest.mark.parametrize("tree", ["datasets", "ground_truth", "DataSets", "GROUND_TRUTH"])
+def test_detect_refuses_an_out_directory_inside_a_protected_tree(corpus_dir: Path, tmp_path: Path, tree: str):
+    out = tmp_path / tree / "results"
+    with pytest.raises(DetectionOutputError, match="read-only"):
+        write_detections(corpus_dir, out)
+    assert not out.exists()
+
+
+def test_a_directory_whose_name_merely_contains_a_protected_word_is_allowed(corpus_dir: Path, tmp_path: Path):
+    out = tmp_path / "datasets-out"
+    summary = write_detections(corpus_dir, out)
+    assert summary.scenarios[0].scenario_id == SCENARIO
+    assert (out / SUMMARY_FILENAME).is_file()
 
 
 def test_detect_refuses_to_write_into_the_corpus_directory(corpus_dir: Path):

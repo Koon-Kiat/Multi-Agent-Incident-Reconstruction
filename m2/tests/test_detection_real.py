@@ -32,15 +32,15 @@ BASELINE_COUNTS = {
 }
 
 # The four SHA-256 values in the doc's "Output digests" table, pinned here so a rule change
-# cannot leave the doc quoting stale bytes without a test failing. Re-pinned after T3.5
-# (amendment A1 redefined R-AUTH-02 and bumped it to rule_version 5): the counts are unchanged
-# and R-AUTH-01's one real detection is byte-identical, so only the version bytes in the three
-# scenario files move — `summary.json` records counts alone and stays byte-identical.
+# cannot leave the doc quoting stale bytes without a test failing. Re-pinned after the phase-5
+# F1 fix, which added the `detection-summary` marker to `summary.json` so `detect` can recognise
+# its own summary before removing a stale one: the counts and the three scenario files are
+# byte-identical, and only `summary.json` moves.
 BASELINE_DIGESTS = {
     "S01.json": "25743d539f4edc6e41404255b1fb7029f384b6c6a75d93939b222457ce3aa29a",
     "S02.json": "539546b50cb0515aea419159f62947d2a03ad2a9bc6baa755a2a8a8bb02e3103",
     "S03.json": "5c13bb8bfe34beedaae75a25c531b6c5731a409c8b4981fd3d613943b712e30b",
-    "summary.json": "b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184",
+    "summary.json": "62c5ce9ebd8291b80efb990c8ec07cab88680340879518796347410e752974fa",
 }
 
 RULE_VERSIONS = {rule.spec.rule_id: rule.spec.version for rule in RULES}

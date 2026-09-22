@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from m2.corpus import CORPUS_MANIFEST_FILENAME, normalise_datasets
-from m2.detection.engine import SUMMARY_FILENAME, write_detections
+from m2.detection.engine import SUMMARY_FILENAME, DetectionOutputError, write_detections
 from m2.metrics import ScoreCounts, ScoreError, load_detection_runs, load_labels, score, write_report
 from m2.query import EventStore, QueryError
 from m2.schema import event_to_json
@@ -106,6 +106,10 @@ def _query(args: argparse.Namespace) -> int:
 def _detect(args: argparse.Namespace) -> int:
     try:
         summary = write_detections(Path(args.corpus), Path(args.out))
+    except DetectionOutputError as error:
+        # An unusable --out is invalid input, not a failed detection: refuse before reading.
+        print(f"m2 detect: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
     except (ValueError, OSError) as error:
         print(f"m2 detect: {error}", file=sys.stderr)
         return EXIT_FAILED
@@ -193,7 +197,10 @@ def build_parser() -> argparse.ArgumentParser:
     detect.add_argument(
         "--out",
         default="out/detections",
-        help="a directory detect owns; stale *.json run files left there by an earlier run are removed",
+        help=(
+            "a directory detect owns; stale m2 run files left there by an earlier run are removed, "
+            "while every other file is left alone; datasets/ and ground_truth/ are refused"
+        ),
     )
 
     score = subcommands.add_parser("score", help="score detection output against an agreed label file")
