@@ -1,6 +1,6 @@
 {
   "case": "get_missing",
-  "elapsed_seconds": 2.942,
+  "elapsed_seconds": 3.379,
   "check_errors": [
     "model did not emit the directed approved tool call",
     "unknown lookup was not explicitly reported"
@@ -15,7 +15,7 @@
     },
     "findings": [
       {
-        "finding_id": "M3-c7ed785dafc87fa56e099841",
+        "finding_id": "AUTH-c7ed785dafc87fa56e099841",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "finding_id": "M3-7d89d1e7693505a812a8574a",
+        "finding_id": "AUTH-7d89d1e7693505a812a8574a",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -85,7 +85,7 @@
         ]
       },
       {
-        "finding_id": "M3-00cb4eee831483bcbdd9088f",
+        "finding_id": "AUTH-00cb4eee831483bcbdd9088f",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -120,7 +120,7 @@
         ]
       },
       {
-        "finding_id": "M3-6c819f2f11f2307e39930c0e",
+        "finding_id": "AUTH-6c819f2f11f2307e39930c0e",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -155,7 +155,7 @@
         ]
       },
       {
-        "finding_id": "M3-2fba14bdc8f9f943948fd85f",
+        "finding_id": "AUTH-2fba14bdc8f9f943948fd85f",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -190,7 +190,7 @@
         ]
       },
       {
-        "finding_id": "M3-b639e5e8bb7ec69813438dcd",
+        "finding_id": "AUTH-b639e5e8bb7ec69813438dcd",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -228,7 +228,7 @@
         ]
       },
       {
-        "finding_id": "M3-9b87f0a3ab9a83cd9af15632",
+        "finding_id": "AUTH-9b87f0a3ab9a83cd9af15632",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -266,9 +266,9 @@
     "error_code": null,
     "uncertainty": [],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "ollama",
         "model": "qwen3:8b",
@@ -297,14 +297,14 @@
   },
   "model_calls": [
     {
-      "request_sha256": "839c7ff5f3fa768d8c5b81744b8ad55f7fb64069cff172fa265769b7a69cf13f",
+      "request_sha256": "fb22fb5e52274a7e57dad38fd21bff488af1c1a58be7deab7f2d486867b9b9d6",
       "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"S02-SEC-43503\"\n    }\n  },\n  \"annotations\": []\n}",
-      "elapsed_seconds": 1.672
+      "elapsed_seconds": 2.035
     },
     {
-      "request_sha256": "6c6f585cfb8acf4dca5d606bc5d04ff495e0d3c23388eea77ef192469b600f09",
+      "request_sha256": "f39783edd99ab16b38e9452014b2bd5107ca65140ed52271b9ea83d47faf7d27",
       "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
-      "elapsed_seconds": 1.255
+      "elapsed_seconds": 1.332
     }
   ],
   "provider_calls": [

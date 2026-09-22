@@ -1,16 +1,17 @@
 # Component names and current architecture
 
-Use responsibility names in user interfaces, current documentation, reports and
-future presentation material. The old numbers describe team assignments.
+Components use responsibility names in packages, imports, commands, schemas,
+reports and presentation material. Original scenario and evidence identifiers
+remain unchanged.
 
-| Historical assignment | Component name | Compatible location |
-| --- | --- | --- |
-| M1 | Dataset & Ground Truth Management | `datasets/`, dataset scripts |
-| M2 | Event Processing & Detection Engine | `m2/` |
-| M3 | Authentication Investigation Agent | `m3/` |
-| M4 | Endpoint Investigation Agent | Separate delivery |
-| M5 | Incident Reconstruction Orchestrator | Separate delivery |
-| M6 | Evidence Verification & Evaluation | Separate evaluation workflow |
+| Component | Current location |
+| --- | --- |
+| Dataset & Ground Truth Management | `datasets/`, dataset scripts |
+| Event Processing & Detection Engine | `event_processing/` |
+| Authentication Investigation Agent | `authentication_agent/` |
+| Endpoint Investigation Agent | Separate delivery |
+| Incident Reconstruction Orchestrator | Separate delivery |
+| Evidence Verification & Evaluation | Separate evaluation workflow |
 
 ```mermaid
 flowchart TD
@@ -30,12 +31,19 @@ S01–S03. Dashed edges are dependencies, not claims of full pipeline integratio
 No evaluation answer keys or scenario runbooks enter model context. Processing
 baseline scoring is separate from authentication integration testing.
 
-Keep `m2.query`, `m2.adapters.m3_provider.M2AuthenticationProvider`,
-`m3.agent.investigate`, public schemas and entry points unchanged. Keep IDs such
-as `S02-SEC-43584`, finding IDs beginning `M3-`, version strings such as
-`m3-provisional-v1`, and historical file/PR references. These are stable machine
-identifiers, not display names. `agent_type: authentication` already expresses
-the result's responsibility, so no cosmetic schema field was added.
+The public entry point is `authentication_agent.investigate`. The read-only
+provider is `event_processing.adapters.authentication_provider.CorpusAuthenticationProvider`.
+The installed distribution is `mair-incident-reconstruction` version 0.2.0;
+commands are `mair-events`, `mair-authentication` and
+`mair-investigate-authentication`.
 
-Historical reports retain their recorded names and results, with a notice
-linking here. Current manuals and integration handoffs use component names.
+Schema identifiers describe content: `security-event-v1`, `security-corpus-v1`,
+`detection-run-v1`, `detection-score-v1` and `authentication-result-v1`.
+Finding IDs now begin `AUTH-`. Original evidence IDs such as `S02-SEC-43584`
+and scenario IDs such as `S01` remain unchanged.
+
+This is an intentional interface migration requested by the project owner.
+Update downstream imports/configuration and regenerate derived corpora and
+findings. No compatibility aliases for retired names are introduced. Earlier
+recordings remain immutable in Git history; current artifacts are regenerated.
+See the [migration guide](COMPONENT_NAMING.md) for the complete active interface.

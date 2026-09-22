@@ -1,0 +1,10 @@
+{
+  "distribution": "mair-incident-reconstruction",
+  "version": "0.2.0",
+  "wheel": "mair_incident_reconstruction-0.2.0-py3-none-any.whl",
+  "sha256": "aa3907f3567e069e3c3631c2c459ea608d13b7cb46c96db418b0506ebecc8025",
+  "retired_package_paths": false,
+  "isolated_wheel_real_corpus_cli": "passed",
+  "scenario_id": "S01",
+  "findings": 6
+}

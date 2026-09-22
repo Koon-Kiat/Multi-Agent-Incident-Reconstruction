@@ -1,6 +1,6 @@
 {
   "case": "interpretation",
-  "elapsed_seconds": 6.689,
+  "elapsed_seconds": 7.998,
   "check_errors": [],
   "expected_error": null,
   "result": {
@@ -12,7 +12,7 @@
     },
     "findings": [
       {
-        "finding_id": "M3-59378fa7b1061a4c77e50532",
+        "finding_id": "AUTH-59378fa7b1061a4c77e50532",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -46,7 +46,7 @@
         ]
       },
       {
-        "finding_id": "M3-b7123407451161cc01e313f7",
+        "finding_id": "AUTH-b7123407451161cc01e313f7",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -80,7 +80,7 @@
         ]
       },
       {
-        "finding_id": "M3-7ac7e00560197732777e832a",
+        "finding_id": "AUTH-7ac7e00560197732777e832a",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -114,7 +114,7 @@
         ]
       },
       {
-        "finding_id": "M3-25b81345e2448b32a520d38c",
+        "finding_id": "AUTH-25b81345e2448b32a520d38c",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -148,7 +148,7 @@
         ]
       },
       {
-        "finding_id": "M3-2836438d9d1d461b435a1c8d",
+        "finding_id": "AUTH-2836438d9d1d461b435a1c8d",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -182,7 +182,7 @@
         ]
       },
       {
-        "finding_id": "M3-908e9939afbe84ef03e847d7",
+        "finding_id": "AUTH-908e9939afbe84ef03e847d7",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -219,9 +219,9 @@
     "error_code": null,
     "uncertainty": [],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "ollama",
         "model": "qwen3:8b",
@@ -250,9 +250,9 @@
   },
   "model_calls": [
     {
-      "request_sha256": "2db8b926e79114054d6ba6f35a7d5039b7ccd837e8372e09e23cb3964b09d257",
-      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": [\n    {\n      \"observation_id\": \"M3-59378fa7b1061a4c77e50532\",\n      \"evidence_ids\": [\"S01-SEC-31213280\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-b7123407451161cc01e313f7\",\n      \"evidence_ids\": [\"S01-SEC-31213283\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-7ac7e00560197732777e832a\",\n      \"evidence_ids\": [\"S01-SEC-31213289\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-25b81345e2448b32a520d38c\",\n      \"evidence_ids\": [\"S01-SEC-31213296\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-2836438d9d1d461b435a1c8d\",\n      \"evidence_ids\": [\"S01-SEC-31214696\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-908e9939afbe84ef03e847d7\",\n      \"evidence_ids\": [\"S01-SEC-31214751\"],\n      \"interpretation\": \"context_required\"\n    }\n  ]\n}",
-      "elapsed_seconds": 6.677
+      "request_sha256": "1f00e8baaabf8d662d558f1ca99b61a1063a5718b8393f7b054ef954e9c77940",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": [\n    {\n      \"observation_id\": \"AUTH-59378fa7b1061a4c77e50532\",\n      \"evidence_ids\": [\"S01-SEC-31213280\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-b7123407451161cc01e313f7\",\n      \"evidence_ids\": [\"S01-SEC-31213283\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-7ac7e00560197732777e832a\",\n      \"evidence_ids\": [\"S01-SEC-31213289\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-25b81345e2448b32a520d38c\",\n      \"evidence_ids\": [\"S01-SEC-31213296\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-2836438d9d1d461b435a1c8d\",\n      \"evidence_ids\": [\"S01-SEC-31214696\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-908e9939afbe84ef03e847d7\",\n      \"evidence_ids\": [\"S01-SEC-31214751\"],\n      \"interpretation\": \"context_required\"\n    }\n  ]\n}",
+      "elapsed_seconds": 7.983
     }
   ],
   "provider_calls": [

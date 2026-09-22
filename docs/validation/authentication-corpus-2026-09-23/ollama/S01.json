@@ -1,6 +1,6 @@
 {
   "case": "S01",
-  "elapsed_seconds": 6.371,
+  "elapsed_seconds": 4.163,
   "check_errors": [],
   "expected_error": null,
   "result": {
@@ -12,7 +12,7 @@
     },
     "findings": [
       {
-        "finding_id": "M3-59378fa7b1061a4c77e50532",
+        "finding_id": "AUTH-59378fa7b1061a4c77e50532",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -46,7 +46,7 @@
         ]
       },
       {
-        "finding_id": "M3-b7123407451161cc01e313f7",
+        "finding_id": "AUTH-b7123407451161cc01e313f7",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -80,7 +80,7 @@
         ]
       },
       {
-        "finding_id": "M3-7ac7e00560197732777e832a",
+        "finding_id": "AUTH-7ac7e00560197732777e832a",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -114,7 +114,7 @@
         ]
       },
       {
-        "finding_id": "M3-25b81345e2448b32a520d38c",
+        "finding_id": "AUTH-25b81345e2448b32a520d38c",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -148,7 +148,7 @@
         ]
       },
       {
-        "finding_id": "M3-2836438d9d1d461b435a1c8d",
+        "finding_id": "AUTH-2836438d9d1d461b435a1c8d",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -182,7 +182,7 @@
         ]
       },
       {
-        "finding_id": "M3-908e9939afbe84ef03e847d7",
+        "finding_id": "AUTH-908e9939afbe84ef03e847d7",
         "agent_type": "authentication",
         "scenario_id": "S01",
         "observed_events": {
@@ -219,9 +219,9 @@
     "error_code": null,
     "uncertainty": [],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "ollama",
         "model": "qwen3:8b",
@@ -250,9 +250,9 @@
   },
   "model_calls": [
     {
-      "request_sha256": "0f750924b68b7c346816836fe1dfd5c8b51d79808562561b3e1357c53e92949b",
+      "request_sha256": "cc7421755e5e5c43745da5636b6425f0e9a4103b08a83a25cdfb9865d1f8f53e",
       "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
-      "elapsed_seconds": 6.354
+      "elapsed_seconds": 4.151
     }
   ],
   "provider_calls": [

@@ -1,6 +1,6 @@
 {
   "case": "tool_budget",
-  "elapsed_seconds": 0.009,
+  "elapsed_seconds": 0.008,
   "check_errors": [],
   "expected_error": "tool_budget_exhausted",
   "result": {
@@ -14,9 +14,9 @@
     "error_code": "tool_budget_exhausted",
     "uncertainty": [],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "fake",
         "model": "deterministic-fake-v1",
@@ -40,7 +40,7 @@
   },
   "model_calls": [
     {
-      "request_sha256": "9833d3f57d4f110f6326ea2822cc6eef77381ca478b94ea46636543dcf531e95",
+      "request_sha256": "f2c9be1b9cf85bb9861410180607cdf3c993f17df2a0628dcc5f22e1f15e2f8c",
       "reply": "{\"action\": \"tool\", \"tool\": {\"name\": \"get_authentication_event\", \"arguments\": {\"evidence_id\": \"S02-SEC-43503\"}}, \"annotations\": []}",
       "elapsed_seconds": 0.0
     }

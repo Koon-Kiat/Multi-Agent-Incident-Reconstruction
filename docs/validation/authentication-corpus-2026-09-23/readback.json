@@ -1,26 +1,19 @@
 {
   "corpus_events": 6661,
   "runs": {
-    "ollama": {
-      "case_hashes_verified": 11,
-      "factual_readback_verified": true,
-      "passed_checks": 6,
-      "failed_checks": 5,
-      "final_source_hashes_verified": null
-    },
     "fake": {
-      "case_hashes_verified": 11,
+      "artifacts_verified": 11,
+      "source_hashes_verified": 42,
       "factual_readback_verified": true,
-      "passed_checks": 11,
-      "failed_checks": 0,
-      "final_source_hashes_verified": 42
+      "passed": 11,
+      "failed": 0
     },
-    "final-ollama": {
-      "case_hashes_verified": 11,
+    "ollama": {
+      "artifacts_verified": 11,
+      "source_hashes_verified": 42,
       "factual_readback_verified": true,
-      "passed_checks": 6,
-      "failed_checks": 5,
-      "final_source_hashes_verified": 42
+      "passed": 6,
+      "failed": 5
     }
   },
   "raw_lfs_objects": {
@@ -31,5 +24,9 @@
     "datasets/S03/raw/Security.evtx": "fa7267610d7f875e45b5e7799b845b7d9e47e6f5f6274428c892be7087bec160",
     "datasets/S03/raw/Sysmon.evtx": "dabee2af8a90cec5eb2f1693597916eaa88e91b24227ab1f6fc90440b8f4f188"
   },
-  "cli_results_verified": 2
+  "synthetic_fake": {
+    "artifacts_verified": 16,
+    "source_hashes_verified": 8,
+    "passed": 16
+  }
 }

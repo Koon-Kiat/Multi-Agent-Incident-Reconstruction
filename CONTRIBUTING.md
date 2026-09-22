@@ -73,7 +73,3 @@ Maintainers must separately enable branch protection or a ruleset requiring
 tests** before merge. Confirm the exact displayed check contexts after their
 first GitHub run. No repository settings are changed by these files. Like other
 repository-owned CI, validators/workflow changes themselves require review.
-
-The former Python check display name was `M3 and contribution tests`. If a
-branch ruleset requires that exact context, a maintainer must update it to
-`Python and contribution tests`; the workflow job id `tests` is unchanged.

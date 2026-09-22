@@ -1,5 +1,5 @@
 {
-  "completed_at_utc": "2026-09-22T18:03:48.672524+00:00",
+  "completed_at_utc": "2026-09-22T18:29:08.780960+00:00",
   "python": "3.14.6",
   "runtime": {
     "runtime": "ollama",
@@ -21,36 +21,36 @@
       "status": "completed",
       "error_code": null,
       "check_errors": [],
-      "elapsed_seconds": 6.371,
+      "elapsed_seconds": 4.163,
       "file": "S01.json",
-      "sha256": "6706ca1355b7471d768e76a698fcbd9e083dcaef37b824db61dd1fdfbc28d3ef"
+      "sha256": "1c81d36b1a5bc2f8f0d17cdac490e7b5dc3bc1aaa1e152a2e5dde6a36be4105f"
     },
     {
       "case": "S02",
       "status": "completed",
       "error_code": null,
       "check_errors": [],
-      "elapsed_seconds": 1.208,
+      "elapsed_seconds": 1.349,
       "file": "S02.json",
-      "sha256": "7357b13b1913fe437c9e4832d4cc4aa9cca6bf473c52cf1a2b0173a956499a89"
+      "sha256": "b347f8a163cbfdcb6594d48c005c552f9d497abd89e27d47d5a3779f3a62b0b3"
     },
     {
       "case": "S03",
       "status": "completed",
       "error_code": null,
       "check_errors": [],
-      "elapsed_seconds": 1.185,
+      "elapsed_seconds": 1.312,
       "file": "S03.json",
-      "sha256": "28895470d01fd82aeb1e30c4a02949c28c9d36adc39b1fac455914e66acd1ebf"
+      "sha256": "bbb2b03104d880e3d7d7ff8b0c9dc6a1a82a7727c3eeabf04a6d6ee47e6817ba"
     },
     {
       "case": "empty",
       "status": "completed",
       "error_code": null,
       "check_errors": [],
-      "elapsed_seconds": 0.698,
+      "elapsed_seconds": 0.779,
       "file": "empty.json",
-      "sha256": "e84380a2b17b647bc60858a206a0b964448892a9ace2344c2243bea71845e4f9"
+      "sha256": "eb8b7d643343fe032355440ecf524ee4954ccace8b8100a9e8a80c559bbf3d28"
     },
     {
       "case": "get_existing",
@@ -59,9 +59,9 @@
       "check_errors": [
         "model did not emit the directed approved tool call"
       ],
-      "elapsed_seconds": 1.14,
+      "elapsed_seconds": 1.326,
       "file": "get_existing.json",
-      "sha256": "809e71f0def7f967fd3ff09884fed584ed3aa8635757bf20879638f2e2fc3ba7"
+      "sha256": "e0ecd0450eaac807f5b051030fd53ec50a0b0389c8c5b89d8050e9cd8db80f30"
     },
     {
       "case": "get_missing",
@@ -71,9 +71,9 @@
         "model did not emit the directed approved tool call",
         "unknown lookup was not explicitly reported"
       ],
-      "elapsed_seconds": 2.942,
+      "elapsed_seconds": 3.379,
       "file": "get_missing.json",
-      "sha256": "75b7fdd5766d2562ed200d97ae5bfa11192eb26d3e0f4fdb39dd4bc55ff1b09f"
+      "sha256": "72824b1303a4d8a714a2f24da9e8255180e15d09b9d2ed28dc2ddb7a1d8206e0"
     },
     {
       "case": "query_tool",
@@ -82,9 +82,9 @@
       "check_errors": [
         "model did not emit the directed approved tool call"
       ],
-      "elapsed_seconds": 8.627,
+      "elapsed_seconds": 10.028,
       "file": "query_tool.json",
-      "sha256": "b1208ea21a8f4cf969bc01e476fdbb54846bfa30c5b2172dc77258ffd1f9dcc9"
+      "sha256": "e490b5bd1e4e44f8bd04b53236a6ebe62d4ffcf3f9b578440ccf0a5f63557fb7"
     },
     {
       "case": "account_history",
@@ -93,9 +93,9 @@
       "check_errors": [
         "model did not emit the directed approved tool call"
       ],
-      "elapsed_seconds": 10.243,
+      "elapsed_seconds": 11.605,
       "file": "account_history.json",
-      "sha256": "fe395a47c40b5a6314fb555e5a9c24892f708e643e880ba716a124aad746f457"
+      "sha256": "2f844a44c54b1746ce25241c4c3a9712049f3204fdfa59dd3f4d7a78fcbae997"
     },
     {
       "case": "tool_budget",
@@ -106,72 +106,72 @@
         "failed investigations must contain no findings",
         "model did not emit the directed approved tool call"
       ],
-      "elapsed_seconds": 1.263,
+      "elapsed_seconds": 1.526,
       "file": "tool_budget.json",
-      "sha256": "842214e2e4ffadca664ea53af3919f18982f3f23f9335ec3e6f9917ce5e0e1e7"
+      "sha256": "20acef18ff86f78433ca8b3ceef50e40c1cc79c461dbdd2f144ae70493d155fe"
     },
     {
       "case": "bounded_query",
       "status": "completed",
       "error_code": null,
       "check_errors": [],
-      "elapsed_seconds": 6.682,
+      "elapsed_seconds": 6.594,
       "file": "bounded_query.json",
-      "sha256": "63efb4c231633d165dfff544a6258a0114396494779ce23e030c995a2ad97c01"
+      "sha256": "128efdb163fac3024ceda5f5fc3b1f7e9011c12ac09f07ec201413e4d31ff8e0"
     },
     {
       "case": "interpretation",
       "status": "completed",
       "error_code": null,
       "check_errors": [],
-      "elapsed_seconds": 6.689,
+      "elapsed_seconds": 7.998,
       "file": "interpretation.json",
-      "sha256": "9a1323f92a8acc9ce0b2b30765b339ae0098caa8e72e61393a5fb57965e7752c"
+      "sha256": "73badb027239a49e212d92b6b8d093d1d7b2292df015cede714a4ad69274058f"
     }
   ],
   "source_sha256": {
-    "m3/__init__.py": "3d68a326c78d73941967ca51479735530e23d4c0a4f1583bdab5f5e40bcb6d4b",
-    "m3/__main__.py": "384e2c90f790e8dd67137c3eb219a45c50027a41b47404b883836aadd76b49b8",
-    "m3/agent.py": "63223b522880fcf8d59458eabb7ef95c6e720d06db140ba73d69bbc8b87ca206",
-    "m3/config.py": "9be9afefcec72ed96af3bc048b011f2768f7da103f7e0abf663d49ed9a110845",
-    "m3/errors.py": "704a76815be86e48a149ee5452da35f52c8bda4f09a101f9581cbe1b8884199a",
-    "m3/examples/__init__.py": "fe6f558c7b7e20dca5f7ad2fe27268208970207136623978d9c0fe73375285bb",
-    "m3/examples/invoke_m3.py": "ca29c0615e089ad4afcdb0d8aadbe9fea82f71cdca8cb9c5f26810d3b1abc295",
-    "m3/investigate_corpus.py": "08403081c9a3bff4073a6c88a74429991a780352f94da19f634b94877b59dac8",
-    "m3/llm/__init__.py": "e7d4c184fa9bc404e08a793a1d2a2590a7f89cc1b253eb22df685bb84590db0c",
-    "m3/llm/fake.py": "d65c1ace64e6e7d9fbbda0acdf8dea396bc5597c9f1998736443d4261bb240bf",
-    "m3/llm/ollama_client.py": "5d4f32cd61a142f5c239b9dc545e9f756304f5d1acd12e5b3495a920fce49832",
-    "m3/models.py": "339383959081f51f53664fbc1b9c9338f4eae5c7dcf7760c13f6b0e377acc957",
-    "m3/observations.py": "8094cad0284b98d3879753c289a3eaac7e6c2135ea16e9a724f353361c08ac5f",
-    "m3/prompts.py": "3c0d8ff6599e083d667d6bffa432a58a983e701bec7fb4de60d163057bfc6ad6",
-    "m3/queries/__init__.py": "d25de3d94af84a2d1db3240ad28c476f769d7d6bc5ffb90bfe646b00c347e644",
-    "m3/queries/in_memory.py": "33065b459292d5d3e224f710448d829ec19ac58df07e7c9963d19dbaad2c59a1",
-    "m3/queries/interface.py": "b6d71254176d42bf62c21625ee33ca743fda6c418884442dd1955ecbbffffe65",
-    "m3/queries/semantics.py": "a26dfe783c677beb91da227e5cca6e862a9141f28adc2eb72e37e6a9e8429eb5",
-    "m3/queries/tools.py": "28120993915422299134778f282df190f5335ad31edfa836b0fca082131fae14",
-    "m3/testing/__init__.py": "eb6d9b9f14c6277aeecce226cd4d2bd2dcf5e03ca15bae89abd3ad94c6f2af8a",
-    "m3/testing/check_processing_contract.py": "1e5335830e8acfe699d1620f191f1ecbf3fa2803c6957ba4f62c674653d56118",
-    "m3/testing/factual_checks.py": "ef88ae2ba78e03536d04645c6d9076b0e59bf9233c2c0650080302ea26e6f03f",
-    "m3/testing/provider_contract.py": "b4ddaa19b9e72271a75d466afe150ff8823f705da222d388d3a1c910fb7ddc79",
-    "m3/validate_corpus.py": "4361e065d06e8c11756e2d3b5faab6996beb2226febd594a7215581c29a1c0ab",
-    "m3/validate_synthetic.py": "aaf4abad06703518af8f659392b867ebf00eba35d764ec52eb5e4ff7bb9f8a96",
-    "m2/__init__.py": "d2a41d92ce3ff94a876f006fcaf6d839d595c9dd352782b39538d2b5114d2303",
-    "m2/__main__.py": "a7cdb7f08f4f151301ea03b6439fb3fa25480c7b5ec72624c14599cab53ad492",
-    "m2/adapters/__init__.py": "b0490f2a94db5336630a465611eb46f6e4cd0b4aa3d8135dfeb8117c82e4077b",
-    "m2/adapters/m3_provider.py": "e4c2377dde2959029236493551979243d6cf87e2a444e7e8f41856a79b8e37ac",
-    "m2/corpus.py": "1959013246efa4e939404c382b940af9a3e9711ec28b054e8d39550531b29039",
-    "m2/detection/__init__.py": "0010f9f997bd4439497d55921278b8f426e59614955c7bd82907dff055b46503",
-    "m2/detection/engine.py": "decd4a1bd01fdd0a72f82c345ac070b6263d89c41373511673a6c130ee7ffb0a",
-    "m2/detection/rules.py": "f5393ece8d9d0571e443f417ee6637f43a8568c2fbdc040f8e08a4ac5c158f88",
-    "m2/detection/schema.py": "98bade6e00bf35a3741d8352352d6bf0bb3693c2286dde4c13646d1607c4c38b",
-    "m2/evtx_reader.py": "148f1612fc7ca1d1efa554b5ef04a8eb5455650db81bc185bb4d4d7e90c38370",
-    "m2/ids.py": "3a79186dceb2c3018e664150723862100db6e09e21077ba33993715b19fff0a4",
-    "m2/manifest.py": "4b9f8963b150d43bed66f28d288c1a343a9618d40ee70ee70ff80bf715e45946",
-    "m2/metrics.py": "21a32eeb408ec08e5ac692a5a55637d82543169b7aab539d824250b5d61b0489",
-    "m2/normalise.py": "a09be944cae8375fb03af7fe8d0ad2672f3df128534941f789de5b6bdf8bd9fb",
-    "m2/query.py": "37c1950c0ea854fa92f8ae64b2af656d9b6b0d728f88cf5d1b0f3e4b88eeabc4",
-    "m2/schema.py": "70cbf2055a4256028a968b35986a4b47f7f40048400c3a0a273e0dc5b4fd2036",
-    "m2/timeutil.py": "f4612490c57d47802422d1e5752c18b16b16ff41f2aa5805e98abf36bf6f819f"
+    "authentication_agent/__init__.py": "fd5d36d5ce650aa10abe479fc15100824f2e2c2cbe2330dabdcca2884ae8391e",
+    "authentication_agent/__main__.py": "de6682239fee585210a519c2f221eaeb2a873e631f7a55ac045feb50477c2de8",
+    "authentication_agent/agent.py": "f59c81996a1f49e4a44d8a69b930efcf097ce9ddca06f9ab1af8c04a57c0ffc8",
+    "authentication_agent/config.py": "72dd1a15009a8f7ab7c669aa0b2e8bd83adf8d6c8cdba7b6ca934a88377bda22",
+    "authentication_agent/errors.py": "6a60f69ca3aadd98b792ed221968c9621475c92d42cf7e99bb18e71b961c1f9c",
+    "authentication_agent/examples/__init__.py": "51de9688584d79e9b011b2c23d3d5c6fb9b42c99089c89c3e346a700a36fb5fe",
+    "authentication_agent/examples/invoke_authentication.py": "0b6faef2c5f4353a746c4bbd357a4a0e388ca86043c44bfc7e955937046d50b4",
+    "authentication_agent/investigate_corpus.py": "2b571e3cf5918207e725aac563fb648e1bc2caf0a803dbb3732585f1c225ac87",
+    "authentication_agent/llm/__init__.py": "54b8b4042eb86c55ff0394bce4a1c1d873bb78ec563b5365c2b7dcca5f2a64f9",
+    "authentication_agent/llm/fake.py": "dddad2d7ba1041aff7405656ad157f6628ae63e0fd6fdea8cfe3ba8e3eb256b9",
+    "authentication_agent/llm/ollama_client.py": "bfb6984196b85f5a32f5ba2f8fe29af5e6cdf49c21cf692c6201c5cb3eb17cec",
+    "authentication_agent/models.py": "29bf75b3503d56ba7702cba920471a4525c47f9f3346e1169b622d109037cc50",
+    "authentication_agent/observations.py": "3da81923b12992cbe3157932d2db1f64442a4c78a2d7fa3a27261a46c574ce4d",
+    "authentication_agent/prompts.py": "64d55f289236c7affbb9fc713453fc7a44ff0d8cff64a943b1f477f112ddb59b",
+    "authentication_agent/queries/__init__.py": "3b3e74b63f5c35ab104dd24eb397158af9b9fcc896ad6c05329857cb3658316b",
+    "authentication_agent/queries/in_memory.py": "56914aac506b89ace5629dd8f5da377511eb951a6662c49d15258140b12ea5c5",
+    "authentication_agent/queries/interface.py": "410dce1dd1e51597cceb4eea85cf7e38bee2366f6e1e4bd94b17be94a4ce51e6",
+    "authentication_agent/queries/semantics.py": "b76b41a022265fa7adcf10d9bfbc223f75a6e5711e35482113ac9b5e2c6b441c",
+    "authentication_agent/queries/tools.py": "cda4a57c011284211233a3cf6865b52a61348f01aabc8f60e7d8d93614330aba",
+    "authentication_agent/testing/__init__.py": "771bcb35bc226a15ca29fc963c05ae197cdc8b329edbec5e553d0dc0cffd1047",
+    "authentication_agent/testing/check_processing_contract.py": "87e747545fc71a93dc0a1fd8b7eff1c01f0ad509f76775ae1f697c942e44c504",
+    "authentication_agent/testing/factual_checks.py": "20265956422bb10563c6fb75c2ecc597f70ba02fa550b33e844a960756da40e5",
+    "authentication_agent/testing/provider_contract.py": "149c12abdb34da88b82f1ac8b945c7dd8a9a9f70aaae522c32d2bdd950a54767",
+    "authentication_agent/validate_corpus.py": "bce7ea1535a353040f4c810e047bdcab5af8e800ff576aebd3d6a85c2da699e9",
+    "authentication_agent/validate_synthetic.py": "61e3ccf1322d25f36eed6d5bbeaf8f93d8ee816e53a1dffd7630d15a8969b6db",
+    "event_processing/__init__.py": "335eb5e9f28547301650820fa6e29f99d398b049e57fac8268fc3e54f92a0a66",
+    "event_processing/__main__.py": "2714bdcf4ded6118a2333ded98bf343f1d9c1670b966f154a9bb5770bc99c185",
+    "event_processing/adapters/__init__.py": "2d2608c33799aaa1fdbcba6a0ea4cd5d3af55b3c212f2272643bf027bd48a617",
+    "event_processing/adapters/authentication_provider.py": "0a4377d26c0174dc2e32d12f3e9e821abe37cf706b9acf999c2f9c66d166ef0a",
+    "event_processing/corpus.py": "30b4fe6bdd532880652969575d4b2ecf21aab76f6acd49497de1debc8eec3771",
+    "event_processing/detection/__init__.py": "80569396aff31a6812f543e9bcee93d9e4aae98e487f3cec896bf11af7446d3c",
+    "event_processing/detection/engine.py": "2597c933ef0535822df5fb037bfd16c20089c28baf330b4b94f9fd610f4f8013",
+    "event_processing/detection/rules.py": "c643af0658533a3888426abf6f8cf00eb332914285defb37531fec40d3eb7cbc",
+    "event_processing/detection/schema.py": "5400906c9a3350541e9fe4fc4eb88e45ca8fde0f8f7227918e9d716848a6e607",
+    "event_processing/evtx_reader.py": "8d96b255f69686cee71a88d10e5c906c455955a4c4eb3ce237ef85cc88b49d1e",
+    "event_processing/ids.py": "c22522ce1b4806a2296aa033f7dc1d276925d3ed30191076129043e92f0a40cf",
+    "event_processing/manifest.py": "cb02ae56454b9b290d3369c523e305e2fbe89c3bb9e95c2d9791bb5ec6c77eef",
+    "event_processing/metrics.py": "9cc9f79df55221f0a48f6d9d941a5d4e36f77da6d05a2d34da104ed94727724a",
+    "event_processing/normalise.py": "557feade347c65adf7e6f28806c83d9c26e0c8480d2ce45bdc1837bbca10dc19",
+    "event_processing/query.py": "5b9e31edbe8e5933fcdbfd35d9c68a00b3222fb5e1ab1f0241bf62a0d0542948",
+    "event_processing/schema.py": "12987e39554e4431dfed5ad39d56ec6e206ff24281fa1f2c4cd5622d337dd171",
+    "event_processing/timeutil.py": "a51d3e6fe27bb79b0746f5607b8ec6cc9ed22f6acde4348eef7470fc4ef67e27"
   },
   "corpus_manifest": {
     "scenarios": [
@@ -354,8 +354,8 @@
         "scenario_id": "S03"
       }
     ],
-    "schema_version": "m2-corpus-v1"
+    "schema_version": "security-corpus-v1"
   },
-  "corpus_manifest_sha256": "ebf5f9df82e51e20e737c418f2059a0c3a4abb59f00347f6f2960a6d4c13e968",
+  "corpus_manifest_sha256": "34c5d0ac01e5a6028cbc2a6deb39197a179007be549971119f83e6000f9069c7",
   "scope": "Authentication Investigation Agent corpus integration; not detection accuracy, independent verification or orchestrator integration"
 }

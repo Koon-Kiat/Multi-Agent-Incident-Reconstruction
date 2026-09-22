@@ -1,6 +1,6 @@
 {
   "case": "S03",
-  "elapsed_seconds": 1.185,
+  "elapsed_seconds": 1.312,
   "check_errors": [],
   "expected_error": null,
   "result": {
@@ -12,7 +12,7 @@
     },
     "findings": [
       {
-        "finding_id": "M3-4ac6903602e46babe8c87c1f",
+        "finding_id": "AUTH-4ac6903602e46babe8c87c1f",
         "agent_type": "authentication",
         "scenario_id": "S03",
         "observed_events": {
@@ -47,7 +47,7 @@
         ]
       },
       {
-        "finding_id": "M3-964b69f7ca2ce7052fe0bdaf",
+        "finding_id": "AUTH-964b69f7ca2ce7052fe0bdaf",
         "agent_type": "authentication",
         "scenario_id": "S03",
         "observed_events": {
@@ -82,7 +82,7 @@
         ]
       },
       {
-        "finding_id": "M3-16a23db487ada0add370c044",
+        "finding_id": "AUTH-16a23db487ada0add370c044",
         "agent_type": "authentication",
         "scenario_id": "S03",
         "observed_events": {
@@ -117,7 +117,7 @@
         ]
       },
       {
-        "finding_id": "M3-ec8d60a29cb43ce020ddcea9",
+        "finding_id": "AUTH-ec8d60a29cb43ce020ddcea9",
         "agent_type": "authentication",
         "scenario_id": "S03",
         "observed_events": {
@@ -152,7 +152,7 @@
         ]
       },
       {
-        "finding_id": "M3-f453babd0e1df32558911cfc",
+        "finding_id": "AUTH-f453babd0e1df32558911cfc",
         "agent_type": "authentication",
         "scenario_id": "S03",
         "observed_events": {
@@ -187,7 +187,7 @@
         ]
       },
       {
-        "finding_id": "M3-970afc9f3c07a4b6c1d81124",
+        "finding_id": "AUTH-970afc9f3c07a4b6c1d81124",
         "agent_type": "authentication",
         "scenario_id": "S03",
         "observed_events": {
@@ -222,7 +222,7 @@
         ]
       },
       {
-        "finding_id": "M3-dd28edecda0ecf7423e96fa6",
+        "finding_id": "AUTH-dd28edecda0ecf7423e96fa6",
         "agent_type": "authentication",
         "scenario_id": "S03",
         "observed_events": {
@@ -260,9 +260,9 @@
     "error_code": null,
     "uncertainty": [],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "ollama",
         "model": "qwen3:8b",
@@ -291,9 +291,9 @@
   },
   "model_calls": [
     {
-      "request_sha256": "8673b06772ccb95ce50990004a2c07442db2dee4ce58d906c16267150c7bb4ef",
+      "request_sha256": "762489e1fecff32ade7188ccb263b56cd1b7ea4f7cc5728482f6548b189b29dc",
       "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
-      "elapsed_seconds": 1.174
+      "elapsed_seconds": 1.302
     }
   ],
   "provider_calls": [

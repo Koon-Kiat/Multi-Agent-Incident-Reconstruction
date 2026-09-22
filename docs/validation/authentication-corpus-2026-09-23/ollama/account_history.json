@@ -1,6 +1,6 @@
 {
   "case": "account_history",
-  "elapsed_seconds": 10.243,
+  "elapsed_seconds": 11.605,
   "check_errors": [
     "model did not emit the directed approved tool call"
   ],
@@ -14,7 +14,7 @@
     },
     "findings": [
       {
-        "finding_id": "M3-c7ed785dafc87fa56e099841",
+        "finding_id": "AUTH-c7ed785dafc87fa56e099841",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -49,7 +49,7 @@
         ]
       },
       {
-        "finding_id": "M3-7d89d1e7693505a812a8574a",
+        "finding_id": "AUTH-7d89d1e7693505a812a8574a",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -84,7 +84,7 @@
         ]
       },
       {
-        "finding_id": "M3-00cb4eee831483bcbdd9088f",
+        "finding_id": "AUTH-00cb4eee831483bcbdd9088f",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -119,7 +119,7 @@
         ]
       },
       {
-        "finding_id": "M3-6c819f2f11f2307e39930c0e",
+        "finding_id": "AUTH-6c819f2f11f2307e39930c0e",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -154,7 +154,7 @@
         ]
       },
       {
-        "finding_id": "M3-2fba14bdc8f9f943948fd85f",
+        "finding_id": "AUTH-2fba14bdc8f9f943948fd85f",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -189,7 +189,7 @@
         ]
       },
       {
-        "finding_id": "M3-b639e5e8bb7ec69813438dcd",
+        "finding_id": "AUTH-b639e5e8bb7ec69813438dcd",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -227,7 +227,7 @@
         ]
       },
       {
-        "finding_id": "M3-9b87f0a3ab9a83cd9af15632",
+        "finding_id": "AUTH-9b87f0a3ab9a83cd9af15632",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -265,9 +265,9 @@
     "error_code": null,
     "uncertainty": [],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "ollama",
         "model": "qwen3:8b",
@@ -296,9 +296,9 @@
   },
   "model_calls": [
     {
-      "request_sha256": "469b8b165438ffd6a7fa7219fdd411b749ba73a918cb162deaba2d60c733628a",
-      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": [\n    {\n      \"observation_id\": \"M3-c7ed785dafc87fa56e099841\",\n      \"evidence_ids\": [\"S02-SEC-43503\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-7d89d1e7693505a812a8574a\",\n      \"evidence_ids\": [\"S02-SEC-43547\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-00cb4eee831483bcbdd9088f\",\n      \"evidence_ids\": [\"S02-SEC-43554\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-6c819f2f11f2307e39930c0e\",\n      \"evidence_ids\": [\"S02-SEC-43558\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-2fba14bdc8f9f943948fd85f\",\n      \"evidence_ids\": [\"S02-SEC-43559\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"M3-b639e5e8bb7ec69813438dcd\",\n      \"evidence_ids\": [\"S02-SEC-43571\", \"S02-SEC-43573\", \"S02-SEC-43575\", \"S02-SEC-43578\", \"S02-SEC-43580\", \"S02-SEC-43584\"],\n      \"interpretation\": \"may_warrant_review\"\n    },\n    {\n      \"observation_id\": \"M3-9b87f0a3ab9a83cd9af15632\",\n      \"evidence_ids\": [\"S02-SEC-43591\"],\n      \"interpretation\": \"context_required\"\n    }\n  ]\n}",
-      "elapsed_seconds": 10.231
+      "request_sha256": "0406d4ec327416a990c96a78783dbf7dcf9dbe106ca9eac4ae3172dbcb1986d5",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": [\n    {\n      \"observation_id\": \"AUTH-c7ed785dafc87fa56e099841\",\n      \"evidence_ids\": [\"S02-SEC-43503\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-7d89d1e7693505a812a8574a\",\n      \"evidence_ids\": [\"S02-SEC-43547\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-00cb4eee831483bcbdd9088f\",\n      \"evidence_ids\": [\"S02-SEC-43554\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-6c819f2f11f2307e39930c0e\",\n      \"evidence_ids\": [\"S02-SEC-43558\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-2fba14bdc8f9f943948fd85f\",\n      \"evidence_ids\": [\"S02-SEC-43559\"],\n      \"interpretation\": \"context_required\"\n    },\n    {\n      \"observation_id\": \"AUTH-b639e5e8bb7ec69813438dcd\",\n      \"evidence_ids\": [\"S02-SEC-43571\", \"S02-SEC-43573\", \"S02-SEC-43575\", \"S02-SEC-43578\", \"S02-SEC-43580\", \"S02-SEC-43584\"],\n      \"interpretation\": \"may_warrant_review\"\n    },\n    {\n      \"observation_id\": \"AUTH-9b87f0a3ab9a83cd9af15632\",\n      \"evidence_ids\": [\"S02-SEC-43591\"],\n      \"interpretation\": \"context_required\"\n    }\n  ]\n}",
+      "elapsed_seconds": 11.595
     }
   ],
   "provider_calls": [

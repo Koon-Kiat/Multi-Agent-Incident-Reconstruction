@@ -1,0 +1,41 @@
+{
+  "corpus_changed_fields": [
+    "schema_version"
+  ],
+  "original_event_files_unchanged": true,
+  "detection_changes": {
+    "S01.json": {
+      "changed_fields": [
+        ".corpus_manifest_sha256",
+        ".schema_version"
+      ],
+      "sha256": "bddcc3184d80a5ce07a27563d2f2a20a47af90830a418fc722d5a1dfc4318161"
+    },
+    "S02.json": {
+      "changed_fields": [
+        ".corpus_manifest_sha256",
+        ".schema_version"
+      ],
+      "sha256": "549afd3e9821a045b8b84cd425d0df592f6efc996bb5e26ee3e79f155f8b654a"
+    },
+    "S03.json": {
+      "changed_fields": [
+        ".corpus_manifest_sha256",
+        ".schema_version"
+      ],
+      "sha256": "dcd730c0e8eea90cf405906e9e2bed9c3c9dcca6586708cc52af7f56e0718028"
+    },
+    "summary.json": {
+      "changed_fields": [
+        ".corpus_manifest_sha256",
+        ".schema_version"
+      ],
+      "sha256": "a16836328abd1136bfb21fa573d221a6227c88c237d8544ab0783a645af8395c"
+    }
+  },
+  "behavior_sha256": {
+    "S01.json": "bd5e6191bbe96e16b47907b83a3fdf4702e47cac6bad1cc722020db5c2d19ba5",
+    "S02.json": "ba6ec25d1454b0be00c1d9b33c40ef3cda02f68cc0943b87ff9faa150ab1d72d",
+    "S03.json": "2a9143f12c629d5ad0150e677a133c3503e6d93a0daed1370bc67965544b013f"
+  }
+}

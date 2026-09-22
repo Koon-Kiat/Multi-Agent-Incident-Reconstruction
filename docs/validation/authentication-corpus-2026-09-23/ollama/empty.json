@@ -1,6 +1,6 @@
 {
   "case": "empty",
-  "elapsed_seconds": 0.698,
+  "elapsed_seconds": 0.779,
   "check_errors": [],
   "expected_error": null,
   "result": {
@@ -16,9 +16,9 @@
       "No authentication evidence was returned for this window; this does not establish absence of activity."
     ],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "ollama",
         "model": "qwen3:8b",
@@ -49,7 +49,7 @@
     {
       "request_sha256": "fdcf163e3d7ceba4b2c31ddc2ee59a1659e86f77555716c3964956d1524fbd17",
       "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
-      "elapsed_seconds": 0.688
+      "elapsed_seconds": 0.768
     }
   ],
   "provider_calls": [

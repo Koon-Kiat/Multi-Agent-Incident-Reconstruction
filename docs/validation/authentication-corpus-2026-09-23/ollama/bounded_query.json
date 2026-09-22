@@ -1,6 +1,6 @@
 {
   "case": "bounded_query",
-  "elapsed_seconds": 6.682,
+  "elapsed_seconds": 6.594,
   "check_errors": [],
   "expected_error": null,
   "result": {
@@ -12,7 +12,7 @@
     },
     "findings": [
       {
-        "finding_id": "M3-c7ed785dafc87fa56e099841",
+        "finding_id": "AUTH-c7ed785dafc87fa56e099841",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -48,7 +48,7 @@
         ]
       },
       {
-        "finding_id": "M3-7d89d1e7693505a812a8574a",
+        "finding_id": "AUTH-7d89d1e7693505a812a8574a",
         "agent_type": "authentication",
         "scenario_id": "S02",
         "observed_events": {
@@ -89,9 +89,9 @@
       "At least one query was truncated; this is not a complete window inventory."
     ],
     "metadata": {
-      "contract_version": "m3-provisional-v1",
-      "prompt_version": "m3-authentication-v2",
-      "configuration_version": "m3-config-v2",
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
       "llm": {
         "runtime": "ollama",
         "model": "qwen3:8b",
@@ -120,9 +120,9 @@
   },
   "model_calls": [
     {
-      "request_sha256": "04a5b77557ad6937719a1378e18af31cf48ad57bddce17ca95a4893861e85c19",
+      "request_sha256": "adfd4f8215e24699cc271d418d9ac08759185fd509da5f7b05fe395ad51e4922",
       "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
-      "elapsed_seconds": 6.672
+      "elapsed_seconds": 6.586
     }
   ],
   "provider_calls": [
