@@ -1,0 +1,11 @@
+{
+  "completed_at_utc": "2026-09-21T15:38:17.2080102Z",
+  "validation_server_pid": 79948,
+  "validation_server_stopped": true,
+  "model_unload_done": true,
+  "original_server_version": "0.34.2",
+  "installed_models": [
+    "qwen3:8b"
+  ],
+  "original_server_preserved": true
+}

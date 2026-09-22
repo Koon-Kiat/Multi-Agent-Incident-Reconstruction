@@ -1,0 +1,127 @@
+{
+  "case": "SYN-I",
+  "elapsed_seconds": 0.674,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-I",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "M3-47fc04a2e66e51634ad08cfa",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-I",
+        "observed_events": {
+          "description": "Retrieved 2 failed logon(s) and 1 successful logon(s) with these recorded entity values. At least two failures precede a success.",
+          "failed_logons": 2,
+          "successful_logons": 1,
+          "failures_before_first_success": 2,
+          "repeated_failures_followed_by_success": true
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.1234000Z",
+          "last_utc": "2026-01-10T00:00:01.1234568Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-I-SEC-3",
+          "SYN-I-SEC-2",
+          "SYN-I-SEC-1"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "m3-provisional-v1",
+      "prompt_version": "m3-authentication-v2",
+      "configuration_version": "m3-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11435",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "e704596f999b9314a063a6ec9128f7a7c1d564d39e917b320561942e71196172",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
+      "elapsed_seconds": 0.671
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-I",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-I-SEC-3",
+        "SYN-I-SEC-2",
+        "SYN-I-SEC-1"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-I-SEC-3",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-I-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-I-SEC-1",
+      "found": true
+    }
+  ]
+}

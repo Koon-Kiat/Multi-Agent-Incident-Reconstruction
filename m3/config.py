@@ -7,7 +7,7 @@ from pydantic import Field, field_validator
 
 from .models import Model
 
-CONFIGURATION_VERSION = "m3-config-v1"
+CONFIGURATION_VERSION = "m3-config-v2"
 
 
 class Limits(Model):
@@ -27,6 +27,7 @@ class OllamaConfig(Model):
     temperature: float = Field(default=0.0, ge=0, le=2)
     seed: int = 0
     num_ctx: int = Field(default=32768, ge=1024, le=131072)
+    think: bool | None = None
 
     @field_validator("model")
     @classmethod

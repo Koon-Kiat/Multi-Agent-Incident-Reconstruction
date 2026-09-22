@@ -1,0 +1,36 @@
+{
+  "status": "failed",
+  "request": {
+    "scenario_id": "SYN-A",
+    "start_utc": "2026-01-10T00:00:00Z",
+    "end_utc": "2026-01-10T00:01:00Z"
+  },
+  "findings": [],
+  "error_code": "model_timeout",
+  "uncertainty": [],
+  "metadata": {
+    "contract_version": "m3-provisional-v1",
+    "prompt_version": "m3-authentication-v1",
+    "configuration_version": "m3-config-v1",
+    "llm": {
+      "runtime": "ollama",
+      "model": "qwen3:8b",
+      "endpoint": "http://127.0.0.1:11435",
+      "temperature": 0.0,
+      "seed": 0,
+      "num_ctx": 32768
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "tool_calls": 1,
+    "model_calls": 1
+  }
+}

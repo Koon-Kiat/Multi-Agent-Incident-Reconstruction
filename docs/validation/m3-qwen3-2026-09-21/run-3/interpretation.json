@@ -1,0 +1,134 @@
+{
+  "case": "interpretation",
+  "elapsed_seconds": 1.841,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "M3-5e53c21298bc2ea6a60ee799",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-A",
+        "observed_events": {
+          "description": "Retrieved 3 failed logon(s) and 1 successful logon(s) with these recorded entity values. At least two failures precede a success.",
+          "failed_logons": 3,
+          "successful_logons": 1,
+          "failures_before_first_success": 3,
+          "repeated_failures_followed_by_success": true
+        },
+        "interpretation": "The observed authentication sequence may warrant further investigation; it does not establish compromise.",
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000001Z",
+          "last_utc": "2026-01-10T00:00:04.0000001Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "m3-provisional-v1",
+      "prompt_version": "m3-authentication-v2",
+      "configuration_version": "m3-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11435",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": true
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "125b3ae20e025622a566a449f1aee3ff825f619c52b65f6ea879a836abe68d55",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": [\n    {\n      \"observation_id\": \"M3-5e53c21298bc2ea6a60ee799\",\n      \"evidence_ids\": [\"SYN-A-SEC-1\", \"SYN-A-SEC-2\", \"SYN-A-SEC-3\", \"SYN-A-SEC-4\"],\n      \"interpretation\": \"may_warrant_review\"\n    }\n  ]\n}",
+      "elapsed_seconds": 1.837
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-A",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-A-SEC-1",
+        "SYN-A-SEC-2",
+        "SYN-A-SEC-3",
+        "SYN-A-SEC-4"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-3",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-4",
+      "found": true
+    }
+  ]
+}
