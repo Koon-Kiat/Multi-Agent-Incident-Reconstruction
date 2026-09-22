@@ -1,15 +1,16 @@
 """T3.3 (real): the detection engine over the real exports.
 
-The counts in :data:`BASELINE_COUNTS` are the phase-3 baseline recorded in
-``docs/M2_DETECTION_RULES.md``. They are the outcome of running thresholds that were fixed
-before the first real run over a corpus that is pinned by the phase-1 digests; they are not a
-target and not something to adjust. The structural assertions are the real point: every
-trigger resolves, every window is exactly the span of its triggers, and two runs are
-byte-identical.
+The counts in :data:`BASELINE_COUNTS` and the digests in :data:`BASELINE_DIGESTS` are the
+phase-3 baseline recorded in ``docs/M2_DETECTION_RULES.md``. They are the outcome of running
+thresholds that were fixed before the first real run over a corpus that is pinned by the
+phase-1 digests; they are not a target and not something to adjust. The structural assertions
+are the real point: every trigger resolves, every window is exactly the span of its triggers,
+and two runs are byte-identical.
 """
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 from m2.detection.engine import (
@@ -18,8 +19,11 @@ from m2.detection.engine import (
     corpus_manifest_digest,
     write_detections,
 )
+from m2.detection.rules import RULES
 from m2.query import EventStore
 from m2.timeutil import iso_to_ticks, ticks_to_iso
+
+CORPUS_MANIFEST_SHA256 = "ebf5f9df82e51e20e737c418f2059a0c3a4abb59f00347f6f2960a6d4c13e968"
 
 BASELINE_COUNTS = {
     "S01": {"R-CRED-01": 2, "R-EXEC-01": 6, "R-LOG-01": 1},
@@ -27,10 +31,30 @@ BASELINE_COUNTS = {
     "S03": {"R-AUTH-03": 6, "R-EXEC-01": 4, "R-FILE-01": 3, "R-LOG-01": 1},
 }
 
+# The four SHA-256 values in the doc's "Output digests" table, pinned here so a rule change
+# cannot leave the doc quoting stale bytes without a test failing.
+BASELINE_DIGESTS = {
+    "S01.json": "09b74c52984d525236ae5c6ee3ad7596a21f33b22d351e35575e74dfbb924511",
+    "S02.json": "683e4d960d44b9c64eb00410a9e52b807941543544123fc49c8ccd2eadee8913",
+    "S03.json": "3aaa0d429bb83ec2d812fd1e5078f05040442064bbb2a02485b974f14c0cfe19",
+    "summary.json": "b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184",
+}
+
+RULE_VERSIONS = {rule.spec.rule_id: rule.spec.version for rule in RULES}
+
 
 def test_the_declared_baseline_reproduces_on_the_real_corpus(real_corpus_dir: Path, tmp_path: Path):
     summary = write_detections(real_corpus_dir, tmp_path / "detections")
     assert {scenario.scenario_id: dict(scenario.counts_by_rule) for scenario in summary.scenarios} == BASELINE_COUNTS
+
+
+def test_the_declared_output_digests_reproduce_on_the_real_corpus(real_corpus_dir: Path, tmp_path: Path):
+    assert corpus_manifest_digest(real_corpus_dir) == CORPUS_MANIFEST_SHA256
+    out = tmp_path / "detections"
+    write_detections(real_corpus_dir, out)
+    assert sorted(path.name for path in out.iterdir()) == sorted(BASELINE_DIGESTS)
+    for name, expected in BASELINE_DIGESTS.items():
+        assert hashlib.sha256((out / name).read_bytes()).hexdigest() == expected, name
 
 
 def test_two_real_runs_are_byte_identical(real_corpus_dir: Path, tmp_path: Path):
@@ -52,7 +76,7 @@ def test_every_trigger_resolves_and_every_window_is_the_span_of_its_triggers(rea
     for scenario_id in engine.scenario_ids:
         for detection in engine.triggers_for(scenario_id):
             assert detection.scenario_id == scenario_id
-            assert detection.rule_version == "1"
+            assert detection.rule_version == RULE_VERSIONS[detection.rule_id]
             assert detection.rationale
             ticks = []
             for evidence_id in detection.trigger_evidence_ids:
