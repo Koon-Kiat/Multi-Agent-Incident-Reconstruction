@@ -183,6 +183,12 @@ def _score(args: argparse.Namespace) -> int:
     except ScoreError as error:
         print(f"m2 score: {error}", file=sys.stderr)
         return EXIT_INVALID_INPUT
+    except OSError as error:
+        # Defensive backstop: the loaders already turn a read failure into a ScoreError, so this
+        # only catches an OS error outside their own reads (a directory listing, say) and still
+        # prints one line instead of a traceback.
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_FAILED
     try:
         # B1: a run computed from another corpus revision is a failed run, not malformed input.
         validate_corpus_manifest(runs, digest)

@@ -469,6 +469,46 @@ def test_a_detection_run_that_is_not_utf8_is_a_score_error(tmp_path: Path):
         load_detection_runs(directory)
 
 
+def test_a_directory_named_like_a_run_file_is_a_score_error(tmp_path: Path):
+    # F1: `glob("*.json")` matches a directory whose name ends in `.json` too, and reading one
+    # raises an OSError (PermissionError on Windows, IsADirectoryError on POSIX). That must be a
+    # ScoreError so the CLI prints one line instead of a traceback.
+    directory = tmp_path / "detections"
+    (directory / "S01.json").mkdir(parents=True)
+    with pytest.raises(ScoreError, match="not a regular file"):
+        load_detection_runs(directory)
+
+
+def _fail_reads_for(monkeypatch: pytest.MonkeyPatch, target: Path) -> None:
+    """Make ``Path.read_text`` fail with ``PermissionError`` for exactly ``target`` (a lock, say)."""
+    real_read_text = Path.read_text
+
+    def read_text(self: Path, *args: object, **kwargs: object) -> str:
+        if self == target:
+            raise PermissionError(13, "Permission denied", str(self))
+        return real_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", read_text)
+
+
+def test_an_os_read_failure_of_a_label_file_is_a_score_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    path = tmp_path / "labels.csv"
+    path.write_text("evidence_id,label\nSYN-B-SEC-1,positive\n", encoding="utf-8")
+    _fail_reads_for(monkeypatch, path)
+    with pytest.raises(ScoreError, match="could not be read"):
+        load_labels(path)
+
+
+def test_an_os_read_failure_of_a_run_file_is_a_score_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    directory = tmp_path / "detections"
+    directory.mkdir()
+    path = directory / f"{SCENARIO}.json"
+    path.write_text(f"{_json(_run(SCENARIO, _detection(SCENARIO, 'R-A', (1,))))}\n", encoding="utf-8")
+    _fail_reads_for(monkeypatch, path)
+    with pytest.raises(ScoreError, match="could not be read"):
+        load_detection_runs(directory)
+
+
 def test_a_run_file_whose_name_disagrees_with_its_scenario_is_rejected(tmp_path: Path):
     directory = tmp_path / "detections"
     directory.mkdir()

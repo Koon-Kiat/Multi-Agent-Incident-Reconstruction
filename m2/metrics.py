@@ -344,6 +344,8 @@ def load_labels(
     ``reason=None``; every other deviation is a :class:`ScoreError` naming the row.
     """
     source = Path(path)
+    if source.is_dir():
+        raise ScoreError(f"label file {source} is a directory, not a label file")
     if not source.is_file():
         raise ScoreError(f"label file {source} does not exist")
     if source.suffix.lower() == ".csv":
@@ -358,11 +360,14 @@ def load_labels(
 def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
     """Read every ``<scenario>.json`` run written by ``python -m m2 detect``, sorted by file name.
 
-    ``summary.json`` is not a run and is skipped. A file that is not a valid ``DetectionRun`` or
-    whose name does not match the scenario inside it fails the whole read rather than being
-    ignored, because scoring a partial or mislabelled directory silently would understate or
-    misattribute the flagged set. A directory holding runs from more than one corpus manifest is
-    rejected for the same reason (see :func:`validate_runs`).
+    ``summary.json`` is not a run and is skipped. ``glob("*.json")`` matches a **directory** whose
+    name ends in ``.json`` as well as a file, so every candidate that is not a regular file is
+    rejected rather than read. A file that is not a valid ``DetectionRun`` or whose name does not
+    match the scenario inside it fails the whole read rather than being ignored, because scoring a
+    partial or mislabelled directory silently would understate or misattribute the flagged set. A
+    directory holding runs from more than one corpus manifest is rejected for the same reason (see
+    :func:`validate_runs`). Every read failure — an unreadable file, an undoable directory, a lock
+    or a race — becomes a :class:`ScoreError`, never a bare :class:`OSError`.
     """
     source = Path(directory)
     if not source.is_dir():
@@ -372,10 +377,14 @@ def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
         raise ScoreError(f"detections directory {source} holds no run files")
     runs = []
     for path in paths:
+        if not path.is_file():
+            raise ScoreError(f"{path} is not a regular file; a detection run must be a file")
         try:
             payload = path.read_text(encoding="utf-8")
         except UnicodeDecodeError as error:
             raise ScoreError(f"{path} is not valid UTF-8: {error}") from error
+        except OSError as error:
+            raise ScoreError(f"{path} could not be read as a detection run: {error}") from error
         try:
             run = DetectionRun.model_validate_json(payload)
         except ValidationError as error:
@@ -409,11 +418,17 @@ def write_report(report: ScoreReport, out_dir: Path | str) -> Path:
 
 
 def _read_utf8(path: Path) -> str:
-    """Read a text input, reporting a decode failure as a :class:`ScoreError` (B10/B11)."""
+    """Read a text input, reporting a decode or read failure as a :class:`ScoreError` (B10/B11).
+
+    An unreadable path (a directory, a permission error, a lock) is input the caller cannot use,
+    so it is reported the same way as a decode failure rather than escaping as an ``OSError``.
+    """
     try:
         return path.read_text(encoding="utf-8-sig")
     except UnicodeDecodeError as error:
         raise ScoreError(f"{path} is not valid UTF-8: {error}") from error
+    except OSError as error:
+        raise ScoreError(f"{path} could not be read: {error}") from error
 
 
 def _read_csv_labels(path: Path) -> list[LabelRow]:

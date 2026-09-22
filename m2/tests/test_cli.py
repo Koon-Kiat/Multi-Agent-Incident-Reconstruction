@@ -429,6 +429,25 @@ def test_score_reports_an_unreadable_label_file_without_a_traceback(tmp_path: Pa
     assert "not valid UTF-8" in capsys.readouterr().err
 
 
+def test_score_reports_a_directory_named_like_a_run_file_without_a_traceback(tmp_path: Path, capsys):
+    # F1: `glob("*.json")` in the detections directory matches a directory too. Reading one must
+    # become a ScoreError, so the CLI prints one line rather than the PermissionError traceback.
+    corpus, detections = _detect_fixture(tmp_path)
+    capsys.readouterr()  # discard `detect`'s own output
+    (detections / "S01.json").mkdir()
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-1,positive\n", encoding="utf-8")
+    argv = ["score", "--detections", str(detections), "--labels", str(labels), "--corpus", str(corpus)]
+
+    assert main(argv) == EXIT_INVALID_INPUT
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "Traceback" not in captured.err
+    assert captured.err.count("\n") == 1
+    assert "S01.json" in captured.err
+
+
 def test_score_rejects_a_malformed_label_file(tmp_path: Path, capsys):
     corpus, detections = _detect_fixture(tmp_path)
     labels = tmp_path / "labels.csv"
