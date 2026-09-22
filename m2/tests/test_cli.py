@@ -410,6 +410,41 @@ def test_score_reports_a_missing_detections_directory_without_a_traceback(tmp_pa
     assert "does not exist" in capsys.readouterr().err
 
 
+def test_score_reports_a_directory_as_a_labels_path(tmp_path: Path, capsys):
+    # F3: `is_file()` is also False for a directory, so the missing-file wording sent the operator
+    # looking for a path that is right there. The CLI names what the path actually is.
+    corpus, detections = _detect_fixture(tmp_path)
+    labels_directory = tmp_path / "labels"
+    labels_directory.mkdir()
+    argv = ["score", "--detections", str(detections), "--labels", str(labels_directory), "--corpus", str(corpus)]
+
+    assert main(argv) == EXIT_FAILED
+
+    captured = capsys.readouterr()
+    assert "is a directory" in captured.err
+    assert "does not exist" not in captured.err
+    assert "Traceback" not in captured.err
+    assert captured.err.count("\n") == 1
+
+
+def test_score_reports_a_file_as_a_detections_path(tmp_path: Path, capsys):
+    # F3's other half: a file where the detections directory belongs is not an absent directory.
+    corpus, _ = _detect_fixture(tmp_path)
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-1,positive\n", encoding="utf-8")
+    detections_file = tmp_path / "detections.json"
+    detections_file.write_text("{}\n", encoding="utf-8", newline="\n")
+    argv = ["score", "--detections", str(detections_file), "--labels", str(labels), "--corpus", str(corpus)]
+
+    assert main(argv) == EXIT_FAILED
+
+    captured = capsys.readouterr()
+    assert "is not a directory" in captured.err
+    assert "does not exist" not in captured.err
+    assert "Traceback" not in captured.err
+    assert captured.err.count("\n") == 1
+
+
 def test_score_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, capsys):
     _, detections = _detect_fixture(tmp_path)
     labels = tmp_path / "labels.csv"

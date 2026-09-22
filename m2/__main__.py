@@ -163,8 +163,17 @@ def _score(args: argparse.Namespace) -> int:
     except ProtectedOutputError as error:
         print(f"m2 score: {error}", file=sys.stderr)
         return EXIT_INVALID_INPUT
+    # A path that exists but is the wrong kind of thing is reported as itself: `is_file()` is also
+    # False for a directory, so the missing-file wording would send the operator looking for a path
+    # that is right there. The loader repeats these checks for API callers.
+    if labels_path.is_dir():
+        print(f"m2 score: label file {labels_path} is a directory, not a label file", file=sys.stderr)
+        return EXIT_FAILED
     if not labels_path.is_file():
         print(f"m2 score: label file {labels_path} does not exist", file=sys.stderr)
+        return EXIT_FAILED
+    if detections_dir.exists() and not detections_dir.is_dir():
+        print(f"m2 score: detections path {detections_dir} is not a directory", file=sys.stderr)
         return EXIT_FAILED
     if not detections_dir.is_dir():
         print(f"m2 score: detections directory {detections_dir} does not exist", file=sys.stderr)
