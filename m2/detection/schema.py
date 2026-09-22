@@ -23,15 +23,23 @@ Contract
   here and lists the rest in ``rationale``.
 * Everything is frozen, strict and extra-forbid, and serialisation is sorted-key JSON with
   non-ASCII preserved and no run timestamp, so two runs over one corpus are byte-identical.
+* ``severity`` is the rule's own coarse signal strength (``low``/``medium``/``high``), fixed in
+  the rule definition before any real run. It is **not** a verdict, a score or a probability;
+  it exists so a consumer can order or filter detections without re-deriving intent from prose.
+  A single detection may override its rule's default (R-EXEC-01 emits low single hits and a
+  medium burst).
 
 ``DetectionRun`` is one scenario's run: it records the rules *and their parameters* that
 produced the detections, together with the sha256 of the corpus manifest they were computed
-from, so a stored run can be traced to the exact corpus revision it describes.
+from, so a stored run can be traced to the exact corpus revision it describes. The scenario is
+part of the run record as well as the file name, so a zero-detection file still says which
+scenario it describes.
 """
 
 from __future__ import annotations
 
 import json
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -42,6 +50,8 @@ from m2.timeutil import iso_to_ticks, ticks_to_iso
 DETECTION_RUN_SCHEMA_VERSION = "m2-detect-v1"
 
 ATTACK_TECHNIQUE_PATTERN = r"^T[0-9]{4}(\.[0-9]{3})?$"
+
+Severity = Literal["low", "medium", "high"]
 
 
 class RuleRecord(BaseModel):
@@ -72,6 +82,7 @@ class Detection(BaseModel):
     window_start_utc: str
     window_end_utc: str
     attack_technique: str | None = Field(default=None, pattern=ATTACK_TECHNIQUE_PATTERN)
+    severity: Severity
     rationale: str = Field(min_length=1)
 
     @model_validator(mode="after")

@@ -42,6 +42,7 @@ def detection(**overrides) -> Detection:
         "window_start_utc": START,
         "window_end_utc": END,
         "attack_technique": "T1110",
+        "severity": "high",
         "rationale": "three failed logons followed by a success for the same account",
     }
     fields.update(overrides)
@@ -112,6 +113,13 @@ def test_an_attack_technique_is_optional_but_never_a_free_string():
         detection(attack_technique="1110")
     with pytest.raises(ValidationError):
         detection(attack_technique="T1110/T1078")
+
+
+def test_severity_is_one_of_three_values():
+    assert detection(severity="low").severity == "low"
+    assert detection(severity="medium").severity == "medium"
+    with pytest.raises(ValidationError):
+        detection(severity="critical")
 
 
 def test_a_run_records_the_rules_its_parameters_and_the_corpus_revision():
