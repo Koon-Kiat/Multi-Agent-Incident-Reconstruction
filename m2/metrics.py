@@ -161,7 +161,8 @@ class ScoreReport(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
-    schema_version: str = SCORE_REPORT_SCHEMA_VERSION
+    # Pinned to the exact constant, like every other M2 artefact version (B9).
+    schema_version: Literal[SCORE_REPORT_SCHEMA_VERSION] = SCORE_REPORT_SCHEMA_VERSION
     unit: str
     overall: ScoreCounts
     scenarios: tuple[ScenarioScore, ...]
@@ -345,7 +346,11 @@ def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
     runs = []
     for path in paths:
         try:
-            run = DetectionRun.model_validate_json(path.read_text(encoding="utf-8"))
+            payload = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as error:
+            raise ScoreError(f"{path} is not valid UTF-8: {error}") from error
+        try:
+            run = DetectionRun.model_validate_json(payload)
         except ValidationError as error:
             raise ScoreError(f"{path} is not a valid detection run: {error}") from error
         if path.stem != run.scenario_id:
@@ -376,26 +381,37 @@ def write_report(report: ScoreReport, out_dir: Path | str) -> Path:
     return path
 
 
+def _read_utf8(path: Path) -> str:
+    """Read a text input, reporting a decode failure as a :class:`ScoreError` (B10/B11)."""
+    try:
+        return path.read_text(encoding="utf-8-sig")
+    except UnicodeDecodeError as error:
+        raise ScoreError(f"{path} is not valid UTF-8: {error}") from error
+
+
 def _read_csv_labels(path: Path) -> list[LabelRow]:
-    text = path.read_text(encoding="utf-8-sig")
+    text = _read_utf8(path)
     reader = csv.DictReader(io.StringIO(text))
-    header = tuple(reader.fieldnames or ())
-    if not set(("evidence_id", "label")).issubset(header):
-        raise ScoreError(f"{path} needs an 'evidence_id' and a 'label' column, found {header!r}")
-    extra = sorted(set(header) - set(LABEL_COLUMNS))
-    if extra:
-        raise ScoreError(f"{path} has unsupported column(s) {extra!r}; allowed: {list(LABEL_COLUMNS)}")
-    rows: list[LabelRow] = []
-    for number, raw in enumerate(reader, start=2):
-        if all(not value for value in raw.values()):
-            continue
-        rows.append(_label_row(path, f"line {number}", raw))
+    try:
+        header = tuple(reader.fieldnames or ())
+        if not set(("evidence_id", "label")).issubset(header):
+            raise ScoreError(f"{path} needs an 'evidence_id' and a 'label' column, found {header!r}")
+        extra = sorted(set(header) - set(LABEL_COLUMNS))
+        if extra:
+            raise ScoreError(f"{path} has unsupported column(s) {extra!r}; allowed: {list(LABEL_COLUMNS)}")
+        rows: list[LabelRow] = []
+        for number, raw in enumerate(reader, start=2):
+            if all(not value for value in raw.values()):
+                continue
+            rows.append(_label_row(path, f"line {number}", raw))
+    except csv.Error as error:
+        raise ScoreError(f"{path} could not be parsed as CSV: {error}") from error
     return rows
 
 
 def _read_json_labels(path: Path) -> list[LabelRow]:
     try:
-        document: Any = json.loads(path.read_text(encoding="utf-8"))
+        document: Any = json.loads(_read_utf8(path))
     except json.JSONDecodeError as error:
         raise ScoreError(f"{path} is not valid JSON: {error}") from error
     if isinstance(document, dict) and set(document) == {"labels"}:

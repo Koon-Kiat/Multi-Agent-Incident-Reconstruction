@@ -194,3 +194,20 @@ def test_serialised_documents_have_sorted_keys_and_no_trailing_newline():
 
 def test_the_schema_version_is_pinned():
     assert DETECTION_RUN_SCHEMA_VERSION == "m2-detect-v1"
+
+
+def test_a_run_declaring_another_schema_version_is_rejected():
+    # B9: the version is a marker detect and score rely on, not free text.
+    assert run().schema_version == DETECTION_RUN_SCHEMA_VERSION
+    with pytest.raises(ValidationError, match="schema_version"):
+        run(schema_version="m2-detect-v2")
+
+
+def test_a_summary_declaring_another_schema_version_is_rejected():
+    fields = {
+        "corpus_manifest_sha256": SHA,
+        "scenarios": (ScenarioSummary(scenario_id="SYN-B", total=0, counts_by_rule={}),),
+    }
+    assert DetectionSummary(**fields).schema_version == DETECTION_RUN_SCHEMA_VERSION
+    with pytest.raises(ValidationError, match="schema_version"):
+        DetectionSummary(schema_version="m2-detect-v2", **fields)

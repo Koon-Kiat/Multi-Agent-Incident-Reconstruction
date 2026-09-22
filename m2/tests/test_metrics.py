@@ -17,6 +17,7 @@ from m2.metrics import (
     SCORE_REPORT_FILENAME,
     LabelRow,
     ScoreError,
+    ScoreReport,
     load_detection_runs,
     load_labels,
     report_to_json,
@@ -284,6 +285,16 @@ def test_an_unsupported_unit_is_rejected():
         score(_runs(), _labels(), unit="window")
 
 
+def test_a_report_declaring_another_schema_version_is_rejected():
+    # B9: `score_report.json` identifies itself with one exact version, not free text.
+    report = score(_runs(), _labels())
+    assert report.schema_version == "m2-score-v1"
+    document = report.model_dump()
+    document["schema_version"] = "m2-score-v2"
+    with pytest.raises(ValidationError, match="schema_version"):
+        ScoreReport.model_validate(document)
+
+
 # --- the label file formats --------------------------------------------------------
 
 
@@ -363,6 +374,32 @@ def test_a_malformed_json_label_document_is_rejected(tmp_path: Path):
         load_labels(path)
 
 
+def test_a_label_file_that_is_not_utf8_is_a_score_error(tmp_path: Path):
+    # B10: an encoding failure is an unusable label file, not a raw UnicodeDecodeError through
+    # the CLI. Both shapes must fail the same way.
+    csv_path = tmp_path / "labels.csv"
+    csv_path.write_bytes(b"evidence_id,label\nSYN-B-SEC-1,positive\n\xff\xfe\x00")
+    with pytest.raises(ScoreError, match="not valid UTF-8"):
+        load_labels(csv_path)
+    json_path = tmp_path / "labels.json"
+    json_path.write_bytes(b'[{"evidence_id": "SYN-B-SEC-1", "label": "positive"}, \xff]')
+    with pytest.raises(ScoreError, match="not valid UTF-8"):
+        load_labels(json_path)
+
+
+def test_a_csv_label_file_whose_parse_fails_is_a_score_error(tmp_path: Path):
+    import csv
+
+    path = tmp_path / "labels.csv"
+    path.write_text("evidence_id,label\nSYN-B-SEC-1," + "x" * 100 + "\n", encoding="utf-8")
+    previous = csv.field_size_limit(10)
+    try:
+        with pytest.raises(ScoreError, match="could not be parsed"):
+            load_labels(path)
+    finally:
+        csv.field_size_limit(previous)
+
+
 # --- reading a written detections directory ----------------------------------------
 
 
@@ -391,6 +428,15 @@ def test_a_file_that_is_not_a_detection_run_is_rejected(tmp_path: Path):
     directory.mkdir()
     (directory / "SYN-B.json").write_text('{"scenario_id": "SYN-B"}', encoding="utf-8")
     with pytest.raises(ScoreError, match="not a valid detection run"):
+        load_detection_runs(directory)
+
+
+def test_a_detection_run_that_is_not_utf8_is_a_score_error(tmp_path: Path):
+    # B11: reading a run file is part of `score`, so a decode failure is a ScoreError too.
+    directory = tmp_path / "detections"
+    directory.mkdir()
+    (directory / "SYN-B.json").write_bytes(b'{"schema_version": \xff\xfe}')
+    with pytest.raises(ScoreError, match="not valid UTF-8"):
         load_detection_runs(directory)
 
 

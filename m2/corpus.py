@@ -33,6 +33,7 @@ import json
 from collections import Counter
 from collections.abc import Iterable, Sequence
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -94,7 +95,9 @@ class CorpusManifest(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
-    schema_version: str = CORPUS_MANIFEST_SCHEMA_VERSION
+    # Pinned to the exact constant: `EventStore.load` trusts this marker, so a manifest that
+    # declares another version is a different document, not a newer one it may interpret.
+    schema_version: Literal[CORPUS_MANIFEST_SCHEMA_VERSION] = CORPUS_MANIFEST_SCHEMA_VERSION
     scenarios: tuple[ScenarioCorpus, ...]
 
 

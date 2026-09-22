@@ -388,6 +388,16 @@ def test_score_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, ca
     assert "corpus manifest" in capsys.readouterr().err
 
 
+def test_score_reports_an_unreadable_label_file_without_a_traceback(tmp_path: Path, capsys):
+    # B10 through the CLI: a decode failure is one line on stderr, not a traceback.
+    corpus, detections = _detect_fixture(tmp_path)
+    labels = tmp_path / "labels.csv"
+    labels.write_bytes(b"evidence_id,label\nSYN-B-SEC-1,positive\n\xff\xfe\x00")
+    argv = ["score", "--detections", str(detections), "--labels", str(labels), "--corpus", str(corpus)]
+    assert main(argv) == EXIT_INVALID_INPUT
+    assert "not valid UTF-8" in capsys.readouterr().err
+
+
 def test_score_rejects_a_malformed_label_file(tmp_path: Path, capsys):
     corpus, detections = _detect_fixture(tmp_path)
     labels = tmp_path / "labels.csv"
