@@ -92,7 +92,7 @@ A `Detection` is a **finding, not a conclusion**:
 
 | Field | Meaning |
 |---|---|
-| `detection_id` | `<scenario>-<rule_id>-<first trigger evidence_id>` — deterministic |
+| `detection_id` | `<scenario>-<rule_id>-<closing trigger evidence_id>` — deterministic; the **closing** trigger is the last of the detection's triggers in `(timestamp_ticks, evidence_id)` order |
 | `rule_id`, `rule_version` | which rule fired and which revision of it |
 | `scenario_id` | the scenario the triggers belong to |
 | `trigger_evidence_ids` | every event that caused the detection, in `(timestamp_ticks, evidence_id)` order |
@@ -107,10 +107,15 @@ detection's own events back goes through
 `store.query(scenario_id, window_start_utc, window_end_utc + 1 tick)`, or through the trigger
 IDs, which are exact. A single-event detection has `window_start_utc == window_end_utc`.
 
-Every rule **partitions** the events it fires on, so two detections of one rule in one scenario
-never share a trigger; `detection_id` is therefore unique within a run (the engine fails closed
-if it ever is not). `severity` is the rule's coarse signal strength; it is not a verdict, a
-probability or a priority.
+Every rule **partitions** the events it fires on, with one deliberate exception: R-AUTH-01 is
+anchored on each successful logon (T3.2), so two successes inside one 300 s span confirm the
+*same* failures and produce two detections that share them. That is why `detection_id` names the
+detection's **closing** trigger rather than its first: the closing trigger is the success for
+R-AUTH-01, the last failure of a burst for R-AUTH-02 and the last binary of a burst for
+R-EXEC-01, and it identifies the detection uniquely even when trigger sets overlap. Every
+`detection_id` in a run is unique — the artefact and the engine both fail closed if one ever is
+not — and R-AUTH-01 and R-AUTH-02 never share a trigger. `severity` is the rule's coarse signal
+strength; it is not a verdict, a probability or a priority.
 
 `triggers_for(scenario_id)` returns a scenario's detections ordered by
 `(window_start_utc, detection_id)`, for a consumer that wants to route windows to M3/M4 without
@@ -128,8 +133,8 @@ exact and case-sensitive.
 
 | ID | Ver. | Sev. | ATT&CK | Logic | Benign lookalikes / known false positives |
 |---|---|---|---|---|---|
-| R-AUTH-01 | 3 | high | T1110 | ≥3 Security 4625 for one `(user, host)` **and** a 4624 for the same `(user, host)` at or after the last failure, all inside one 300 s span — whatever other failures of the same account surround it | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon |
-| R-AUTH-02 | 3 | medium | T1110 | ≥3 Security 4625 for one `(user, host)` inside one 300 s span that holds **no** 4624 for that account at or after its last failure, and that no R-AUTH-01 span claimed | the same retry patterns with no success; password spraying aimed at one account; the early part of a sustained guessing run whose eventual success falls outside that part's span |
+| R-AUTH-01 | 4 | high | T1110 | anchored on **each success**: for every 4624 `S` of a `(user, host)` group, the 4625s of that group in `[t(S) - 300 s, t(S))`; when there are ≥3, one detection with `F(S)` followed by `S` as triggers and `[min t(F(S)), t(S)]` as its window. Two close successes can confirm the same failures and produce two overlapping detections | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon; the attempts a parallel brute-force tool logs *after* the one that succeeded, while the earlier ones still confirm it |
+| R-AUTH-02 | 4 | medium | T1110 | anchored on the **failure burst**: in a maximal run of 4625s (each consecutive pair ≤ 300 s apart), any 300 s window holding ≥3 failures, qualifying only when **no** 4624 of the group lies in `(first failure, last failure + 300 s]`; overlapping qualifying bursts merge into one detection holding every failure of the segment | the same retry patterns with no success; password spraying aimed at one account; the in-flight failures a parallel tool logs after one attempt succeeded, when no success follows them within 300 s |
 | R-AUTH-03 | 1 | low | T1078 | every Security 4648 (explicit-credential logon) | `runas`, admin tooling, backup and deployment software using alternate credentials — routine in admin workflows, hence low |
 | R-CRED-01 | 1 | high | T1003.001 | Sysmon 10 where the target image stem is `lsass` and `GrantedAccess` is one of 7 masks (`0x1010`, `0x1410`, `0x1418`, `0x1438`, `0x143a`, `0x1f0fff`, `0x1fffff`) | monitoring/EDR/backup agents that legitimately read `lsass`; the mask is what was *requested*, not what was granted |
 | R-EXEC-01 | 2 | medium (burst) / low (single) | the binary's own technique (see the map above) | ≥3 distinct discovery binaries by one account inside **any** 120 s window is one windowed detection; every matching event outside such a window is its own low detection | routine administration and troubleshooting running `whoami`/`net`/`ipconfig`; installers and scripts that call several discovery tools in a row |
@@ -141,42 +146,77 @@ exact and case-sensitive.
 | R-PERSIST-02 | 1 | medium | T1053.005 | every Security 4698 (scheduled task created) | provisioning scripts and updaters creating tasks |
 | R-PERSIST-03 | 1 | medium | T1547.001 | every Sysmon 13 whose `TargetObject` names `\CurrentVersion\Run` or `\CurrentVersion\RunOnce` (the key or a value below it) | installers and users adding autostart entries |
 
-### How the windowed rules slide
+### How the failed-logon rules decide (version 4)
 
-"What fires must not depend on an earlier event in the same account's history." The two windowed
-rules (R-AUTH-01/02 and R-EXEC-01) therefore scan greedily with a sliding window: a candidate
-window starts at the first event not yet consumed, takes every following event within the window
-length of that anchor, and is kept only when it meets the rule's condition — the count for
-R-EXEC-01, the count **and** the failed-logon confirmation for R-AUTH-01/02. A candidate that
-does not meet it advances the scan by **one** event.
+The two rules are anchored, not scanned: neither decision depends on where a grouping window
+happened to start, and each is stated here as the code implements it (task_plan.md T3.2,
+"planner-fixed semantics"). Both evaluate one `(user, host)` group at a time, over that group's
+events in `(timestamp_ticks, evidence_id)` order, with `W` = 300 s.
 
-An earlier, unrelated event can therefore no longer hide a later burst. Failures at 0, 250, 310
-and 320 s with a success at 330 s are three failures inside 70 s, and they fire even though the
-first failure is 250 s before the burst. The benign counterpart holds as well: failures or
-binaries that never share a window are not a burst. Accepted windows consume their own events,
-so windows never overlap and `detection_id` stays unique. Version 1 clustered from the first
-event of an account's history instead, which silently suppressed such bursts (phase-3 review
-finding F1); the thresholds themselves are unchanged.
+**R-AUTH-01 is anchored on each success.** For every 4624 `S` of the group, `F(S)` is the 4625s
+of that group with `t(S) - W ≤ t(F) < t(S)`: the failures inside the W seconds that end at `S`.
+The bound is half-open at both ends, so a failure at exactly `t(S) - W` counts and a failure
+logged in the same 100 ns tick as `S` does not. When `|F(S)| ≥ 3`, `S` yields one detection whose
+triggers are `F(S)` followed by `S` and whose window is `[min t(F(S)), t(S)]`. Failures after `S`
+are not part of it. Two successes close together confirm the same failures and produce two
+detections that overlap — T3.2 allows that, and each is named after its own success, so
+`detection_id` stays unique.
 
-**Which failed-logon rule fires (version 3).** R-AUTH-01 and R-AUTH-02 ask one question of the
-same evidence: is there a 4624 for that `(user, host)` inside the 300 s span a group of ≥3 4625s
-occupies, at or after that span's last failure? The answer is computed **with** the span, never
-after a window has already been consumed:
+**R-AUTH-02 is anchored on the failure burst.** The group's failures split into maximal runs
+where each consecutive pair is at most `W` apart; a W-window is placed at every failure of a run
+and the failures it holds are a burst. A burst is reported only when **no** 4624 of the group
+lies in `(first failure, last failure + W]`: the open lower bound is what lets the failures that
+follow a success be judged on their own, and the upper bound is what makes the rule's claim
+literally true. Qualifying bursts that overlap merge into one detection holding every failure of
+the merged segment; the merged span is exactly the union of those bursts' spans, so the claim
+holds for the whole segment. The rationale states the span explicitly: *from its first failure
+until 300 s after its last*.
 
-* R-AUTH-01 takes a span of ≥3 failures that also holds the success. Its triggers are those
-  failures plus the earliest qualifying 4624, and the span is measured from the **first** failure
-  of the candidate, so the same run yields the same detection wherever the scan starts.
-* R-AUTH-02 takes the remaining ≥3-failure spans: no 4624 for that account lies in
-  `[first failure, first failure + 300 s]` at or after the span's last failure. Its rationale
-  says exactly that ("inside that same span"), so it never claims an absence the evidence
-  contradicts.
+The two rules never share a failure: a failure that some success `S` claimed would put `S` inside
+the burst's span (a claimed failure `f` has `t(S) - W ≤ t(f) < t(S)`, so `t(last) + W ≥ t(S)`)
+and disqualify the burst.
 
-The confirmation being part of the sliding predicate is what version 3 fixes (phase-3 review
-finding F5). Version 2 confirmed only the first window a greedy scan accepted, so failures at 0,
-100, 200, 350 and 360 s with a success at 370 s were reported as R-AUTH-02 on 0/100/200 — a
-medium "no success" finding for an attack that had just succeeded, with a rationale that said the
-opposite of the evidence. Because R-AUTH-02 now scans only the spans R-AUTH-01 did not claim,
-the two rules still partition their triggers and neither `detection_id` can collide.
+Worked examples, all pinned by tests in `m2/tests/test_detection_rules.py`:
+
+| Timeline | R-AUTH-01 | R-AUTH-02 |
+|---|---|---|
+| failures 0, 10, 20 s; success 30 s | one detection on `{0, 10, 20, 30}` | none — a success is in the burst's span |
+| failures 0, 10, 20 s; success 30 s; failures 40, 50 s (phase-3 F7) | one detection on `{0, 10, 20, 30}` | none — two late failures are not a burst |
+| the same with a third late failure at 60 s | one detection on `{0, 10, 20, 30}` | one detection on `{40, 50, 60}` — the pre-success span is never claimed |
+| failures every second 0–19 s; success 10 s (parallel brute force) | one detection on `{0…9, 10}` | one detection on `{10…19}` — the in-flight failures, and no success follows them within 300 s |
+| failures 0, 250, 310, 320 s; success 330 s (phase-3 F1/F5) | one detection on `{250, 310, 320, 330}` | none |
+| failures 0, 100, 200, 350, 360 s; success 370 s (phase-3 F5) | one detection on `{100, 200, 350, 360, 370}` | none |
+| failures 0, 10, 20 s; successes 30 s and 40 s | **two** detections, on `{0,10,20,30}` and `{0,10,20,40}` | none |
+
+One consequence of the `(first failure, last failure + W]` bound is worth stating explicitly: a
+burst of three failures at 0, 100 and 200 s with a success at 310 s is reported by **neither**
+rule. R-AUTH-01 cannot use the success (`F(310 s)` holds only 100 and 200), and R-AUTH-02 refuses
+the burst because 310 s is inside the span the burst opens. That is what T3.2 specifies, and it
+is tested (`test_a_success_within_the_window_of_only_two_of_its_failures_does_not_confirm_them`);
+the same burst with the success outside the span (at 510 s) is R-AUTH-02.
+
+Version 3 confirmed a burst against the first window a greedy scan accepted, which reported
+failures at 0, 100, 200, 350 and 360 s with a success at 370 s as R-AUTH-02 on `{0, 100, 200}` —
+a medium "no success" finding for an attack that had just succeeded (phase-3 review finding F5).
+Version 4 goes further and removes the scan: the F7 review showed that a success followed by more
+failures inside the same window (the normal shape of a parallel brute-force tool) was never
+R-AUTH-01, and that the resulting R-AUTH-02 claimed an absence the evidence contradicted.
+
+### How the windowed rule slides (R-EXEC-01)
+
+"What fires must not depend on an earlier event in the same account's history." R-EXEC-01 scans
+greedily with a sliding window: a candidate window starts at the first event not yet consumed,
+takes every following event within the window length of that anchor, and is kept only when it
+meets the rule's condition — at least three *distinct* discovery binaries. A candidate that does
+not meet it advances the scan by **one** event, and accepted windows consume their own events,
+so windows never overlap.
+
+An earlier, unrelated event can therefore no longer hide a later burst: `whoami` at 0 s and
+`net`, `ipconfig`, `systeminfo` at 100, 130 and 140 s is one burst even though the first binary
+is 100 s before it. The benign counterpart holds as well: binaries that never share a window are
+single hits. Version 1 clustered from the first event of an account's history instead, which
+silently suppressed such bursts (phase-3 review finding F1); the thresholds themselves are
+unchanged.
 
 
 User and host grouping uses the normalised `user` and `host` fields exactly as stored; they are
@@ -202,6 +242,11 @@ Stated so nobody reads absence of a detection as absence of activity.
 * **Sysmon event IDs with no rule.** No 3/22 (network/DNS), 6 (driver load), 7/8 (image load,
   CreateRemoteThread), 9 (raw access), 12 (registry key create), 17/18 (named pipes), 23/24
   (file delete, archive), 25 (process tampering).
+* **A failed-logon burst with a nearby but non-confirming success.** T3.2's R-AUTH-02 bound
+  `(first failure, last failure + 300 s]` means that a burst whose only 4624 falls *after* the
+  burst but *inside* that span is reported by neither rule when the success cannot confirm three
+  failures (see the worked example above). The burst is real activity and this baseline stays
+  silent about it; changing that is a rule change for the planner, not an edit here.
 * **No statistics, no ML, no LLM, no response.** The baseline is fixed rules only; it never
   scores, classifies or takes action.
 * **No scoring.** Whether a detection is correct is a labelled-evaluation question and is not
@@ -237,17 +282,19 @@ Detections per rule per scenario, with the severity of every detection:
 | R-PERSIST-03 | medium | 0 | 0 | 0 |
 | **total** | | **9** | **15** | **14** |
 
-These counts are **unchanged by the version-2 windowing and ATT&CK fixes and by the version-3
-failed-logon confirmation fix**. That is the point: each is a spec-conformance fix, not a tuning
-change. A sliding window can only find *more* qualifying windows than the version-1 clustering
-did, and this corpus contains none: the largest number of failures for any one account/host
-inside any 300 s window is 5 (S02, already detected) and 2 (S03), and the largest number of
-*distinct* discovery binaries for one account inside any 120 s window is 1 (S01) and 2 (S02,
-S03). Confirming the burst against its own span in version 3 likewise changes nothing here: the
-one real burst (S02's five 4625s plus the 4624 at `02:05:30`) already fits in one 20 s span, and
-no other account/host pair reaches three failures in any span at all. The scenario-file digests
-below changed because each one records the rules' versions and `params`; `summary.json` records
-only counts, so its digest did not.
+These counts are **unchanged by the version-2 windowing and ATT&CK fixes, by the version-3
+failed-logon confirmation fix and by the version-4 T3.2 anchors**. That is the point: each is a
+spec-conformance fix, not a tuning change. A sliding window can only find *more* qualifying
+windows than the version-1 clustering did, and this corpus contains none: the largest number of
+failures for any one account/host inside any 300 s window is 5 (S02, already detected) and 2
+(S03), and the largest number of *distinct* discovery binaries for one account inside any 120 s
+window is 1 (S01) and 2 (S02, S03). Version 4 changes nothing either: the only account/host pair
+that reaches three failures at all is S02's `mair_user`, whose five 4625s all sit inside the 19 s
+that the 4624 at `02:05:30` closes, so `F(4624)` is exactly those five — the same six triggers
+version 3 reported — and no success in the corpus has failures after it. The scenario-file digests
+below changed because each one records the rules' versions and `params`, and because S02's one
+R-AUTH-01 `detection_id` now names the success it is anchored on (version 3 named the first
+failure); `summary.json` records only counts, so its digest did not.
 
 38 detections in total. What the run looked like, descriptively:
 
@@ -257,8 +304,11 @@ only counts, so its digest did not.
   S02 and four S03 single hits split into two `T1033` and two `T1016` detections each (S01 is
   six `T1033`); version 1 tagged all 14 `T1033`, which misdescribed the `ipconfig`-class hits.
 * **R-AUTH-01 fired once**, in S02, on a six-trigger burst of five 4625s and one 4624 whose
-  window ends at `2026-09-21T02:05:30.0430374Z` — the public `S02-SEC-43584` anchor. No other
-  account/host pair reached three failures inside five minutes.
+  window ends at `2026-09-21T02:05:30.0430374Z` — the public `S02-SEC-43584` anchor. Its
+  `detection_id` is `S02-R-AUTH-01-S02-SEC-43584`: R-AUTH-01 is anchored on the success, so that
+  is the event it is named after. No other account/host pair reached three failures inside five
+  minutes, and no account/host pair reaches three failures *after* a success, which is why
+  R-AUTH-02 is still empty on this corpus.
 * **R-AUTH-03 fired six times in each lab scenario** and never in S01, always as a single low
   detection.
 * **R-FILE-01 fired three times in each lab scenario** and never in S01, always medium.
@@ -281,9 +331,9 @@ Output digests (SHA-256), for reproducing the run byte for byte:
 
 | File | SHA-256 |
 |---|---|
-| `S01.json` | `a63bfb0b05bb248b9da314c36ee0340fd69b74fe93d8b6ce2e129d9c56538fd7` |
-| `S02.json` | `6c1a16f6c2c6e5ab79dc50cd5de0093df3064ac9ac08c931de04dd530c4dc68b` |
-| `S03.json` | `94ef74a8fb6a0d8633046a437d46b3a59ba1d44129ca2c058d3a785fe91a2d0c` |
+| `S01.json` | `6fc8657a22c0d2e2ef4789c2ff5b33e46bf9811d918c8a2d20751a3e21ad5be6` |
+| `S02.json` | `8c931f072914309328546783ff45d60910684b0e3f8b747b1125dd7531adf21a` |
+| `S03.json` | `2155809c3b7d88900f1e8d213b8d7aee576fe3ec50dcaf04d534a1ee799aad36` |
 | `summary.json` | `b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184` |
 
 These are byte-identical across repeated runs, which the real test
@@ -320,3 +370,4 @@ Recorded so far:
 | 2 | R-EXEC-01 | `attack_technique` is per binary (declared map) instead of the rule-wide `T1033` | phase-3 review finding F2: `systeminfo`/`ipconfig` hits were tagged with the wrong technique |
 | 2 | R-EXEC-03 | `attack_technique` is `T1204` (primary), `T1059` named in the rationale and `params` | phase-3 review finding F2: the rule covers both techniques |
 | 3 | R-AUTH-01, R-AUTH-02 | the confirmation is part of the sliding predicate: a 4624 must lie inside the burst's own 300 s span at or after its last failure; R-AUTH-02 scans only the failures no confirmed span claimed, and its rationale names the span instead of saying "afterwards" | phase-3 review finding F5: a burst that the same run later confirmed was reported as R-AUTH-02 on an earlier window, with a rationale that contradicted the evidence. Spec conformance, not tuning — no threshold changed and no real count moved |
+| 4 | R-AUTH-01, R-AUTH-02 | the scan is replaced by T3.2's anchors: R-AUTH-01 is one detection per success over `F(S) = failures in [t(S) - W, t(S))` (overlapping detections allowed), R-AUTH-02 is one detection per merged segment of qualifying bursts, and a burst qualifies only when no 4624 of the group lies in `(first failure, last failure + W]`. `detection_id` now names the **closing** trigger (the success for R-AUTH-01) because the first trigger is no longer unique | phase-3 review finding F7: a burst followed by a success and then more failures inside the same window produced no R-AUTH-01, and the R-AUTH-02 it produced claimed a "no successful logon" span that contained the success. Spec conformance, not tuning — no threshold changed and no real count moved |
