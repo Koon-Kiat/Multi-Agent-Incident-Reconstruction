@@ -40,14 +40,35 @@ planner), not a quiet edit.
 | `DISCOVERY_MIN_BINARIES` | 3 | R-EXEC-01 | three *distinct* discovery tools is enumeration rather than routine admin |
 | `DISCOVERY_WINDOW_SECONDS` | 120 | R-EXEC-01 | two minutes for one enumeration burst |
 | `DISCOVERY_BINARIES` | 12 names | R-EXEC-01 | built-in Windows discovery tools (T1033/T1082/T1016) |
+| `DISCOVERY_TECHNIQUES` | 12 mappings | R-EXEC-01 | the ATT&CK technique each discovery binary is attributed to (see below) |
 | `SUSPICIOUS_PARENT_IMAGES` | 9 names | R-EXEC-03 | document, browser and WMI hosts that should not spawn a shell |
 | `SHELL_IMAGES` | 7 names | R-EXEC-03 | shells, script engines and proxy execution binaries |
+| `SUSPICIOUS_PARENT_TECHNIQUE` | `T1204` | R-EXEC-03 | the artefact's technique field: user execution |
+| `SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE` | `T1059` | R-EXEC-03 | the spawned interpreter, named in the rationale |
 | `ENCODED_COMMAND_PATTERNS` | 5 patterns | R-EXEC-02 | encoded, hidden-window and downloader PowerShell markers |
 | `POWERSHELL_COMMAND_MARKERS` | `powershell`, `pwsh` | R-EXEC-02 | the command line must actually be a PowerShell one |
 | `LSASS_ACCESS_MASKS` | 7 masks | R-CRED-01 | documented `PROCESS_VM_READ` / `ALL_ACCESS` combinations |
 | `FILE_DROP_EXTENSIONS` | 6 extensions | R-FILE-01 | executable and script payload types |
-| `FILE_DROP_LOCATION_MARKERS` | 4 locations | R-FILE-01 | user-writable drop locations |
+| `FILE_DROP_USER_APP_DATA_MARKERS` | 2 path segments | R-FILE-01 | `\users\` **and** `\appdata\` must both appear, i.e. `\Users\<x>\AppData\` |
+| `FILE_DROP_LOCATION_MARKERS` | 3 locations | R-FILE-01 | `\Temp\`, `\Downloads\`, `\ProgramData\`; any one is enough |
 | `RUN_KEY_MARKERS` | 2 key paths | R-PERSIST-03 | `Run` / `RunOnce` autostart keys |
+
+`DISCOVERY_TECHNIQUES` in full — every detection R-EXEC-01 emits is tagged with the technique of
+the binary it reports:
+
+| Binary | ATT&CK | Binary | ATT&CK |
+|---|---|---|---|
+| `whoami`, `quser`, `qwinsta` | `T1033` System Owner/User Discovery | `ipconfig`, `arp`, `route` | `T1016` System Network Configuration Discovery |
+| `systeminfo` | `T1082` System Information Discovery | `net`, `net1` | `T1135` Network Share Discovery |
+| `tasklist` | `T1057` Process Discovery | `nltest` | `T1482` Domain Trust Discovery |
+| `dsquery` | `T1087.002` Domain Account Discovery | | |
+
+The plan named `T1033`/`T1082`/`T1016` for this rule; the other four are the standard ATT&CK
+techniques for the remaining binaries, mapped rather than mislabelled. A burst covers several
+binaries and therefore several techniques: its `attack_technique` field carries the technique of
+its **first trigger**, and its `rationale` names every technique the burst covers. Single hits
+carry their own binary's technique.
+
 
 The exact values travel with every run: each `DetectionRun` records its rules as
 `{rule_id, version, params}`, so a stored run states the thresholds it used even if the source
@@ -77,7 +98,7 @@ A `Detection` is a **finding, not a conclusion**:
 | `scenario_id` | the scenario the triggers belong to |
 | `trigger_evidence_ids` | every event that caused the detection, in `(timestamp_ticks, evidence_id)` order |
 | `window_start_utc`, `window_end_utc` | the **closed** span `[start, end]` of the triggers, 7 fractional digits |
-| `attack_technique` | the rule's primary ATT&CK technique, or `null` |
+| `attack_technique` | the ATT&CK technique of the binary that ran (R-EXEC-01), the primary technique of a two-technique rule (R-EXEC-03), or the rule's primary, or `null` |
 | `severity` | `low` / `medium` / `high`, fixed in the rule definition |
 | `rationale` | one line saying what matched and with which thresholds |
 
@@ -108,18 +129,35 @@ exact and case-sensitive.
 
 | ID | Ver. | Sev. | ATT&CK | Logic | Benign lookalikes / known false positives |
 |---|---|---|---|---|---|
-| R-AUTH-01 | 1 | high | T1110 | ≥3 Security 4625 for one `(user, host)` inside 300 s, then a 4624 for the same `(user, host)` after the last failure and inside the same window | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon |
-| R-AUTH-02 | 1 | medium | T1110 | the same burst with **no** 4624 for that `(user, host)` after the last failure inside the window | the same retry patterns with no success; password spraying aimed at one account |
+| R-AUTH-01 | 2 | high | T1110 | ≥3 Security 4625 for one `(user, host)` inside **any** 300 s window, then a 4624 for the same `(user, host)` after the window's last failure and inside it | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon |
+| R-AUTH-02 | 2 | medium | T1110 | the same 300 s window with **no** 4624 for that `(user, host)` after its last failure | the same retry patterns with no success; password spraying aimed at one account |
 | R-AUTH-03 | 1 | low | T1078 | every Security 4648 (explicit-credential logon) | `runas`, admin tooling, backup and deployment software using alternate credentials — routine in admin workflows, hence low |
 | R-CRED-01 | 1 | high | T1003.001 | Sysmon 10 where the target image stem is `lsass` and `GrantedAccess` is one of 7 masks (`0x1010`, `0x1410`, `0x1418`, `0x1438`, `0x143a`, `0x1f0fff`, `0x1fffff`) | monitoring/EDR/backup agents that legitimately read `lsass`; the mask is what was *requested*, not what was granted |
-| R-EXEC-01 | 1 | medium (burst) / low (single) | T1033 | ≥3 distinct discovery binaries by one account inside 120 s is one windowed detection; every other single hit is its own low detection | routine administration and troubleshooting running `whoami`/`net`/`ipconfig`; installers and scripts that call several discovery tools in a row |
+| R-EXEC-01 | 2 | medium (burst) / low (single) | the binary's own technique (see the map above) | ≥3 distinct discovery binaries by one account inside **any** 120 s window is one windowed detection; every matching event outside such a window is its own low detection | routine administration and troubleshooting running `whoami`/`net`/`ipconfig`; installers and scripts that call several discovery tools in a row |
 | R-EXEC-02 | 1 | high | T1059.001 | Security 4688 or Sysmon 1 whose `CommandLine` mentions `powershell`/`pwsh` **and** matches ≥1 of: `-enc`/`-EncodedCommand` token, `FromBase64String`, `-w`/`-WindowStyle hidden`, `IEX`/`Invoke-Expression`, `DownloadString` | management scripts that `-enc` a legitimate payload; modules that use `IEX` internally; scheduled tasks that run a hidden window. `-Encoding` is deliberately not matched |
-| R-EXEC-03 | 1 | high | T1059 | parent image stem in {winword, excel, powerpnt, outlook, msedge, chrome, firefox, wmiprvse, mshta} spawning a child stem in {cmd, powershell, pwsh, wscript, cscript, rundll32, regsvr32} | management agents that run scripts through `WmiPrvSE.exe` (SCCM/Intune-style); legacy Office add-ins that shell out |
+| R-EXEC-03 | 2 | high | T1204 (field) / T1059 (rationale) | parent image stem in {winword, excel, powerpnt, outlook, msedge, chrome, firefox, wmiprvse, mshta} spawning a child stem in {cmd, powershell, pwsh, wscript, cscript, rundll32, regsvr32} | management agents that run scripts through `WmiPrvSE.exe` (SCCM/Intune-style); legacy Office add-ins that shell out |
 | R-FILE-01 | 1 | medium | T1105 | Sysmon 11 creating a file whose name ends in `.exe|.dll|.ps1|.bat|.vbs|.js` under `\Users\*\AppData\`, `\Temp\`, `\Downloads\` or `\ProgramData\` | installers and updaters that stage binaries in `%TEMP%`/`%APPDATA%`; browser and print-driver updates — deliberately noisy, hence medium |
 | R-LOG-01 | 1 | high | T1070.001 | every Security 1102 (audit log cleared) | an operator or log-rotation script legitimately clearing the log — see the baseline note below |
 | R-PERSIST-01 | 1 | medium | T1543.003 | every Security 4697 (service installed) | software installers creating services |
 | R-PERSIST-02 | 1 | medium | T1053.005 | every Security 4698 (scheduled task created) | provisioning scripts and updaters creating tasks |
 | R-PERSIST-03 | 1 | medium | T1547.001 | every Sysmon 13 whose `TargetObject` names `\CurrentVersion\Run` or `\CurrentVersion\RunOnce` (the key or a value below it) | installers and users adding autostart entries |
+
+### How the windowed rules slide
+
+"What fires must not depend on an earlier event in the same account's history." The two windowed
+rules (R-AUTH-01/02 and R-EXEC-01) therefore scan greedily with a sliding window: a candidate
+window starts at the first event not yet consumed, takes every following event within the window
+length of that anchor, and is kept only when it meets the count. A candidate that does not meet
+the count advances the scan by **one** event.
+
+An earlier, unrelated event can therefore no longer hide a later burst. Failures at 0, 250, 310
+and 320 s with a success at 330 s are three failures inside 70 s, and they fire even though the
+first failure is 250 s before the burst. The benign counterpart holds as well: failures or
+binaries that never share a window are not a burst. Accepted windows consume their own events,
+so windows never overlap and `detection_id` stays unique. Version 1 clustered from the first
+event of an account's history instead, which silently suppressed such bursts (phase-3 review
+finding F1); the thresholds themselves are unchanged.
+
 
 User and host grouping uses the normalised `user` and `host` fields exactly as stored; they are
 never case-folded or domain-stripped. `None` (a field the source did not carry) forms its own
@@ -179,10 +217,22 @@ Detections per rule per scenario, with the severity of every detection:
 | R-PERSIST-03 | medium | 0 | 0 | 0 |
 | **total** | | **9** | **15** | **14** |
 
+These counts are **unchanged by the version-2 windowing and ATT&CK fixes**. That is the point:
+the sliding window is a spec-conformance fix, not a tuning change. A sliding window can only
+find *more* qualifying windows than the version-1 clustering did, and this corpus contains
+none: the largest number of failures for any one account/host inside any 300 s window is 5 (S02,
+already detected) and 2 (S03), and the largest number of *distinct* discovery binaries for one
+account inside any 120 s window is 1 (S01) and 2 (S02, S03). The scenario-file digests below
+changed because each one records the rules' versions and `params`; `summary.json` records only
+counts, so its digest did not.
+
 38 detections in total. What the run looked like, descriptively:
 
 * **Every R-EXEC-01 detection is a single hit.** No account reached three *distinct* discovery
   binaries inside 120 s anywhere in the corpus, so the medium-severity burst variant never fired.
+* **R-EXEC-01's real tags are not all one technique.** With per-binary attribution, the four
+  S02 and four S03 single hits split into two `T1033` and two `T1016` detections each (S01 is
+  six `T1033`); version 1 tagged all 14 `T1033`, which misdescribed the `ipconfig`-class hits.
 * **R-AUTH-01 fired once**, in S02, on a six-trigger burst of five 4625s and one 4624 whose
   window ends at `2026-09-21T02:05:30.0430374Z` — the public `S02-SEC-43584` anchor. No other
   account/host pair reached three failures inside five minutes.
@@ -208,14 +258,18 @@ Output digests (SHA-256), for reproducing the run byte for byte:
 
 | File | SHA-256 |
 |---|---|
-| `S01.json` | `08381b4bb32a6773d5c6a9fd828510864df439f2676dd388179e201fbd5d381c` |
-| `S02.json` | `57402c0901ea97beef05537d6149a41485d2e09e6f3d9df3d1d2db0e20e0b54f` |
-| `S03.json` | `b91eeb840375a26855361cc0ffe8e7881cbcea1f55ab30d2276d44d942c6b4e9` |
+| `S01.json` | `09b74c52984d525236ae5c6ee3ad7596a21f33b22d351e35575e74dfbb924511` |
+| `S02.json` | `683e4d960d44b9c64eb00410a9e52b807941543544123fc49c8ccd2eadee8913` |
+| `S03.json` | `3aaa0d429bb83ec2d812fd1e5078f05040442064bbb2a02485b974f14c0cfe19` |
 | `summary.json` | `b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184` |
 
 These are byte-identical across repeated runs, which the real test
-`m2/tests/test_detection_real.py::test_two_real_runs_are_byte_identical` checks, and
-`test_the_declared_baseline_reproduces_on_the_real_corpus` pins the per-rule counts above.
+`m2/tests/test_detection_real.py::test_two_real_runs_are_byte_identical` checks; the four
+SHA-256 values themselves are pinned by
+`test_the_declared_output_digests_reproduce_on_the_real_corpus`, which also pins the corpus
+manifest digest, and `test_the_declared_baseline_reproduces_on_the_real_corpus` pins the per-rule
+counts above. A rule change that alters these files therefore fails a test rather than silently
+leaving this document stale.
 
 ## Reproducing the baseline
 
@@ -234,3 +288,11 @@ bump `rule_version`, justify it in the `task_plan.md` progress log, and re-run t
 not edit a constant to make a particular detection appear or disappear — that would break the
 blind-design rule this baseline was built under. A changed rule changes `detection_id` values
 and therefore every downstream artifact, so the metrics phase must be re-run too.
+
+Recorded so far:
+
+| Version | Rule(s) | Change | Reason |
+|---|---|---|---|
+| 2 | R-AUTH-01, R-AUTH-02, R-EXEC-01 | windowed matching moved from first-event clustering to a greedy sliding window | phase-3 review finding F1: a stray early event suppressed a later burst. Spec conformance, not tuning — no threshold changed and no real count moved |
+| 2 | R-EXEC-01 | `attack_technique` is per binary (declared map) instead of the rule-wide `T1033` | phase-3 review finding F2: `systeminfo`/`ipconfig` hits were tagged with the wrong technique |
+| 2 | R-EXEC-03 | `attack_technique` is `T1204` (primary), `T1059` named in the rationale and `params` | phase-3 review finding F2: the rule covers both techniques |
