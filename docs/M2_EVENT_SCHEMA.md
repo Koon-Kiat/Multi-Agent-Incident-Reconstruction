@@ -58,8 +58,9 @@ through `datetime`, `float` or `time`, which would silently truncate to microsec
 `S02-SEC-43584` that difference is visible: the record holds `.0430374`, and python-evtx's own
 renderer prints `.043036`.
 
-`timestamp_ticks = filetime + 504911232000000000` (the FILETIME↔M3 epoch offset), which is
-also `.NET TimeCreated.ToUniversalTime().Ticks + 864000000000`. `m2/timeutil.py` equality with
+`timestamp_ticks = filetime + 504912096000000000` (the FILETIME↔M3 epoch offset, i.e.
+`date(1601, 1, 1).toordinal() * 86400 * 10⁷`), which is also
+`.NET TimeCreated.ToUniversalTime().Ticks + 864000000000`. `m2/timeutil.py` equality with
 `m3.models.utc_ticks` is tested on several values, including a six-digit S01 source and a
 `+00:00` offset. The model's validator rejects any `timestamp_utc` that is not the canonical
 rendering of its own `timestamp_ticks`.

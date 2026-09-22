@@ -159,13 +159,13 @@ def test_the_real_s02_window_runs_through_m3(real_corpus_dir: Path):
     datasets = real_datasets()
     info = load_scenario(datasets / "S02")
     store = EventStore.load(real_corpus_dir)
-    request = InvestigationRequest(
+    investigation = InvestigationRequest(
         scenario_id="S02",
         start_utc=ticks_to_iso(info.window_start_ticks),
         end_utc=ticks_to_iso(info.window_end_ticks),
     )
 
-    result = investigate(request, M2AuthenticationProvider(store), FakeLLM())
+    result = investigate(investigation, M2AuthenticationProvider(store), FakeLLM())
 
     # Validates the exact envelope M5 will consume, without asserting what M3 concluded.
     assert InvestigationResult.model_validate_json(result.model_dump_json()) == result
