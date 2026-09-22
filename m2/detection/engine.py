@@ -27,6 +27,10 @@ Contract
   (any path component named either, case-insensitively), and when it is the corpus directory
   itself. Both are invalid input rather than a failed run: ``python -m m2 detect`` exits ``2`` and
   writes nothing.
+* Before it writes, the engine checks every name it is about to use. A pre-existing file that does
+  not carry the M2 detection marker is a foreign file, not a stale run of ours, so the whole run
+  fails (``python -m m2 detect`` exits ``1``) and **nothing** — not even ``summary.json`` — is
+  written. A genuine M2 run for the same scenario is the artefact this run refreshes.
 * ``triggers_for(scenario_id)`` is the M5-facing entry point: it returns the scenario's
   detections, ordered by ``(window_start_utc, detection_id)``, so a caller can route windows to
   M3/M4 without reading the written files.
@@ -53,15 +57,10 @@ from m2.detection.schema import (
 )
 from m2.ids import SCENARIO_ID_RE
 from m2.manifest import sha256_file
+from m2.protected_paths import PROTECTED_OUTPUT_TREE_NAMES, protected_output_component
 from m2.query import EventStore
 
 SUMMARY_FILENAME = "summary.json"
-
-# Trees that the caller's output path must never resolve into. The check is by path component,
-# not by comparing against this repository's own roots, so it also refuses a directory named
-# `datasets` next to the caller's own evidence: over-refusal is harmless, data loss is not.
-PROTECTED_OUTPUT_TREE_NAMES = ("datasets", "ground_truth")
-_PROTECTED_OUTPUT_PARTS = frozenset(name.casefold() for name in PROTECTED_OUTPUT_TREE_NAMES)
 
 
 class DetectionError(ValueError):
@@ -161,7 +160,8 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     **M2 detection artefact** among its direct children is removed, and every other file is left
     alone (see the module docstring). ``out_dir`` may not resolve inside a ``datasets/`` or
     ``ground_truth/`` tree, and may not be the corpus directory, whose ``corpus_manifest.json``
-    is not a detection artefact.
+    is not a detection artefact. A pre-existing file at a name this run would write must likewise
+    be an M2 detection artefact, or the run fails before writing anything.
     """
     directory = Path(corpus_dir)
     destination = Path(out_dir)
@@ -175,12 +175,14 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     engine = DetectionEngine(EventStore.load(directory), corpus_manifest_sha256=digest)
     runs = engine.runs()
 
+    written = {SUMMARY_FILENAME} | {f"{run.scenario_id}.json" for run in runs}
+    # Checked before anything is written: a foreign file at a name this run would use stops the
+    # whole run rather than being overwritten under the assumption that `--out` is ours.
+    _refuse_foreign_overwrite(destination, written)
+
     destination.mkdir(parents=True, exist_ok=True)
-    written = {SUMMARY_FILENAME}
     for run in runs:
-        name = f"{run.scenario_id}.json"
-        _write_text(destination / name, f"{run_to_json(run)}\n")
-        written.add(name)
+        _write_text(destination / f"{run.scenario_id}.json", f"{run_to_json(run)}\n")
     summary = summarise(engine.corpus_manifest_sha256, runs)
     _write_text(destination / SUMMARY_FILENAME, f"{summary_to_json(summary)}\n")
     _remove_stale_runs(destination, written)
@@ -189,11 +191,28 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
 
 def _refuse_protected_output(destination: Path) -> None:
     """Fail closed when ``destination`` resolves into a tree ``detect`` must never write to."""
-    for part in destination.resolve().parts:
-        if part.casefold() in _PROTECTED_OUTPUT_PARTS:
-            raise DetectionOutputError(
-                f"--out {destination} is inside the {part}/ tree; "
-                f"{' and '.join(f'{name}/' for name in PROTECTED_OUTPUT_TREE_NAMES)} are read-only for m2"
+    component = protected_output_component(destination)
+    if component is not None:
+        raise DetectionOutputError(
+            f"--out {destination} is inside the {component}/ tree; "
+            f"{' and '.join(f'{name}/' for name in PROTECTED_OUTPUT_TREE_NAMES)} are read-only for m2"
+        )
+
+
+def _refuse_foreign_overwrite(destination: Path, names: set[str]) -> None:
+    """Refuse when a file this run would write exists and is not an M2 detection artefact.
+
+    ``detect`` owns the *names* it writes, never the directory: a pre-existing ``SYN-B.json`` or
+    ``summary.json`` that does not carry the M2 schema marker belongs to someone else, so the run
+    stops before writing anything rather than replacing it. A genuine M2 run for the same scenario
+    is the artefact this run refreshes, so it is not a collision.
+    """
+    for name in sorted(names):
+        path = destination / name
+        if path.is_file() and not _is_detection_artefact(path):
+            raise DetectionError(
+                f"{path} already exists and is not an m2 detection artefact; "
+                "refusing to overwrite a file this run did not write"
             )
 
 

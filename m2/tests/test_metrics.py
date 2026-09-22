@@ -23,6 +23,7 @@ from m2.metrics import (
     score,
     write_report,
 )
+from m2.protected_paths import ProtectedOutputError
 
 SCENARIO = "SYN-B"
 OTHER_SCENARIO = "SYN-C"
@@ -400,6 +401,16 @@ def test_a_run_file_whose_name_disagrees_with_its_scenario_is_rejected(tmp_path:
     (directory / f"{OTHER_SCENARIO}.json").write_text(f"{_json(run)}\n", encoding="utf-8")
     with pytest.raises(ScoreError, match="must be named"):
         load_detection_runs(directory)
+
+
+@pytest.mark.parametrize("tree", ["datasets", "ground_truth", "GROUND_TRUTH"])
+def test_the_report_refuses_an_output_directory_inside_a_protected_tree(tmp_path: Path, tree: str):
+    # B2: the same tree check detect applies, so `score --out` cannot write into the evidence.
+    report = score(_runs(), _labels())
+    destination = tmp_path / tree / "scores"
+    with pytest.raises(ProtectedOutputError, match="read-only"):
+        write_report(report, destination)
+    assert not destination.exists()
 
 
 def test_the_report_is_written_as_deterministic_sorted_key_json(tmp_path: Path):

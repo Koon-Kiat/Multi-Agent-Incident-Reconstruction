@@ -18,9 +18,10 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from m2.corpus import CORPUS_MANIFEST_FILENAME, normalise_datasets
+from m2.corpus import CORPUS_MANIFEST_FILENAME, CorpusOutputError, normalise_datasets
 from m2.detection.engine import SUMMARY_FILENAME, DetectionOutputError, write_detections
 from m2.metrics import ScoreCounts, ScoreError, load_detection_runs, load_labels, score, write_report
+from m2.protected_paths import ProtectedOutputError, refuse_protected_output
 from m2.query import EventStore, QueryError
 from m2.schema import event_to_json
 
@@ -42,6 +43,10 @@ def _not_implemented(command: str) -> int:
 def _normalise(args: argparse.Namespace) -> int:
     try:
         manifest = normalise_datasets(Path(args.datasets), Path(args.out))
+    except CorpusOutputError as error:
+        # An --out the evidence tree owns is invalid input, not a failed parse: refuse before mkdir.
+        print(f"m2 normalise: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
     except (ValueError, OSError) as error:
         print(f"m2 normalise: {error}", file=sys.stderr)
         return EXIT_FAILED
@@ -139,6 +144,11 @@ def _score_line(label: str, counts: ScoreCounts) -> str:
 def _score(args: argparse.Namespace) -> int:
     detections_dir = Path(args.detections)
     labels_path = Path(args.labels)
+    try:
+        refuse_protected_output(Path(args.out))
+    except ProtectedOutputError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
     if not labels_path.is_file():
         print(f"m2 score: label file {labels_path} does not exist", file=sys.stderr)
         return EXIT_FAILED

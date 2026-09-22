@@ -12,6 +12,7 @@ from m2.corpus import (
     CORPUS_MANIFEST_FILENAME,
     CORPUS_MANIFEST_SCHEMA_VERSION,
     CorpusError,
+    CorpusOutputError,
     duplicate_evidence_ids,
     event_sort_key,
     normalise_datasets,
@@ -276,3 +277,24 @@ def test_written_manifest_counts_real_files_per_source(tmp_path: Path, monkeypat
         ("Security.evtx", 2),
         ("Sysmon.evtx", 2),
     ]
+
+
+def test_normalise_datasets_refuses_an_out_inside_its_datasets_root(tmp_path: Path):
+    # B3, isolated from the `datasets/` name check: the tree is called `evidence` here.
+    datasets = tmp_path / "evidence"
+    build_scenario_dir(datasets, "lab")
+    for out in (datasets, datasets / "corpus"):
+        with pytest.raises(CorpusOutputError, match="datasets tree"):
+            normalise_datasets(datasets, out)
+    assert not (datasets / "corpus").exists()
+    assert not (datasets / "corpus_manifest.json").exists()
+
+
+@pytest.mark.parametrize("tree", ["datasets", "ground_truth", "GROUND_TRUTH"])
+def test_normalise_datasets_refuses_an_out_inside_a_protected_tree(tmp_path: Path, tree: str):
+    datasets = tmp_path / "datasets"
+    build_scenario_dir(datasets, "lab")
+    out = tmp_path / tree / "corpus"
+    with pytest.raises(CorpusOutputError, match="read-only"):
+        normalise_datasets(datasets, out)
+    assert not out.exists()

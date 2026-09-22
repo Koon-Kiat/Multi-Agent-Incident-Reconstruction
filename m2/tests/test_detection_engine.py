@@ -307,3 +307,44 @@ def test_detect_refuses_to_write_into_the_corpus_directory(corpus_dir: Path):
     with pytest.raises(DetectionError, match="is the corpus directory"):
         write_detections(corpus_dir, corpus_dir)
     assert (corpus_dir / CORPUS_MANIFEST_FILENAME).is_file()
+
+
+def test_detect_refuses_to_overwrite_a_foreign_scenario_file(corpus_dir: Path, tmp_path: Path):
+    # B5: detect owns `--out`, but a file it did not write is still the caller's data. A foreign
+    # `SYN-B.json` must stop the whole run before anything — including summary.json — is written.
+    out = tmp_path / "detections"
+    out.mkdir()
+    foreign = out / f"{SCENARIO}.json"
+    foreign.write_text('{"caller": "not an m2 run"}\n', encoding="utf-8", newline="\n")
+
+    with pytest.raises(DetectionError, match="refusing to overwrite"):
+        write_detections(corpus_dir, out)
+
+    assert foreign.read_text(encoding="utf-8") == '{"caller": "not an m2 run"}\n'
+    assert not (out / SUMMARY_FILENAME).exists()
+
+
+def test_detect_refuses_to_overwrite_a_foreign_summary(corpus_dir: Path, tmp_path: Path):
+    out = tmp_path / "detections"
+    out.mkdir()
+    foreign = out / SUMMARY_FILENAME
+    foreign.write_text('{"artifact": "someone-elses"}\n', encoding="utf-8", newline="\n")
+
+    with pytest.raises(DetectionError, match="refusing to overwrite"):
+        write_detections(corpus_dir, out)
+
+    assert foreign.read_text(encoding="utf-8") == '{"artifact": "someone-elses"}\n'
+    assert not (out / f"{SCENARIO}.json").exists()
+
+
+def test_a_stale_run_file_of_a_scenario_the_corpus_holds_is_still_overwritten(corpus_dir: Path, tmp_path: Path):
+    # The other side of B5: detect's own earlier run for the same scenario carries the marker, so
+    # replacing it is the intended refresh rather than a collision.
+    out = tmp_path / "detections"
+    out.mkdir()
+    (out / f"{SCENARIO}.json").write_text(_stale_run_payload(SCENARIO), encoding="utf-8", newline="\n")
+
+    write_detections(corpus_dir, out)
+
+    run = DetectionRun.model_validate_json((out / f"{SCENARIO}.json").read_text(encoding="utf-8"))
+    assert [detection.rule_id for detection in run.detections] == ["R-AUTH-01", "R-EXEC-02"]

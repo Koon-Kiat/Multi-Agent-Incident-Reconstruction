@@ -53,6 +53,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from m2.detection.engine import SUMMARY_FILENAME
 from m2.detection.schema import DetectionRun
 from m2.ids import parse_evidence_id
+from m2.protected_paths import refuse_protected_output
 
 SCORE_REPORT_SCHEMA_VERSION = "m2-score-v1"
 SCORE_REPORT_FILENAME = "score_report.json"
@@ -362,8 +363,13 @@ def report_to_json(report: ScoreReport) -> str:
 
 
 def write_report(report: ScoreReport, out_dir: Path | str) -> Path:
-    """Write ``<out>/score_report.json`` with ``\\n`` line endings and return its path."""
+    """Write ``<out>/score_report.json`` with ``\\n`` line endings and return its path.
+
+    ``out_dir`` may not resolve inside a ``datasets/`` or ``ground_truth/`` tree (the same check
+    ``detect`` applies to its ``--out``), and the refusal happens before the directory is created.
+    """
     destination = Path(out_dir)
+    refuse_protected_output(destination)
     destination.mkdir(parents=True, exist_ok=True)
     path = destination / SCORE_REPORT_FILENAME
     path.write_text(f"{report_to_json(report)}\n", encoding="utf-8", newline="\n")

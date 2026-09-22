@@ -61,6 +61,46 @@ def test_normalise_reports_missing_datasets_without_a_traceback(tmp_path: Path, 
     assert "does not exist" in capsys.readouterr().err
 
 
+def test_normalise_refuses_an_out_directory_inside_datasets(tmp_path: Path, capsys):
+    # B3: the evidence tree is read-only for m2, so a corpus must never be written into it.
+    datasets = tmp_path / "datasets"
+    build_scenario_dir(datasets, "lab")
+    out = datasets / "SYN-B" / "corpus"
+    code = main(["normalise", "--datasets", str(datasets), "--out", str(out)])
+    assert code == EXIT_INVALID_INPUT
+    assert "read-only" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_normalise_refuses_an_out_directory_inside_ground_truth(tmp_path: Path, capsys):
+    datasets = tmp_path / "datasets"
+    build_scenario_dir(datasets, "lab")
+    out = tmp_path / "ground_truth" / "corpus"
+    code = main(["normalise", "--datasets", str(datasets), "--out", str(out)])
+    assert code == EXIT_INVALID_INPUT
+    assert "read-only" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_normalise_refuses_its_own_datasets_root_as_out(tmp_path: Path, capsys):
+    datasets = tmp_path / "evidence"
+    build_scenario_dir(datasets, "lab")
+    code = main(["normalise", "--datasets", str(datasets), "--out", str(datasets)])
+    assert code == EXIT_INVALID_INPUT
+    assert "datasets tree" in capsys.readouterr().err
+    assert not (datasets / "corpus_manifest.json").exists()
+
+
+def test_normalise_refuses_an_out_directory_under_the_datasets_root(tmp_path: Path, capsys):
+    datasets = tmp_path / "evidence"
+    build_scenario_dir(datasets, "lab")
+    out = datasets / "corpus"
+    code = main(["normalise", "--datasets", str(datasets), "--out", str(out)])
+    assert code == EXIT_INVALID_INPUT
+    assert "datasets tree" in capsys.readouterr().err
+    assert not out.exists()
+
+
 def test_normalise_writes_a_corpus_and_prints_a_summary(tmp_path: Path, monkeypatch, capsys):
     datasets = tmp_path / "datasets"
     build_scenario_dir(datasets, "lab")
@@ -199,6 +239,20 @@ def test_detect_refuses_an_out_directory_under_ground_truth(tmp_path: Path, caps
     assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_INVALID_INPUT
     assert "read-only" in capsys.readouterr().err
     assert not out.exists()
+
+
+def test_detect_refuses_to_overwrite_a_foreign_file(tmp_path: Path, capsys):
+    # B5: refusing is a failed run (exit 1), not invalid CLI input, and nothing at all is written.
+    corpus = _write_corpus(tmp_path)
+    out = tmp_path / "detections"
+    out.mkdir()
+    foreign = out / "SYN-B.json"
+    foreign.write_text('{"caller": "foreign"}\n', encoding="utf-8", newline="\n")
+
+    assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_FAILED
+    assert "refusing to overwrite" in capsys.readouterr().err
+    assert foreign.read_text(encoding="utf-8") == '{"caller": "foreign"}\n'
+    assert not (out / "summary.json").exists()
 
 
 def test_detect_leaves_files_it_did_not_write_alone(tmp_path: Path, capsys):
