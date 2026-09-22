@@ -155,6 +155,24 @@ def test_window_end_before_start_raises(tmp_path: Path):
         load_scenario(directory, verify_hashes=False)
 
 
+def test_malformed_window_timestamp_raises(tmp_path: Path):
+    directory = build_scenario_dir(tmp_path, "lab")
+    metadata = load_fixture("scenario_metadata_lab_shape.json")
+    metadata["scenario_start_utc"] = "2026-13-21T02:04:38.9439270Z"
+    write_scenario_metadata(directory, metadata)
+    with pytest.raises(ManifestError, match="inconsistent"):
+        load_scenario(directory, verify_hashes=False)
+
+
+def test_malformed_digest_raises(tmp_path: Path):
+    directory = build_scenario_dir(tmp_path, "lab")
+    manifest = load_fixture("manifest_lab_shape.json")
+    manifest["files"][0]["sha256"] = "Z" * 64
+    write_manifest(directory, manifest)
+    with pytest.raises(ManifestError, match="invalid manifest entry"):
+        load_scenario(directory, verify_hashes=False)
+
+
 def test_unsupported_channel_raises(tmp_path: Path):
     directory = build_scenario_dir(tmp_path, "lab")
     manifest = load_fixture("manifest_lab_shape.json")

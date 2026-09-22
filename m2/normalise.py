@@ -85,8 +85,10 @@ def normalise_record(
     return NormalisedEvent(
         evidence_id=make_evidence_id(scenario_id, raw.channel, raw.record_id),
         scenario_id=scenario_id,
+        # RawRecord keeps the channel as a plain string; NormalisedEvent's Literal field is
+        # what actually rejects a channel M2 does not support.
         channel=raw.channel,  # type: ignore[arg-type]
-        source_type=source_type,  # type: ignore[arg-type]
+        source_type=source_type,
         record_id=raw.record_id,
         source_event_id=raw.event_id,
         timestamp_utc=ticks_to_iso(ticks),

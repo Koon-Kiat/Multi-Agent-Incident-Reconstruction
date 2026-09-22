@@ -29,7 +29,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from m2.ids import CHANNEL_CODES
 from m2.timeutil import iso_to_ticks
@@ -148,7 +148,7 @@ def load_scenario(scenario_dir: Path | str, *, verify_hashes: bool = True) -> Sc
             window_end_ticks=iso_to_ticks(_require_str(metadata, end_key, directory)),
             host=metadata.get("host"),
         )
-    except ValidationError as error:
+    except ValueError as error:  # includes pydantic's ValidationError
         raise ManifestError(f"{directory}: scenario metadata is inconsistent: {error}") from error
     if verify_hashes:
         for source in info.files:
@@ -216,9 +216,10 @@ def _source_file(directory: Path, entry: dict[str, Any], shape: str) -> SourceFi
         raise ManifestError(f"{directory}: manifest path {relative!r} escapes the scenario directory")
     if isinstance(size, bool) or not isinstance(size, int) or size < 0:
         raise ManifestError(f"{directory}: manifest size_bytes {size!r} for {relative!r} must be a non-negative int")
-    if not isinstance(declared, str) or len(declared) != 64:
-        raise ManifestError(f"{directory}: manifest sha256 for {relative!r} must be a 64-character hex digest")
-    return SourceFile(channel=channel, path=path, sha256=declared, size=size)
+    try:
+        return SourceFile(channel=channel, path=path, sha256=declared, size=size)
+    except ValueError as error:  # includes pydantic's ValidationError
+        raise ManifestError(f"{directory}: invalid manifest entry for {relative!r}: {error}") from error
 
 
 def _window_keys(metadata: dict[str, Any], directory: Path) -> tuple[str, str]:

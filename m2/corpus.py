@@ -32,13 +32,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from m2.evtx_reader import iter_records
 from m2.manifest import MANIFEST_FILENAME, METADATA_DIRNAME, ScenarioInfo, load_scenario, sha256_file
 from m2.normalise import normalise_record
-from m2.schema import NormalisedEvent, event_to_json
+from m2.schema import SHA256_PATTERN, NormalisedEvent, event_to_json
 
 CORPUS_MANIFEST_SCHEMA_VERSION = "m2-corpus-v1"
 CORPUS_MANIFEST_FILENAME = "corpus_manifest.json"
 JSONL_SUFFIX = ".jsonl"
-
-SHA256_PATTERN = r"^[0-9A-Fa-f]{64}$"
 
 
 class CorpusError(ValueError):

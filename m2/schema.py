@@ -44,13 +44,13 @@ from m2.timeutil import ticks_to_iso
 
 SCHEMA_VERSION = "m2-event-v1"
 
-CHANNEL_SOURCE_TYPES: dict[str, str] = {
+Channel = Literal["Security", "Microsoft-Windows-Sysmon/Operational"]
+SourceType = Literal["windows_security", "sysmon"]
+
+CHANNEL_SOURCE_TYPES: dict[str, SourceType] = {
     "Security": "windows_security",
     "Microsoft-Windows-Sysmon/Operational": "sysmon",
 }
-
-Channel = Literal["Security", "Microsoft-Windows-Sysmon/Operational"]
-SourceType = Literal["windows_security", "sysmon"]
 
 SHA256_PATTERN = r"^[0-9A-Fa-f]{64}$"
 
