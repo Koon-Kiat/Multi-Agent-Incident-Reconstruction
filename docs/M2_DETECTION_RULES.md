@@ -146,8 +146,9 @@ exact and case-sensitive.
 "What fires must not depend on an earlier event in the same account's history." The two windowed
 rules (R-AUTH-01/02 and R-EXEC-01) therefore scan greedily with a sliding window: a candidate
 window starts at the first event not yet consumed, takes every following event within the window
-length of that anchor, and is kept only when it meets the count. A candidate that does not meet
-the count advances the scan by **one** event.
+length of that anchor, and is kept only when it meets the rule's condition — the count for
+R-EXEC-01, the count **and** the failed-logon confirmation for R-AUTH-01/02. A candidate that
+does not meet it advances the scan by **one** event.
 
 An earlier, unrelated event can therefore no longer hide a later burst. Failures at 0, 250, 310
 and 320 s with a success at 330 s are three failures inside 70 s, and they fire even though the
