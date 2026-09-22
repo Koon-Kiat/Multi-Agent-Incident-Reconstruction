@@ -138,8 +138,19 @@ or JSON, either a list of objects or `{"labels": [...]}`:
 Rules the loader enforces, so an ambiguous file fails closed instead of scoring something
 unclear: `label` is exactly `positive`, `negative` or `excluded`; `reason` is optional; an
 `evidence_id` that is not a well-formed evidence ID is rejected; the same `evidence_id` may not
-appear twice; no other column or field is accepted. An optional corpus check
-(`known_evidence_ids`) turns "this label names an event the corpus does not hold" into an error.
+appear twice; no other column or field is accepted.
+
+Three checks make a mislabelled or partial input an error rather than a quietly wrong number:
+
+* A label for a **scenario with no detection run** in the scored set is rejected. This needs no
+  corpus, so it is never optional: without it, a scenario-ID typo in the label file would be
+  scored as a new scenario full of false negatives.
+* The label file is validated against **the corpus** (`python -m m2 score --corpus …`, which
+  supplies the evidence IDs the corpus actually holds): a label naming an event the corpus does
+  not hold is rejected, so a record-number typo cannot become a silent false negative.
+* The run set must be **one corpus revision with one run per scenario**: two runs for one scenario
+  (the per-scenario table would keep one while the per-rule table unioned both), or runs naming
+  different `corpus_manifest_sha256` values, are rejected instead of merged.
 
 ## Worked example
 

@@ -136,6 +136,16 @@ def test_a_found_event_with_empty_fields_is_not_a_not_found(store: EventStore):
     assert (result.event.user, result.event.host) == ("", "")
 
 
+def test_the_stores_evidence_ids_are_every_id_it_can_resolve(store: EventStore):
+    # The corpus's citable universe, which is what validates a whole label file in bulk.
+    ids = store.evidence_ids
+    assert ids == tuple(sorted(ids))
+    assert set(ids) == {event.evidence_id for event in synthetic_events()}
+    for evidence_id in ids:
+        assert store.lookup(evidence_id).status == "found"
+    assert "SYN-B-SEC-99" not in ids
+
+
 # --- T2.2 filters -----------------------------------------------------------------
 
 

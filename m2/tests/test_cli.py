@@ -184,8 +184,8 @@ def test_detect_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, c
     assert "corpus manifest" in capsys.readouterr().err
 
 
-def _detect_fixture(tmp_path: Path) -> Path:
-    """Run `detect` over a 3-failures-then-success corpus and return the detections directory."""
+def _detect_fixture(tmp_path: Path) -> tuple[Path, Path]:
+    """Run `detect` over a 3-failures-then-success corpus; return (corpus, detections)."""
     base = iso_to_ticks("2026-09-21T02:05:30.0000000Z")
     events = [
         make_event(record_id=record, event_id=4625, timestamp_ticks=base + record * TICKS_PER_SECOND)
@@ -195,16 +195,27 @@ def _detect_fixture(tmp_path: Path) -> Path:
     corpus = _write_corpus(tmp_path, events)
     out = tmp_path / "detections"
     assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_OK
-    return out
+    return corpus, out
 
 
 def test_score_writes_a_report_and_prints_the_metrics(tmp_path: Path, capsys):
-    detections = _detect_fixture(tmp_path)
+    corpus, detections = _detect_fixture(tmp_path)
     labels = tmp_path / "labels.csv"
     labels.write_text("evidence_id,label,reason\nSYN-B-SEC-4,positive,the success\nSYN-B-SEC-1,negative,\n", encoding="utf-8")
     out = tmp_path / "scores"
 
-    assert main(["score", "--detections", str(detections), "--labels", str(labels), "--out", str(out)]) == EXIT_OK
+    argv = [
+        "score",
+        "--detections",
+        str(detections),
+        "--labels",
+        str(labels),
+        "--corpus",
+        str(corpus),
+        "--out",
+        str(out),
+    ]
+    assert main(argv) == EXIT_OK
 
     stdout = capsys.readouterr().out
     assert "overall: TP=1 FP=3 FN=0 precision=0.250 recall=1.000 f1=0.400" in stdout
@@ -214,25 +225,63 @@ def test_score_writes_a_report_and_prints_the_metrics(tmp_path: Path, capsys):
     assert (report["overall"]["tp"], report["overall"]["fp"], report["overall"]["fn"]) == (1, 3, 0)
 
 
+def test_score_requires_a_corpus_whenever_it_is_given_labels(tmp_path: Path, capsys):
+    # A2: without the corpus a record-number typo in the label file is a silent false negative.
+    _, detections = _detect_fixture(tmp_path)
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-4,positive\n", encoding="utf-8")
+    with pytest.raises(SystemExit) as exit_info:
+        build_parser().parse_args(["score", "--detections", str(detections), "--labels", str(labels)])
+    assert exit_info.value.code != 0
+    assert "--corpus" in capsys.readouterr().err
+
+
+def test_score_rejects_a_label_naming_an_event_the_corpus_does_not_hold(tmp_path: Path, capsys):
+    corpus, detections = _detect_fixture(tmp_path)
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-99,positive\n", encoding="utf-8")
+    argv = ["score", "--detections", str(detections), "--labels", str(labels), "--corpus", str(corpus)]
+    assert main(argv) == EXIT_INVALID_INPUT
+    assert "not in the corpus being scored" in capsys.readouterr().err
+
+
 def test_score_reports_a_missing_label_file_without_a_traceback(tmp_path: Path, capsys):
-    detections = _detect_fixture(tmp_path)
-    code = main(["score", "--detections", str(detections), "--labels", str(tmp_path / "absent.csv")])
-    assert code == EXIT_FAILED
+    corpus, detections = _detect_fixture(tmp_path)
+    argv = [
+        "score",
+        "--detections",
+        str(detections),
+        "--labels",
+        str(tmp_path / "absent.csv"),
+        "--corpus",
+        str(corpus),
+    ]
+    assert main(argv) == EXIT_FAILED
     assert "does not exist" in capsys.readouterr().err
 
 
 def test_score_reports_a_missing_detections_directory_without_a_traceback(tmp_path: Path, capsys):
+    corpus, _ = _detect_fixture(tmp_path)
     labels = tmp_path / "labels.csv"
     labels.write_text("evidence_id,label\nSYN-B-SEC-1,positive\n", encoding="utf-8")
-    code = main(["score", "--detections", str(tmp_path / "absent"), "--labels", str(labels)])
-    assert code == EXIT_FAILED
+    argv = ["score", "--detections", str(tmp_path / "absent"), "--labels", str(labels), "--corpus", str(corpus)]
+    assert main(argv) == EXIT_FAILED
     assert "does not exist" in capsys.readouterr().err
 
 
+def test_score_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, capsys):
+    _, detections = _detect_fixture(tmp_path)
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-1,positive\n", encoding="utf-8")
+    argv = ["score", "--detections", str(detections), "--labels", str(labels), "--corpus", str(tmp_path / "absent")]
+    assert main(argv) == EXIT_FAILED
+    assert "corpus manifest" in capsys.readouterr().err
+
+
 def test_score_rejects_a_malformed_label_file(tmp_path: Path, capsys):
-    detections = _detect_fixture(tmp_path)
+    corpus, detections = _detect_fixture(tmp_path)
     labels = tmp_path / "labels.csv"
     labels.write_text("evidence_id,label\nSYN-B-SEC-1,maybe\n", encoding="utf-8")
-    code = main(["score", "--detections", str(detections), "--labels", str(labels)])
-    assert code == EXIT_INVALID_INPUT
+    argv = ["score", "--detections", str(detections), "--labels", str(labels), "--corpus", str(corpus)]
+    assert main(argv) == EXIT_INVALID_INPUT
     assert "not a valid label row" in capsys.readouterr().err

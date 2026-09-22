@@ -4,7 +4,8 @@
 ``datasets/``. ``lookup`` and ``query`` read a written corpus back through
 :class:`m2.query.EventStore`, so they verify the corpus digests before answering. ``detect``
 runs the conventional rule catalogue over a verified corpus and writes one run file per
-scenario plus ``summary.json``. ``score`` reads those run files and a label file and writes
+scenario plus ``summary.json``. ``score`` reads those run files, a label file and the corpus the
+labels name (``--corpus`` is required, and every labelled ID must exist in it), and writes
 ``score_report.json``; it never looks for a label file itself and it invents no labels. A command
 that fails for a real reason exits 1 and explains itself on stderr; invalid input (a malformed ID,
 an unusable window, an unreadable label row) exits 2.
@@ -140,8 +141,15 @@ def _score(args: argparse.Namespace) -> int:
     if not detections_dir.is_dir():
         print(f"m2 score: detections directory {detections_dir} does not exist", file=sys.stderr)
         return EXIT_FAILED
+    store = _open_corpus("score", args.corpus)
+    if isinstance(store, int):
+        return store
     try:
-        report = score(load_detection_runs(detections_dir), load_labels(labels_path))
+        report = score(
+            load_detection_runs(detections_dir),
+            load_labels(labels_path),
+            known_evidence_ids=store.evidence_ids,
+        )
         path = write_report(report, Path(args.out))
     except ScoreError as error:
         print(f"m2 score: {error}", file=sys.stderr)
@@ -187,6 +195,11 @@ def build_parser() -> argparse.ArgumentParser:
     score = subcommands.add_parser("score", help="score detection output against an agreed label file")
     score.add_argument("--detections", default="out/detections")
     score.add_argument("--labels", required=True)
+    score.add_argument(
+        "--corpus",
+        required=True,
+        help="the corpus the labels name; every labelled evidence_id must exist in it",
+    )
     score.add_argument("--out", default="out/scores")
     return parser
 

@@ -154,6 +154,15 @@ class EventStore:
         """Every scenario in the store, sorted; a scenario with no events is absent."""
         return tuple(sorted(self._by_scenario))
 
+    @property
+    def evidence_ids(self) -> tuple[str, ...]:
+        """Every evidence ID in the store, sorted: the corpus's citable universe.
+
+        For a consumer that must check IDs in bulk (``m2 score --corpus`` validates a whole label
+        file against this) rather than look them up one at a time.
+        """
+        return tuple(sorted(self._by_id))
+
     def lookup(self, evidence_id: str) -> LookupResult:
         """Resolve one ``evidence_id`` exactly, or explain why it does not resolve."""
         if not isinstance(evidence_id, str):
