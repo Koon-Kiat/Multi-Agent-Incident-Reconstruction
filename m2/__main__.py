@@ -190,7 +190,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     detect = subcommands.add_parser("detect", help="run the conventional detection baseline over a corpus")
     detect.add_argument("--corpus", default=_CORPUS_DEFAULT)
-    detect.add_argument("--out", default="out/detections")
+    detect.add_argument(
+        "--out",
+        default="out/detections",
+        help="a directory detect owns; stale *.json run files left there by an earlier run are removed",
+    )
 
     score = subcommands.add_parser("score", help="score detection output against an agreed label file")
     score.add_argument("--detections", default="out/detections")

@@ -13,8 +13,11 @@ Contract
   corpus manifest's sha256 so a run can be traced to the corpus revision it describes.
 * ``<out>/<scenario>.json`` holds one :class:`~m2.detection.schema.DetectionRun` per scenario
   and ``<out>/summary.json`` holds the per-scenario, per-rule counts. Only scenarios present in
-  the corpus are written; a stale file for a scenario that is no longer in the corpus is left
-  alone rather than silently deleted.
+  the corpus are written, and a stale ``*.json`` file left in ``<out>`` by an earlier run — a
+  scenario the corpus no longer holds, say — is **removed**, because a consumer that globs the
+  directory would otherwise score a run that describes a corpus revision that no longer exists.
+  The removal is confined to the direct ``*.json`` children of the ``--out`` the caller named, so
+  it never touches another directory, and ``--out`` may not be the corpus directory itself.
 * ``triggers_for(scenario_id)`` is the M5-facing entry point: it returns the scenario's
   detections, ordered by ``(window_start_utc, detection_id)``, so a caller can route windows to
   M3/M4 without reading the written files.
@@ -129,19 +132,48 @@ def corpus_manifest_digest(corpus_dir: Path | str) -> str:
 
 
 def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSummary:
-    """Detect over a written corpus and write one run file per scenario plus ``summary.json``."""
+    """Detect over a written corpus and write one run file per scenario plus ``summary.json``.
+
+    ``out_dir`` is the directory ``detect`` owns: after writing this run's files, every other
+    direct ``*.json`` child is removed as stale (see the module docstring). ``out_dir`` may not be
+    the corpus directory, whose ``corpus_manifest.json`` is not a detection artefact.
+    """
     directory = Path(corpus_dir)
+    destination = Path(out_dir)
+    if destination.resolve() == directory.resolve():
+        raise DetectionError(
+            f"--out {destination} is the corpus directory; detect removes stale run files from "
+            "--out, so the two directories must differ"
+        )
     digest = corpus_manifest_digest(directory)
     engine = DetectionEngine(EventStore.load(directory), corpus_manifest_sha256=digest)
     runs = engine.runs()
 
-    destination = Path(out_dir)
     destination.mkdir(parents=True, exist_ok=True)
+    written = {SUMMARY_FILENAME}
     for run in runs:
-        _write_text(destination / f"{run.scenario_id}.json", f"{run_to_json(run)}\n")
+        name = f"{run.scenario_id}.json"
+        _write_text(destination / name, f"{run_to_json(run)}\n")
+        written.add(name)
     summary = summarise(engine.corpus_manifest_sha256, runs)
     _write_text(destination / SUMMARY_FILENAME, f"{summary_to_json(summary)}\n")
+    _remove_stale_runs(destination, written)
     return summary
+
+
+def _remove_stale_runs(destination: Path, written: set[str]) -> tuple[Path, ...]:
+    """Delete the ``*.json`` files in ``destination`` that this run did not write.
+
+    Only the direct children of the directory ``detect`` was given are considered: no
+    subdirectory and no path outside ``destination`` is ever touched. The caller has already
+    established that ``destination`` is not the corpus directory (see :func:`write_detections`).
+    """
+    removed: list[Path] = []
+    for path in sorted(destination.glob("*.json")):
+        if path.name not in written:
+            path.unlink()
+            removed.append(path)
+    return tuple(removed)
 
 
 def _write_text(path: Path, payload: str) -> None:

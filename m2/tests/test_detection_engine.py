@@ -212,3 +212,34 @@ def test_at_is_the_canonical_rendering_used_by_the_detections(corpus_dir: Path):
     assert DetectionEngine(EventStore.load(corpus_dir), corpus_manifest_sha256=SHA).run(SCENARIO).detections[
         0
     ].window_start_utc == at(0)
+
+
+def test_detect_removes_stale_run_files_from_its_own_output_directory(corpus_dir: Path, tmp_path: Path):
+    # T5.0/amendment A2: a run file for a scenario the corpus no longer holds must not survive,
+    # because `score` and any consumer that globs the directory would read it as current.
+    out = tmp_path / "detections"
+    out.mkdir()
+    stale = out / "SYN-GONE.json"
+    stale.write_text("{}\n", encoding="utf-8")
+    keep = out / "summary.json"
+    keep.write_text("{}\n", encoding="utf-8")
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    untouched = elsewhere / "SYN-GONE.json"
+    untouched.write_text("{}\n", encoding="utf-8")
+
+    write_detections(corpus_dir, out)
+
+    assert not stale.exists()
+    assert sorted(path.name for path in out.iterdir()) == sorted([f"{SCENARIO}.json", SUMMARY_FILENAME])
+    assert untouched.read_text(encoding="utf-8") == "{}\n"  # only --out is touched
+    # The written run parses, so the removal left a usable directory rather than a hole.
+    assert DetectionRun.model_validate_json((out / f"{SCENARIO}.json").read_text(encoding="utf-8")).scenario_id == SCENARIO
+
+
+def test_detect_refuses_to_write_into_the_corpus_directory(corpus_dir: Path):
+    # `--out` is a directory detect owns: it deletes stale run files there, and the corpus's own
+    # corpus_manifest.json is not a run file.
+    with pytest.raises(DetectionError, match="is the corpus directory"):
+        write_detections(corpus_dir, corpus_dir)
+    assert (corpus_dir / CORPUS_MANIFEST_FILENAME).is_file()

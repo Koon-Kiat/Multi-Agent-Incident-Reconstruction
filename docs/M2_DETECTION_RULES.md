@@ -84,6 +84,11 @@ changes later.
 <out>/summary.json      per-scenario, per-rule counts
 ```
 
+`--out` is a directory `detect` owns: after writing this run, it removes any other direct `*.json`
+file there, because a run left over from an earlier corpus revision would be read as current by
+`m2 score` or by anything that globs the directory. Nothing outside `--out`, and no
+subdirectory, is touched, and `--out` may not be the corpus directory itself.
+
 ```python
 from m2.detection.engine import DetectionEngine, write_detections
 
