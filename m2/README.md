@@ -159,7 +159,9 @@ directory called `S02.json`) and a symbolic link, and a regular file that is not
 artefact — a foreign `S02.json` or `summary.json` — exiting `1` and writing nothing rather than
 overwriting the caller's data. Every document is staged under a dotted `.tmp` name and renamed
 into place only once all of them exist, so an I/O failure part way through leaves the previous run
-intact. See
+intact. A run also sweeps its own staging leftovers (`.<name>.json.tmp`) that a killed process left
+in `--out` before it writes — only a regular file matching that pattern is removed, nothing else.
+See
 [`../docs/M2_DETECTION_RULES.md`](../docs/M2_DETECTION_RULES.md) for all 12 rules, their frozen
 thresholds, their benign lookalikes and what is deliberately not covered. The baseline is **not
 scored**: there are no agreed labels yet.

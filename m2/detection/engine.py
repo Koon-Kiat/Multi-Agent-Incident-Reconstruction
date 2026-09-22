@@ -36,7 +36,10 @@ Contract
   artefact this run refreshes.
 * The write itself is a two-phase rename: every document is first written to a dotted ``.tmp``
   sibling and all of them must succeed before any is renamed onto its final name. An I/O failure
-  part way through therefore leaves the previous run's files in place and no temporary behind.
+  part way through therefore leaves the previous run's files in place and no temporary behind. A
+  run also sweeps **its own** staging leftovers out of ``--out`` before it writes, because a
+  process killed mid-run cannot clean up after itself; only a regular file matching the staging
+  name pattern is removed.
 * ``triggers_for(scenario_id)`` is the M5-facing entry point: it returns the scenario's
   detections, ordered by ``(window_start_utc, detection_id)``, so a caller can route windows to
   M3/M4 without reading the written files.
@@ -68,6 +71,10 @@ from m2.protected_paths import PROTECTED_OUTPUT_TREE_NAMES, protected_output_com
 from m2.query import EventStore
 
 SUMMARY_FILENAME = "summary.json"
+# The name `_write_all` stages a document under: `.<target name>.tmp`. Every document detect
+# writes ends in `.json`, so this one glob also matches a leftover whose scenario the corpus no
+# longer holds.
+STAGING_GLOB = ".*.json.tmp"
 
 
 class DetectionError(ValueError):
@@ -176,7 +183,9 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     is not a detection artefact. A pre-existing file at a name this run would write must likewise
     be an M2 detection artefact, or the run fails before writing anything. Every document is staged
     under a dotted temporary name and renamed into place only once all of them exist, so an I/O
-    failure part way through leaves the previous run's files intact.
+    failure part way through leaves the previous run's files intact. Before writing, the run
+    removes any regular staging file (``.<name>.json.tmp``) an earlier killed run left behind; only
+    a file matching that pattern is touched.
     """
     directory = Path(corpus_dir)
     destination = Path(out_dir)
@@ -196,6 +205,7 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     _refuse_foreign_overwrite(destination, written)
 
     destination.mkdir(parents=True, exist_ok=True)
+    _sweep_own_staging_leftovers(destination)
     summary = summarise(engine.corpus_manifest_sha256, runs)
     payloads = [(destination / f"{run.scenario_id}.json", f"{run_to_json(run)}\n") for run in runs]
     payloads.append((destination / SUMMARY_FILENAME, f"{summary_to_json(summary)}\n"))
@@ -244,6 +254,24 @@ def _refuse_foreign_overwrite(destination: Path, names: set[str]) -> None:
                 f"{path} already exists and is not an m2 detection artefact; "
                 "refusing to overwrite a file this run did not write"
             )
+
+
+def _sweep_own_staging_leftovers(destination: Path) -> tuple[Path, ...]:
+    """Remove this package's staging leftovers from ``destination`` before a run writes.
+
+    ``_write_all`` removes its temporaries when a write raises, but a process killed mid-run (or a
+    power loss) leaves ``.<name>.json.tmp`` behind, and ``_remove_stale_runs`` never reaps them
+    because it scans ``*.json``. Only a regular file matching :data:`STAGING_GLOB` is removed —
+    including one from a killed run whose scenario the corpus no longer holds. A directory or a
+    symbolic link at such a name, and every other file, is left exactly as it is.
+    """
+    removed: list[Path] = []
+    for path in sorted(destination.glob(STAGING_GLOB)):
+        if path.is_symlink() or not path.is_file():
+            continue
+        path.unlink()
+        removed.append(path)
+    return tuple(removed)
 
 
 def _write_all(payloads: Sequence[tuple[Path, str]]) -> None:

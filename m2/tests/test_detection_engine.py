@@ -433,3 +433,32 @@ def test_a_failed_write_leaves_the_previous_run_intact(
     assert run_path.read_bytes() == before
     assert not (out / SUMMARY_FILENAME).exists()
     assert not [path for path in out.iterdir() if path.name.startswith(".")]
+
+
+def test_detect_sweeps_its_own_stale_staging_temporaries(corpus_dir: Path, tmp_path: Path):
+    # Planner note after the phase-6 review: `_write_all` cleans up on failure, but a killed run
+    # leaves `.<name>.json.tmp` behind and nothing reaped it. The sweep is by pattern, so a leftover
+    # for a scenario this corpus does not hold is removed too; nothing else is touched.
+    out = tmp_path / "detections"
+    out.mkdir()
+    leftovers = [out / ".SYN-GONE.json.tmp", out / f".{SCENARIO}.json.tmp"]
+    for path in leftovers:
+        path.write_text("half a document\n", encoding="utf-8", newline="\n")
+    staging_directory = out / ".SYN-DIR.json.tmp"
+    staging_directory.mkdir()
+    survivors = {
+        ".notes.txt": "not a staging name\n",
+        ".hidden.json": '{"kept": true}\n',
+        "S02.json": '{"caller": "a foreign file, not an m2 run"}\n',
+    }
+    for name, payload in survivors.items():
+        (out / name).write_text(payload, encoding="utf-8", newline="\n")
+
+    write_detections(corpus_dir, out)
+
+    for path in leftovers:
+        assert not path.exists(), path
+    assert staging_directory.is_dir()
+    for name, payload in survivors.items():
+        assert (out / name).read_text(encoding="utf-8") == payload, name
+    assert (out / f"{SCENARIO}.json").is_file()
