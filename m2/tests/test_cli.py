@@ -7,7 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from m2.__main__ import EXIT_FAILED, EXIT_INVALID_INPUT, EXIT_NOT_IMPLEMENTED, EXIT_OK, build_parser, main
+from m2.__main__ import (
+    EXIT_FAILED,
+    EXIT_INVALID_INPUT,
+    EXIT_NOT_IMPLEMENTED,
+    EXIT_OK,
+    _not_implemented,
+    build_parser,
+    main,
+)
 from m2.corpus import write_manifest, write_scenario
 from m2.evtx_reader import RawRecord
 from m2.manifest import load_scenario
@@ -16,7 +24,6 @@ from m2.tests.synthetic import SECURITY, SYSMON, build_scenario_dir, make_event
 from m2.timeutil import TICKS_PER_SECOND, iso_to_ticks
 
 SUBCOMMANDS = ("normalise", "lookup", "query", "detect", "score")
-UNIMPLEMENTED = (["score", "--labels", "labels.csv"],)
 
 WINDOW_START = "2026-09-21T02:05:00.0000000Z"
 WINDOW_END = "2026-09-21T02:06:00.0000000Z"
@@ -31,10 +38,15 @@ def test_help_lists_every_subcommand(capsys):
         assert command in help_text
 
 
-@pytest.mark.parametrize("argv", UNIMPLEMENTED)
-def test_unimplemented_commands_fail_loudly(argv, capsys):
-    assert main(argv) == EXIT_NOT_IMPLEMENTED
-    assert argv[0] in capsys.readouterr().out
+def test_every_documented_subcommand_is_dispatched_and_unknown_ones_fail_loudly(capsys):
+    # Phase 0 gave `detect` and `score` an explicit "not implemented" exit. By phase 4 both are
+    # implemented, so the remaining safety nets are argparse for an unknown subcommand and the
+    # fallback in `main` for a subcommand added to the parser but not yet dispatched.
+    with pytest.raises(SystemExit) as exit_info:
+        build_parser().parse_args(["frobnicate"])
+    assert exit_info.value.code != 0
+    assert _not_implemented("frobnicate") == EXIT_NOT_IMPLEMENTED
+    assert "frobnicate" in capsys.readouterr().out
 
 
 def test_missing_subcommand_is_a_usage_error():
@@ -170,3 +182,57 @@ def test_detect_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, c
     code = main(["detect", "--corpus", str(tmp_path / "absent"), "--out", str(tmp_path / "out")])
     assert code == EXIT_FAILED
     assert "corpus manifest" in capsys.readouterr().err
+
+
+def _detect_fixture(tmp_path: Path) -> Path:
+    """Run `detect` over a 3-failures-then-success corpus and return the detections directory."""
+    base = iso_to_ticks("2026-09-21T02:05:30.0000000Z")
+    events = [
+        make_event(record_id=record, event_id=4625, timestamp_ticks=base + record * TICKS_PER_SECOND)
+        for record in (1, 2, 3)
+    ]
+    events.append(make_event(record_id=4, event_id=4624, timestamp_ticks=base + 4 * TICKS_PER_SECOND))
+    corpus = _write_corpus(tmp_path, events)
+    out = tmp_path / "detections"
+    assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_OK
+    return out
+
+
+def test_score_writes_a_report_and_prints_the_metrics(tmp_path: Path, capsys):
+    detections = _detect_fixture(tmp_path)
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label,reason\nSYN-B-SEC-4,positive,the success\nSYN-B-SEC-1,negative,\n", encoding="utf-8")
+    out = tmp_path / "scores"
+
+    assert main(["score", "--detections", str(detections), "--labels", str(labels), "--out", str(out)]) == EXIT_OK
+
+    stdout = capsys.readouterr().out
+    assert "overall: TP=1 FP=3 FN=0 precision=0.250 recall=1.000 f1=0.400" in stdout
+    assert "SYN-B: TP=1 FP=3 FN=0" in stdout
+    report = json.loads((out / "score_report.json").read_text(encoding="utf-8"))
+    assert report["unit"] == "evidence_id"
+    assert (report["overall"]["tp"], report["overall"]["fp"], report["overall"]["fn"]) == (1, 3, 0)
+
+
+def test_score_reports_a_missing_label_file_without_a_traceback(tmp_path: Path, capsys):
+    detections = _detect_fixture(tmp_path)
+    code = main(["score", "--detections", str(detections), "--labels", str(tmp_path / "absent.csv")])
+    assert code == EXIT_FAILED
+    assert "does not exist" in capsys.readouterr().err
+
+
+def test_score_reports_a_missing_detections_directory_without_a_traceback(tmp_path: Path, capsys):
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-1,positive\n", encoding="utf-8")
+    code = main(["score", "--detections", str(tmp_path / "absent"), "--labels", str(labels)])
+    assert code == EXIT_FAILED
+    assert "does not exist" in capsys.readouterr().err
+
+
+def test_score_rejects_a_malformed_label_file(tmp_path: Path, capsys):
+    detections = _detect_fixture(tmp_path)
+    labels = tmp_path / "labels.csv"
+    labels.write_text("evidence_id,label\nSYN-B-SEC-1,maybe\n", encoding="utf-8")
+    code = main(["score", "--detections", str(detections), "--labels", str(labels)])
+    assert code == EXIT_INVALID_INPUT
+    assert "not a valid label row" in capsys.readouterr().err

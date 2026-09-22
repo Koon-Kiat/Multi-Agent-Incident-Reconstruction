@@ -4,10 +4,10 @@
 ``datasets/``. ``lookup`` and ``query`` read a written corpus back through
 :class:`m2.query.EventStore`, so they verify the corpus digests before answering. ``detect``
 runs the conventional rule catalogue over a verified corpus and writes one run file per
-scenario plus ``summary.json``. ``score`` reports that it is not implemented yet and exits with
-status 2, so an unimplemented command can never look like a successful run. A command that
-fails for a real reason exits 1 and explains itself on stderr; invalid input (a malformed ID, an
-unusable window) exits 2.
+scenario plus ``summary.json``. ``score`` reads those run files and a label file and writes
+``score_report.json``; it never looks for a label file itself and it invents no labels. A command
+that fails for a real reason exits 1 and explains itself on stderr; invalid input (a malformed ID,
+an unusable window, an unreadable label row) exits 2.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ from pathlib import Path
 
 from m2.corpus import CORPUS_MANIFEST_FILENAME, normalise_datasets
 from m2.detection.engine import SUMMARY_FILENAME, write_detections
+from m2.metrics import ScoreCounts, ScoreError, load_detection_runs, load_labels, score, write_report
 from m2.query import EventStore, QueryError
 from m2.schema import event_to_json
 
@@ -115,6 +116,46 @@ def _detect(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _metric(value: float | None) -> str:
+    """A metric for the console: three decimals, or ``undefined`` when it has no denominator."""
+    return "undefined" if value is None else f"{value:.3f}"
+
+
+def _score_line(label: str, counts: ScoreCounts) -> str:
+    return (
+        f"{label}: TP={counts.tp} FP={counts.fp} FN={counts.fn} "
+        f"precision={_metric(counts.precision)} recall={_metric(counts.recall)} "
+        f"f1={_metric(counts.f1)} (flagged={counts.flagged}, positives={counts.positives}, "
+        f"excluded={counts.excluded}, flagged_excluded={counts.flagged_excluded}, "
+        f"unflagged_excluded={counts.unflagged_excluded})"
+    )
+
+
+def _score(args: argparse.Namespace) -> int:
+    detections_dir = Path(args.detections)
+    labels_path = Path(args.labels)
+    if not labels_path.is_file():
+        print(f"m2 score: label file {labels_path} does not exist", file=sys.stderr)
+        return EXIT_FAILED
+    if not detections_dir.is_dir():
+        print(f"m2 score: detections directory {detections_dir} does not exist", file=sys.stderr)
+        return EXIT_FAILED
+    try:
+        report = score(load_detection_runs(detections_dir), load_labels(labels_path))
+        path = write_report(report, Path(args.out))
+    except ScoreError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
+    except OSError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    print(_score_line("overall", report.overall))
+    for scenario in report.scenarios:
+        print(_score_line(scenario.scenario_id, scenario.counts))
+    print(f"report -> {path}")
+    return EXIT_OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Return the M2 argument parser, including every documented subcommand."""
     parser = argparse.ArgumentParser(prog="m2", description="Normalise, query and detect over the MAIR EVTX corpus")
@@ -160,6 +201,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _query(args)
     if args.command == "detect":
         return _detect(args)
+    if args.command == "score":
+        return _score(args)
     return _not_implemented(args.command)
 
 
