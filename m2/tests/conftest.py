@@ -12,12 +12,10 @@ from pathlib import Path
 
 import pytest
 
+from m2.manifest import is_lfs_pointer
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATASETS_DIR = REPO_ROOT / "datasets"
-
-# A Git LFS pointer is a tiny text file; real EVTX exports start with the "ElfFile" magic.
-LFS_POINTER_PREFIX = b"version https://git-lfs"
-LFS_POINTER_MAX_BYTES = 1024
 
 CHANNEL_FILENAMES = {
     "Security": "Security.evtx",
@@ -31,17 +29,6 @@ def _display(path: Path) -> str:
         return str(path.relative_to(REPO_ROOT))
     except ValueError:
         return str(path)
-
-
-def is_lfs_pointer(path: Path) -> bool:
-    """True when ``path`` holds an unfetched Git LFS pointer instead of real content."""
-    try:
-        if path.stat().st_size > LFS_POINTER_MAX_BYTES:
-            return False
-        with path.open("rb") as handle:
-            return handle.read(len(LFS_POINTER_PREFIX)) == LFS_POINTER_PREFIX
-    except OSError:
-        return False
 
 
 def real_evtx(scenario: str, channel: str) -> Path:
