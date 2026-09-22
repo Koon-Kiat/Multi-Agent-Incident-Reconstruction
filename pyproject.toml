@@ -22,7 +22,6 @@ exclude = ["m3.tests*", "m2.tests*"]
 
 [tool.setuptools.package-data]
 m3 = ["fixtures/*.json"]
-m2 = ["tests/fixtures/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["m3/tests", "m2/tests", "tests"]
