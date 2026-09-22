@@ -7,21 +7,23 @@ name = "mair-m3"
 version = "0.1.0"
 description = "Standalone, local MAIR authentication investigation agent"
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.10,<3", "httpx>=0.28,<1"]
+dependencies = ["pydantic>=2.10,<3", "httpx>=0.28,<1", "python-evtx>=0.8.1,<1"]
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]
 
 [project.scripts]
 mair-m3 = "m3.__main__:main"
+mair-m2 = "m2.__main__:main"
 
 [tool.setuptools.packages.find]
-include = ["m3*"]
-exclude = ["m3.tests*"]
+include = ["m3*", "m2*"]
+exclude = ["m3.tests*", "m2.tests*"]
 
 [tool.setuptools.package-data]
 m3 = ["fixtures/*.json"]
+m2 = ["tests/fixtures/*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["m3/tests", "tests"]
+testpaths = ["m3/tests", "m2/tests", "tests"]
 markers = ["ollama: optional test requiring explicitly configured local Ollama"]
