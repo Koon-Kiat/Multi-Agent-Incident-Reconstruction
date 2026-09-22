@@ -1,3 +1,6 @@
+This is the historical description for merged PR #6. For subsequent real Qwen3
+testing and integration readiness, see [the current validation report](M3_VALIDATION_AND_INTEGRATION.md).
+
 ## Summary
 
 Add an independent, locally hosted M3 Authentication Investigation Agent that

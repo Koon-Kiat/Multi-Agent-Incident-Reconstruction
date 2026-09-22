@@ -1,0 +1,207 @@
+{
+  "case": "SYN-F",
+  "elapsed_seconds": 0.552,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-F",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "M3-106fa53123bd6d3ae7a25b95",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-F",
+        "observed_events": {
+          "description": "Retrieved 1 failed logon(s) and 0 successful logon(s) with these recorded entity values.",
+          "failed_logons": 1,
+          "successful_logons": 0,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000000Z",
+          "last_utc": "2026-01-10T00:00:01.0000000Z"
+        },
+        "entities": {
+          "account": null,
+          "reported_account": null,
+          "domain": null,
+          "host": null,
+          "source_address": null,
+          "workstation": null,
+          "logon_type": null
+        },
+        "evidence_ids": [
+          "SYN-F-SEC-1"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable account in SYN-F-SEC-1.",
+          "Missing or unavailable reported_account in SYN-F-SEC-1.",
+          "Missing or unavailable domain in SYN-F-SEC-1.",
+          "Missing or unavailable host in SYN-F-SEC-1.",
+          "Missing or unavailable source_address in SYN-F-SEC-1.",
+          "Missing or unavailable workstation in SYN-F-SEC-1.",
+          "Missing or unavailable logon_type in SYN-F-SEC-1."
+        ]
+      },
+      {
+        "finding_id": "M3-c42f9b4202603d353c68278f",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-F",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:02.0000000Z",
+          "last_utc": "2026-01-10T00:00:02.0000000Z"
+        },
+        "entities": {
+          "account": "",
+          "reported_account": "",
+          "domain": "SYNTHETIC",
+          "host": "",
+          "source_address": "",
+          "workstation": "",
+          "logon_type": null
+        },
+        "evidence_ids": [
+          "SYN-F-SEC-2"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable account in SYN-F-SEC-2.",
+          "Missing or unavailable reported_account in SYN-F-SEC-2.",
+          "Missing or unavailable host in SYN-F-SEC-2.",
+          "Missing or unavailable source_address in SYN-F-SEC-2.",
+          "Missing or unavailable workstation in SYN-F-SEC-2.",
+          "Missing or unavailable logon_type in SYN-F-SEC-2."
+        ]
+      },
+      {
+        "finding_id": "M3-59a2caa7defb150fb58375a4",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-F",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:03.0000000Z",
+          "last_utc": "2026-01-10T00:00:03.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "different.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": null
+        },
+        "evidence_ids": [
+          "SYN-F-SEC-3"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Malformed LogonType in SYN-F-SEC-3; not used as an entity.",
+          "Conflicting user and TargetUserName in SYN-F-SEC-3; event kept separate.",
+          "Missing or unavailable logon_type in SYN-F-SEC-3."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "m3-provisional-v1",
+      "prompt_version": "m3-authentication-v2",
+      "configuration_version": "m3-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11435",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "006a01fe41496cda3a35625768d8c9ac66c2de6729862a980d6291d31be42000",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
+      "elapsed_seconds": 0.547
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-F",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-F-SEC-1",
+        "SYN-F-SEC-2",
+        "SYN-F-SEC-3"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-F-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-F-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-F-SEC-3",
+      "found": true
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from m3.models import AuthenticationEvent, InvestigationRequest, InvestigationResult, utc_ticks
+from m3.models import AuthenticationEvent, InvestigationRequest, InvestigationResult, ModelReply, utc_ticks
 
 
 @pytest.mark.parametrize("timestamp", ["2026-01-10T00:00:00", "2026-01-10T00:00:00+08:00", "2026-02-30T00:00:00Z", "2026-01-10T25:00:00Z", "2026-01-10T00:00:00.12345678Z", "tomorrow"])
@@ -48,3 +48,19 @@ def test_result_schema_is_machine_readable():
     assert schema["additionalProperties"] is False
     assert "evidence_ids" in schema["$defs"]["Finding"]["properties"]
     assert "verification_status" not in schema["$defs"]["Finding"]["properties"]
+
+
+def test_reply_schema_exposes_action_constraints_to_ollama():
+    schema = ModelReply.model_json_schema()
+    branches = [schema["$defs"][branch["$ref"].split("/")[-1]] for branch in schema["anyOf"]]
+    tool = next(branch for branch in branches if branch["properties"]["action"]["const"] == "tool")
+    finish = next(branch for branch in branches if branch["properties"]["action"]["const"] == "finish")
+    assert tool["properties"]["annotations"]["maxItems"] == 0
+    assert "$ref" in tool["properties"]["tool"]
+    assert finish["properties"]["tool"] == {"title": "Tool", "type": "null"}
+
+
+def test_real_qwen_mixed_tool_and_annotation_reply_remains_rejected():
+    reply = '{"action":"tool","tool":{"name":"get_authentication_event","arguments":{"evidence_id":"SYN-A-SEC-1"}},"annotations":[{"observation_id":"M3-5e53c21298bc2ea6a60ee799","evidence_ids":["SYN-A-SEC-1"],"interpretation":"context_required"}]}'
+    with pytest.raises(ValidationError):
+        ModelReply.model_validate_json(reply)

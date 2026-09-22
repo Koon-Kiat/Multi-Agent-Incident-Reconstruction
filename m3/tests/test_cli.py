@@ -25,3 +25,17 @@ def test_schema_command_needs_no_window_or_model():
     process = subprocess.run([sys.executable, "-m", "m3", "--schema"], capture_output=True, text=True, timeout=10)
     assert process.returncode == 0
     assert json.loads(process.stdout) == InvestigationResult.model_json_schema()
+
+
+def test_ollama_cli_runtime_settings(monkeypatch, capsys):
+    import m3.__main__ as cli
+    from m3.llm.fake import FakeLLM
+    captured = []
+    def fake_client(config):
+        captured.append(config)
+        return FakeLLM()
+    monkeypatch.setattr(cli, "OllamaClient", fake_client)
+    monkeypatch.setattr(sys, "argv", ["m3", "--mode", "ollama", "--model", "test-local", "--num-ctx", "8192", "--think", "off", *WINDOW])
+    assert cli.main() == 0
+    assert captured[0].num_ctx == 8192 and captured[0].think is False
+    assert InvestigationResult.model_validate_json(capsys.readouterr().out).status == "completed"
