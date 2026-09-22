@@ -298,12 +298,26 @@ def detect_failed_logon_burst(events: Sequence[NormalisedEvent]) -> tuple[Detect
                     spec,
                     segment,
                     rationale=(
-                        f"{len(segment)} failed logons for {_describe_account(*account)}, not "
+                        f"{len(segment)} failed logons for {_describe_account(*account)} "
+                        f"(window_span_seconds={_span_seconds_text(segment)}), not "
                         "followed by a qualifying successful logon (R-AUTH-01)"
                     ),
                 )
             )
     return _ordered(detections)
+
+
+def _span_seconds_text(segment: Sequence[NormalisedEvent]) -> str:
+    """A detection's own span in seconds, to the exact 100 ns, as integer arithmetic.
+
+    A merged R-AUTH-02 segment can span **more** than ``FAILED_LOGON_WINDOW_SECONDS`` when bursts
+    chain, so the rationale names the real span (planner amendment A2) instead of leaving the
+    reader to infer one window. Rendered from the tick difference because ``datetime``/``float``
+    would round the 100 ns tail away (AGENTS.md I2), and always with 7 fractional digits so two
+    spans of different precision cannot look alike.
+    """
+    span_ticks = segment[-1].timestamp_ticks - segment[0].timestamp_ticks
+    return f"{span_ticks // TICKS_PER_SECOND}.{span_ticks % TICKS_PER_SECOND:07d}"
 
 
 def _claimed_trigger_ids(events: Sequence[NormalisedEvent]) -> frozenset[str]:

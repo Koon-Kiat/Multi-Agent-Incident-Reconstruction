@@ -427,6 +427,42 @@ def test_a_success_outside_the_burst_span_leaves_the_burst_to_r_auth_02():
     assert "not followed by a qualifying successful logon" in detections[0].rationale
 
 
+def test_a_chained_burst_merges_into_one_segment_and_names_its_span():
+    # A2: overlapping qualifying bursts merge, so a merged R-AUTH-02 segment can span more than
+    # FAILED_LOGON_WINDOW_SECONDS. Failures every 100 s from 0 s to 500 s: no single 300 s window
+    # holds all six, but the candidates overlap and merge into one segment.
+    events = [_auth(number + 1, 4625, number * 100) for number in range(6)]
+    detections = run_rule("R-AUTH-02", events)
+    assert [detection.trigger_evidence_ids for detection in detections] == [
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4", "SYN-B-SEC-5", "SYN-B-SEC-6")
+    ]
+    detection = detections[0]
+    assert (detection.window_start_utc, detection.window_end_utc) == (at(0), at(500))
+    assert "6 failed logons for" in detection.rationale
+    assert "window_span_seconds=500.0000000" in detection.rationale
+    assert "not followed by a qualifying successful logon (R-AUTH-01)" in detection.rationale
+
+
+def test_the_rationales_span_keeps_the_100_ns_tail():
+    # The span is rendered from ticks with integer arithmetic, so a 1-tick difference is visible
+    # and two spans of different precision cannot render the same (AGENTS.md I2).
+    events = [
+        make_event(record_id=1, event_id=4625, timestamp_ticks=BASE, user="alice", host="LAB-A"),
+        make_event(record_id=2, event_id=4625, timestamp_ticks=BASE + 100 * TICKS_PER_SECOND, user="alice", host="LAB-A"),
+        make_event(record_id=3, event_id=4625, timestamp_ticks=BASE + 200 * TICKS_PER_SECOND, user="alice", host="LAB-A"),
+        make_event(
+            record_id=4,
+            event_id=4625,
+            timestamp_ticks=BASE + 200 * TICKS_PER_SECOND + 1,
+            user="alice",
+            host="LAB-A",
+        ),
+    ]
+    detections = run_rule("R-AUTH-02", events)
+    assert len(detections) == 1
+    assert "window_span_seconds=200.0000001" in detections[0].rationale
+
+
 def test_a_confirmed_burst_and_an_earlier_unconfirmed_one_partition_their_triggers():
     events = [
         _auth(1, 4625, 0),
