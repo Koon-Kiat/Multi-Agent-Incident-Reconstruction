@@ -30,7 +30,13 @@ Contract
 * Before it writes, the engine checks every name it is about to use. A pre-existing file that does
   not carry the M2 detection marker is a foreign file, not a stale run of ours, so the whole run
   fails (``python -m m2 detect`` exits ``1``) and **nothing** — not even ``summary.json`` — is
-  written. A genuine M2 run for the same scenario is the artefact this run refreshes.
+  written. The same refusal covers a name that is not a regular file (a directory called
+  ``S02.json``) and a symbolic link, because writing through either would not stay inside ``--out``
+  or would not be the artefact the check inspected. A genuine M2 run for the same scenario is the
+  artefact this run refreshes.
+* The write itself is a two-phase rename: every document is first written to a dotted ``.tmp``
+  sibling and all of them must succeed before any is renamed onto its final name. An I/O failure
+  part way through therefore leaves the previous run's files in place and no temporary behind.
 * ``triggers_for(scenario_id)`` is the M5-facing entry point: it returns the scenario's
   detections, ordered by ``(window_start_utc, detection_id)``, so a caller can route windows to
   M3/M4 without reading the written files.
@@ -39,6 +45,7 @@ Contract
 from __future__ import annotations
 
 import json
+import os
 from collections import Counter
 from collections.abc import Sequence
 from pathlib import Path
@@ -167,7 +174,9 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     alone (see the module docstring). ``out_dir`` may not resolve inside a ``datasets/`` or
     ``ground_truth/`` tree, and may not be the corpus directory, whose ``corpus_manifest.json``
     is not a detection artefact. A pre-existing file at a name this run would write must likewise
-    be an M2 detection artefact, or the run fails before writing anything.
+    be an M2 detection artefact, or the run fails before writing anything. Every document is staged
+    under a dotted temporary name and renamed into place only once all of them exist, so an I/O
+    failure part way through leaves the previous run's files intact.
     """
     directory = Path(corpus_dir)
     destination = Path(out_dir)
@@ -187,10 +196,10 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     _refuse_foreign_overwrite(destination, written)
 
     destination.mkdir(parents=True, exist_ok=True)
-    for run in runs:
-        _write_text(destination / f"{run.scenario_id}.json", f"{run_to_json(run)}\n")
     summary = summarise(engine.corpus_manifest_sha256, runs)
-    _write_text(destination / SUMMARY_FILENAME, f"{summary_to_json(summary)}\n")
+    payloads = [(destination / f"{run.scenario_id}.json", f"{run_to_json(run)}\n") for run in runs]
+    payloads.append((destination / SUMMARY_FILENAME, f"{summary_to_json(summary)}\n"))
+    _write_all(payloads)
     _remove_stale_runs(destination, written)
     return summary
 
@@ -206,20 +215,57 @@ def _refuse_protected_output(destination: Path) -> None:
 
 
 def _refuse_foreign_overwrite(destination: Path, names: set[str]) -> None:
-    """Refuse when a file this run would write exists and is not an M2 detection artefact.
+    """Refuse when a name this run would write is not an M2 detection artefact ``detect`` may replace.
 
     ``detect`` owns the *names* it writes, never the directory: a pre-existing ``SYN-B.json`` or
     ``summary.json`` that does not carry the M2 schema marker belongs to someone else, so the run
     stops before writing anything rather than replacing it. A genuine M2 run for the same scenario
     is the artefact this run refreshes, so it is not a collision.
+
+    Anything that is not a regular file is refused outright, and a symbolic link is refused even when
+    it points at a genuine M2 artefact: the marker check inspects the target, while the write would
+    follow the link and land outside ``--out`` (or fail half way, as a directory named ``S02.json``
+    did before).
     """
     for name in sorted(names):
         path = destination / name
-        if path.is_file() and not _is_detection_artefact(path):
+        if path.is_symlink():
+            raise DetectionError(
+                f"{path} is a symbolic link; refusing to write through a link that may leave {destination}"
+            )
+        if not path.exists():
+            continue
+        if not path.is_file():
+            raise DetectionError(
+                f"{path} already exists and is not a regular file; refusing to write over it"
+            )
+        if not _is_detection_artefact(path):
             raise DetectionError(
                 f"{path} already exists and is not an m2 detection artefact; "
                 "refusing to overwrite a file this run did not write"
             )
+
+
+def _write_all(payloads: Sequence[tuple[Path, str]]) -> None:
+    """Write every payload through a dotted ``.tmp`` sibling, then rename all of them into place.
+
+    Nothing is renamed until every document has been written, so an I/O failure part way through
+    leaves the previous run's files exactly as they were instead of mixing two runs in one
+    directory. The temporaries are removed on failure. A ``.`` prefix and a ``.tmp`` suffix keep
+    them out of both ``_remove_stale_runs``'s ``*.json`` scan and a consumer's own glob.
+    """
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for target, payload in payloads:
+            temporary = target.with_name(f".{target.name}.tmp")
+            _write_text(temporary, payload)
+            staged.append((temporary, target))
+        for temporary, target in staged:
+            os.replace(temporary, target)
+    except BaseException:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
+        raise
 
 
 def _remove_stale_runs(destination: Path, written: set[str]) -> tuple[Path, ...]:

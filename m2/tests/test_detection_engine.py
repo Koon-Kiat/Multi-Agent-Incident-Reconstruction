@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from m2.corpus import CORPUS_MANIFEST_FILENAME, write_manifest, write_scenario
+from m2.detection import engine
 from m2.detection.engine import (
     SUMMARY_FILENAME,
     DetectionEngine,
@@ -365,3 +366,70 @@ def test_a_stale_run_file_of_a_scenario_the_corpus_holds_is_still_overwritten(co
 
     run = DetectionRun.model_validate_json((out / f"{SCENARIO}.json").read_text(encoding="utf-8"))
     assert [detection.rule_id for detection in run.detections] == ["R-AUTH-01", "R-EXEC-02"]
+
+
+# --- F2: the refusal covers non-regular targets, and the write is all-or-nothing -------------
+
+
+def test_detect_refuses_a_directory_at_a_target_name(corpus_dir: Path, tmp_path: Path):
+    # F2: `is_file()` was False for a directory, so the pre-write check let it through and the run
+    # wrote the other files first, then failed on the directory, leaving a half-refreshed `--out`.
+    out = tmp_path / "detections"
+    target = out / f"{SCENARIO}.json"
+    target.mkdir(parents=True)
+
+    with pytest.raises(DetectionError, match="not a regular file"):
+        write_detections(corpus_dir, out)
+
+    assert target.is_dir()
+    assert not (out / SUMMARY_FILENAME).exists()
+
+
+def test_detect_refuses_a_symlink_at_a_target_name(corpus_dir: Path, tmp_path: Path):
+    # F2: the marker check reads through a link, but the write would follow it out of `--out`, so a
+    # link is refused even when it points at a genuine M2 artefact.
+    out = tmp_path / "detections"
+    out.mkdir()
+    outside = tmp_path / "outside.json"
+    outside.write_text(_stale_run_payload(SCENARIO), encoding="utf-8", newline="\n")
+    link = out / f"{SCENARIO}.json"
+    try:
+        link.symlink_to(outside)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks are not available in this environment")
+
+    with pytest.raises(DetectionError, match="symbolic link"):
+        write_detections(corpus_dir, out)
+
+    assert outside.read_text(encoding="utf-8") == _stale_run_payload(SCENARIO)
+    assert not (out / SUMMARY_FILENAME).exists()
+
+
+def test_a_failed_write_leaves_the_previous_run_intact(
+    corpus_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    # F2: every document is staged under a dotted temporary name and renamed only once all of them
+    # exist. The previous artefact here differs from what this run writes, so a half-finished run
+    # would be visible as a changed file.
+    out = tmp_path / "detections"
+    out.mkdir()
+    run_path = out / f"{SCENARIO}.json"
+    run_path.write_text(_stale_run_payload(SCENARIO), encoding="utf-8", newline="\n")
+    before = run_path.read_bytes()
+
+    real_write_text = engine._write_text
+    calls: list[Path] = []
+
+    def flaky(path: Path, payload: str) -> None:
+        calls.append(path)
+        if len(calls) == 2:
+            raise OSError(28, "No space left on device", str(path))
+        real_write_text(path, payload)
+
+    monkeypatch.setattr(engine, "_write_text", flaky)
+    with pytest.raises(OSError):
+        write_detections(corpus_dir, out)
+
+    assert run_path.read_bytes() == before
+    assert not (out / SUMMARY_FILENAME).exists()
+    assert not [path for path in out.iterdir() if path.name.startswith(".")]
