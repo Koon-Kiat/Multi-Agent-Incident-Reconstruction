@@ -170,9 +170,10 @@ those that are not a trigger of any R-AUTH-01 detection in that group. A burst s
 uncovered failure `t_i` and covers the uncovered failures in `[t_i, t_i + W)` — the anchor is
 included, a failure exactly W later is not. A burst with at least three of them qualifies, and
 qualifying bursts that overlap merge into one detection holding every uncovered failure of the
-merged segment, in `(timestamp_ticks, evidence_id)` order. The rationale therefore reads
-"≥3 failed logons not followed by a qualifying successful logon (R-AUTH-01)", and it is true by
-construction: a failure a success could confirm was already claimed by R-AUTH-01.
+merged segment, in `(timestamp_ticks, evidence_id)` order. The rationale therefore names the
+property directly — *"N failed logons for …, not followed by a qualifying successful logon
+(R-AUTH-01)"* — and it is true by construction: a failure a success could confirm was already
+claimed by R-AUTH-01.
 
 The A1 definition replaced the version-4 rule, which reported a burst unless a 4624 of the group
 lay in `(first failure, last failure + W]`. That suppression was too strong: a success could veto
