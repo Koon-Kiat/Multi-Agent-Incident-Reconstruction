@@ -3,10 +3,11 @@
 ``normalise`` writes the corpus under ``--out`` (gitignored); no command writes into
 ``datasets/``. ``lookup`` and ``query`` read a written corpus back through
 :class:`m2.query.EventStore`, so they verify the corpus digests before answering. ``detect``
-and ``score`` report that they are not implemented yet and exit with status 2, so an
-unimplemented command can never look like a successful run. A command that fails for a real
-reason exits 1 and explains itself on stderr; invalid input (a malformed ID, an unusable
-window) exits 2.
+runs the conventional rule catalogue over a verified corpus and writes one run file per
+scenario plus ``summary.json``. ``score`` reports that it is not implemented yet and exits with
+status 2, so an unimplemented command can never look like a successful run. A command that
+fails for a real reason exits 1 and explains itself on stderr; invalid input (a malformed ID, an
+unusable window) exits 2.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from m2.corpus import CORPUS_MANIFEST_FILENAME, normalise_datasets
+from m2.detection.engine import SUMMARY_FILENAME, write_detections
 from m2.query import EventStore, QueryError
 from m2.schema import event_to_json
 
@@ -99,6 +101,20 @@ def _query(args: argparse.Namespace) -> int:
 
 
 
+def _detect(args: argparse.Namespace) -> int:
+    try:
+        summary = write_detections(Path(args.corpus), Path(args.out))
+    except (ValueError, OSError) as error:
+        print(f"m2 detect: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    total = 0
+    for scenario in summary.scenarios:
+        total += scenario.total
+        print(f"{scenario.scenario_id}: {scenario.total} detections -> {scenario.scenario_id}.json")
+    print(f"total: {total} detections; summary -> {Path(args.out) / SUMMARY_FILENAME}")
+    return EXIT_OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Return the M2 argument parser, including every documented subcommand."""
     parser = argparse.ArgumentParser(prog="m2", description="Normalise, query and detect over the MAIR EVTX corpus")
@@ -142,6 +158,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _lookup(args)
     if args.command == "query":
         return _query(args)
+    if args.command == "detect":
+        return _detect(args)
     return _not_implemented(args.command)
 
 

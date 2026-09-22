@@ -11,11 +11,12 @@ from m2.__main__ import EXIT_FAILED, EXIT_INVALID_INPUT, EXIT_NOT_IMPLEMENTED, E
 from m2.corpus import write_manifest, write_scenario
 from m2.evtx_reader import RawRecord
 from m2.manifest import load_scenario
+from m2.schema import NormalisedEvent
 from m2.tests.synthetic import SECURITY, SYSMON, build_scenario_dir, make_event
-from m2.timeutil import iso_to_ticks
+from m2.timeutil import TICKS_PER_SECOND, iso_to_ticks
 
 SUBCOMMANDS = ("normalise", "lookup", "query", "detect", "score")
-UNIMPLEMENTED = (["detect"], ["score", "--labels", "labels.csv"])
+UNIMPLEMENTED = (["score", "--labels", "labels.csv"],)
 
 WINDOW_START = "2026-09-21T02:05:00.0000000Z"
 WINDOW_END = "2026-09-21T02:06:00.0000000Z"
@@ -77,14 +78,15 @@ def _two_records_per_file(path: Path):
         )
 
 
-def _write_corpus(tmp_path: Path) -> Path:
-    """A verified corpus with one 4624 and one 4625, written the way normalise writes it."""
+def _write_corpus(tmp_path: Path, events: list[NormalisedEvent] | None = None) -> Path:
+    """A verified corpus, written the way normalise writes it."""
     info = load_scenario(build_scenario_dir(tmp_path / "datasets", "lab"))
     out = tmp_path / "corpus"
-    events = [
-        make_event(record_id=1, event_id=4624, timestamp_ticks=iso_to_ticks("2026-09-21T02:05:30.0000000Z")),
-        make_event(record_id=2, event_id=4625, timestamp_ticks=iso_to_ticks("2026-09-21T02:05:35.0000000Z")),
-    ]
+    if events is None:
+        events = [
+            make_event(record_id=1, event_id=4624, timestamp_ticks=iso_to_ticks("2026-09-21T02:05:30.0000000Z")),
+            make_event(record_id=2, event_id=4625, timestamp_ticks=iso_to_ticks("2026-09-21T02:05:35.0000000Z")),
+        ]
     write_manifest(out, [write_scenario(out, info, events)])
     return out
 
@@ -140,3 +142,31 @@ def test_query_rejects_an_unusable_window(tmp_path: Path, capsys):
     argv = ["query", "SYN-B", "--start", WINDOW_END, "--end", WINDOW_START, "--corpus", str(corpus)]
     assert main(argv) == EXIT_INVALID_INPUT
     assert "strictly before" in capsys.readouterr().err
+
+
+def test_detect_writes_one_run_per_scenario_and_prints_a_summary(tmp_path: Path, capsys):
+    window = "2026-09-21T02:05:30.0000000Z"
+    base = iso_to_ticks(window)
+    events = [
+        make_event(record_id=record, event_id=4625, timestamp_ticks=base + record * TICKS_PER_SECOND)
+        for record in (1, 2, 3)
+    ]
+    events.append(make_event(record_id=4, event_id=4624, timestamp_ticks=base + 4 * TICKS_PER_SECOND))
+    corpus = _write_corpus(tmp_path, events)
+    out = tmp_path / "detections"
+
+    assert main(["detect", "--corpus", str(corpus), "--out", str(out)]) == EXIT_OK
+
+    stdout = capsys.readouterr().out
+    assert "SYN-B: 1 detections -> SYN-B.json" in stdout
+    assert "total: 1 detections" in stdout
+    run = json.loads((out / "SYN-B.json").read_text(encoding="utf-8"))
+    assert run["scenario_id"] == "SYN-B"
+    assert [detection["rule_id"] for detection in run["detections"]] == ["R-AUTH-01"]
+    assert json.loads((out / "summary.json").read_text(encoding="utf-8"))["scenarios"][0]["total"] == 1
+
+
+def test_detect_reports_an_unusable_corpus_without_a_traceback(tmp_path: Path, capsys):
+    code = main(["detect", "--corpus", str(tmp_path / "absent"), "--out", str(tmp_path / "out")])
+    assert code == EXIT_FAILED
+    assert "corpus manifest" in capsys.readouterr().err
