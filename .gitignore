@@ -27,7 +27,7 @@ ground_truth/*_private.csv
 *.egg-info/
 build/
 dist/
-.test-tmp/
+.test-tmp*/
 
 # Local agent workflow (M2 implementer/reviewer scaffolding, not shared)
 AGENTS.md
