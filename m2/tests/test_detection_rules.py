@@ -1066,6 +1066,28 @@ def test_the_marked_command_line_must_be_powershell():
     assert run_rule("R-EXEC-02", events) == ()
 
 
+@pytest.mark.parametrize(
+    ("image", "command_line"),
+    (
+        # B6: `notpowershell.exe` contains the old substring; it is not PowerShell.
+        ("C:\\Tools\\notpowershell.exe", "notpowershell.exe -enc SQBFAFgA"),
+        ("C:\\Tools\\pwshish.exe", "pwshish -enc SQBFAFgA"),
+        ("C:\\Tools\\notpowershell.exe", "C:\\Tools\\notpowershell.exe -enc SQBFAFgA"),
+        ("C:\\Tools\\pwshish.exe", "pwshish.exe -enc SQBFAFgA"),
+    ),
+)
+def test_a_powershell_lookalike_never_fires_the_powershell_rule(image: str, command_line: str):
+    event = _proc(1, 0, image=image, command_line=command_line)
+    assert run_rule("R-EXEC-02", [event]) == ()
+
+
+def test_a_powershell_token_in_the_command_line_fires_even_with_a_non_powershell_image():
+    event = _proc(1, 0, image=CMD, command_line="powershell.exe -enc SQBFAFgA")
+    detections = run_rule("R-EXEC-02", [event])
+    assert len(detections) == 1
+    assert detections[0].trigger_evidence_ids == ("SYN-B-SEC-1",)
+
+
 # --- R-EXEC-03 ---------------------------------------------------------------------
 
 
