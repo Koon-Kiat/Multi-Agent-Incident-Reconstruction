@@ -1,0 +1,9 @@
+{
+    "scenario_id": "SYN-B",
+    "host": "MAIR-WIN11-LAB",
+    "scenario_start_utc": "2026-09-21T02:04:38.9439270Z",
+    "scenario_end_utc": "2026-09-21T02:06:18.3126076Z",
+    "timezone": "UTC",
+    "collection_time_utc": "2026-09-21T02:09:40.5430006Z",
+    "collection_method": "Original EVTX export using wevtutil"
+}
