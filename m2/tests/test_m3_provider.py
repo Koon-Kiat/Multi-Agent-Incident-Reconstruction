@@ -22,7 +22,7 @@ from m2.timeutil import TICKS_PER_SECOND, iso_to_ticks, ticks_to_iso
 from m3 import InvestigationRequest, investigate
 from m3.config import Limits
 from m3.llm.fake import FakeLLM
-from m3.models import AuthenticationEvent, InvestigationResult, QueryRequest, QueryResult, evidence_id_for
+from m3.models import AUTH_EVENT_IDS, AuthenticationEvent, InvestigationResult, QueryRequest, QueryResult, evidence_id_for
 from m3.queries.interface import AuthenticationEventProvider
 
 BASE = iso_to_ticks("2026-09-21T02:05:30.0000000Z")
@@ -181,3 +181,12 @@ def test_the_real_s02_window_runs_through_m3(real_corpus_dir: Path):
     provider = M2AuthenticationProvider(store)
     logon = provider.get_event("S02-SEC-43584")
     assert logon is not None and logon.source_event_id == 4624
+
+    # And it must really offer the window's authentication events: a provider whose real-data
+    # query regressed to nothing would still let the investigation above finish with no findings.
+    window = (ticks_to_iso(info.window_start_ticks), ticks_to_iso(info.window_end_ticks))
+    offered = provider.query(QueryRequest(scenario_id="S02", start_utc=window[0], end_utc=window[1]))
+    expected = store.query("S02", *window, channels=("Security",), event_ids=(4624, 4625), limit=store.limits.max_limit)
+    assert offered.events
+    assert [event.evidence_id for event in offered.events] == [event.evidence_id for event in expected.events]
+    assert all(event.source_event_id in AUTH_EVENT_IDS for event in offered.events)
