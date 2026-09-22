@@ -7,9 +7,13 @@ Contract
   ``evidence_id`` values that triggered it, the closed span those triggers occupy and a short
   rationale. It never names a verdict, a severity or a score — those belong to M6 and to the
   metrics phase.
-* ``detection_id`` is deterministic: ``<scenario>-<rule_id>-<first trigger id>``. Every rule
-  partitions its trigger events, so two detections of the same rule in the same scenario can
-  never share a first trigger; the engine re-checks uniqueness of the whole run before writing.
+* ``detection_id`` is deterministic: ``<scenario>-<rule_id>-<closing trigger id>``, the trigger
+  that **ends** the detection's canonical ``(timestamp_ticks, evidence_id)`` order. Every rule
+  partitions its trigger events except R-AUTH-01, which task_plan.md T3.2 anchors on each
+  successful logon and which therefore emits one detection per success: two close successes can
+  confirm the same failures and share a first trigger. The closing trigger is unique to a
+  detection (the success for R-AUTH-01, the last event of a burst for the windowed rules), so
+  the ID stays unique; the engine re-checks uniqueness of the whole run before writing.
 * ``window_start_utc``/``window_end_utc`` are the **closed** span ``[start, end]`` that contains
   every trigger, taken from the earliest and latest trigger tick. Both ends are inclusive: this
   is a description of the evidence behind the detection, not a query bound. A consumer that
@@ -97,7 +101,7 @@ class Detection(BaseModel):
 
     @model_validator(mode="after")
     def detection_id_is_derived(self) -> Detection:
-        expected = make_detection_id(self.scenario_id, self.rule_id, self.trigger_evidence_ids[0])
+        expected = make_detection_id(self.scenario_id, self.rule_id, self.trigger_evidence_ids[-1])
         if self.detection_id != expected:
             raise ValueError(f"detection_id {self.detection_id!r} must equal {expected!r}")
         return self
@@ -173,9 +177,18 @@ class DetectionSummary(BaseModel):
         return self
 
 
-def make_detection_id(scenario_id: str, rule_id: str, first_trigger_evidence_id: str) -> str:
-    """The one deterministic ID for a detection of ``rule_id`` in ``scenario_id``."""
-    return f"{scenario_id}-{rule_id}-{first_trigger_evidence_id}"
+def make_detection_id(scenario_id: str, rule_id: str, closing_trigger_evidence_id: str) -> str:
+    """The one deterministic ID for a detection of ``rule_id`` in ``scenario_id``.
+
+    ``closing_trigger_evidence_id`` is the detection's last trigger in
+    ``(timestamp_ticks, evidence_id)`` order. Naming the **first** trigger would not identify a
+    detection uniquely: R-AUTH-01 emits one detection per successful logon, and two successes
+    inside one 300 s span confirm the same failures (task_plan.md T3.2 allows those overlapping
+    detections), so both would be named after the same first failure. The closing trigger is the
+    event that settles the detection — the success for R-AUTH-01, the last event of a burst for
+    the windowed rules — and is unique to it.
+    """
+    return f"{scenario_id}-{rule_id}-{closing_trigger_evidence_id}"
 
 
 def detection_to_json(detection: Detection) -> str:

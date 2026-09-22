@@ -10,23 +10,28 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
+from random import Random
 
 import pytest
 
+from m2.detection.engine import DetectionEngine
 from m2.detection.rules import (
     DISCOVERY_BINARIES,
     DISCOVERY_TECHNIQUES,
     DISCOVERY_WINDOW_SECONDS,
+    FAILED_LOGON_MIN_EVENTS,
     FAILED_LOGON_WINDOW_SECONDS,
     RULES,
     Rule,
 )
 from m2.detection.schema import Detection
+from m2.query import EventStore
 from m2.schema import NormalisedEvent
 from m2.tests.synthetic import SECURITY, SYSMON, make_event
 from m2.timeutil import TICKS_PER_SECOND, iso_to_ticks, ticks_to_iso
 
 SCENARIO = "SYN-B"
+SHA = "D396CE599723189331D440EDD55CC055C28EB4B6AD45A421D07A8E83A2F0EBA7"
 BASE = iso_to_ticks("2026-09-21T02:05:30.0000000Z")
 
 WINWORD = "C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE"
@@ -125,11 +130,13 @@ def test_the_rule_catalogue_is_sorted_unique_and_fully_specified():
     ]
     # Version 2: the windowed rules moved to a sliding window (phase-3 F1) and the two exec
     # rules gained per-binary / dual ATT&CK attribution (phase-3 F2). Version 3: the two
-    # failed-logon rules confirm a burst against its own span instead of the first greedy window
-    # (phase-3 F5). Everything else is v1.
+    # failed-logon rules confirmed a burst against its own span instead of the first greedy window
+    # (phase-3 F5). Version 4: the same two rules moved to the T3.2 planner-fixed semantics —
+    # R-AUTH-01 anchored on each success, R-AUTH-02 on the failure burst (phase-3 F7).
+    # Everything else is v1.
     expected_versions = {
-        "R-AUTH-01": "3",
-        "R-AUTH-02": "3",
+        "R-AUTH-01": "4",
+        "R-AUTH-02": "4",
         "R-EXEC-01": "2",
         "R-EXEC-03": "2",
     }
@@ -189,7 +196,9 @@ def test_a_burst_then_success_is_one_high_detection_with_every_trigger():
     detections = run_rule("R-AUTH-01", events)
     assert len(detections) == 1
     detection = detections[0]
-    assert detection.detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-1"
+    # The detection_id names the closing trigger (the success); see test_two_successes_... below
+    # for why the first trigger cannot identify an R-AUTH-01 detection.
+    assert detection.detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-4"
     assert detection.trigger_evidence_ids == ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4")
     assert (detection.window_start_utc, detection.window_end_utc) == (at(0), at(30))
     assert (detection.severity, detection.attack_technique) == ("high", "T1110")
@@ -263,9 +272,10 @@ def test_two_separate_bursts_are_two_detections():
 
 
 def test_a_burst_after_a_lone_early_failure_still_fires():
-    # Phase-3 F1: the earlier failure at 0 s sits outside the 0..300 s window of the 250..320 s
-    # burst. A cluster anchored at 0 s would split the burst and swallow it; a sliding window
-    # anchored at each unconsumed event finds it. (Reviewer's reproduction case.)
+    # Phase-3 F1: the earlier failure at 0 s sits outside the 250..320 s burst that the 4624 at
+    # 330 s confirms (F(S) is measured from the success, so the stray failure is simply not one
+    # of its confirming failures). A cluster anchored at 0 s would split the burst and swallow
+    # it. (Reviewer's reproduction case.)
     events = [
         _auth(1, 4625, 0),
         _auth(2, 4625, 250),
@@ -275,7 +285,7 @@ def test_a_burst_after_a_lone_early_failure_still_fires():
     ]
     detections = run_rule("R-AUTH-01", events)
     assert len(detections) == 1
-    assert detections[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-2"
+    assert detections[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-5"
     assert detections[0].trigger_evidence_ids == ("SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4", "SYN-B-SEC-5")
     assert detections[0].window_start_utc == at(250)
     assert "3 failed logons" in detections[0].rationale
@@ -302,9 +312,9 @@ def test_failures_that_never_share_a_window_still_do_not_fire():
 
 def test_a_success_that_confirms_a_later_window_of_the_same_run_is_r_auth_01():
     # Phase-3 F5 (the reviewer's first reproduction). Failures at 0, 100, 200, 350 and 360 s with
-    # a 4624 at 370 s: failures 100/200/350/360 and the success all fall inside one 300 s span, so
-    # R-AUTH-01 must fire. Confirming only against the first greedy window (0/100/200) reported
-    # this run as R-AUTH-02, whose rationale claimed no success followed it.
+    # a 4624 at 370 s: F(370) holds 100/200/350/360, all inside one 300 s span, so R-AUTH-01 must
+    # fire. Confirming only against the first greedy window (0/100/200) reported this run as
+    # R-AUTH-02, whose rationale claimed no success followed it.
     events = [
         _auth(1, 4625, 0),
         _auth(2, 4625, 100),
@@ -315,6 +325,7 @@ def test_a_success_that_confirms_a_later_window_of_the_same_run_is_r_auth_01():
     ]
     detections = run_rule("R-AUTH-01", events)
     assert len(detections) == 1
+    assert detections[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-6"
     assert detections[0].trigger_evidence_ids == (
         "SYN-B-SEC-2",
         "SYN-B-SEC-3",
@@ -335,15 +346,17 @@ def test_a_sustained_brute_force_that_ends_in_a_success_is_r_auth_01():
     events.append(_auth(303, 4624, 605))
     detections = run_rule("R-AUTH-01", events)
     assert len(detections) == 1
+    assert detections[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-303"
     assert detections[0].trigger_evidence_ids[-1] == "SYN-B-SEC-303"
-    # The confirmed span is 306..605 s: 149 failures plus the success.
+    # F(605 s) is the 149 failures in [305 s, 605 s): the span 306..605 s, plus the success.
     assert (detections[0].window_start_utc, detections[0].window_end_utc) == (at(306), at(605))
     assert len(detections[0].trigger_evidence_ids) == 150
-    # R-AUTH-02 still reports the earlier part of the run, which no single 300 s span holds
-    # together with the success; its trigger set must not overlap R-AUTH-01's.
+    # R-AUTH-02 still reports the earlier part of the run: the failures no 300 s span holds
+    # together with the success. The last qualifying burst ends at 304 s, whose span (0, 604 s]
+    # stops one second short of the 4624 at 605 s; its trigger set must not overlap R-AUTH-01's.
     unconfirmed = run_rule("R-AUTH-02", events)
-    assert [len(detection.trigger_evidence_ids) for detection in unconfirmed] == [151]
-    assert unconfirmed[0].trigger_evidence_ids[-1] == "SYN-B-SEC-151"
+    assert [len(detection.trigger_evidence_ids) for detection in unconfirmed] == [153]
+    assert unconfirmed[0].trigger_evidence_ids[-1] == "SYN-B-SEC-153"
     assert "inside that same span" in unconfirmed[0].rationale
     confirmed_ids = set(detections[0].trigger_evidence_ids)
     unconfirmed_ids = {evidence_id for detection in unconfirmed for evidence_id in detection.trigger_evidence_ids}
@@ -351,10 +364,21 @@ def test_a_sustained_brute_force_that_ends_in_a_success_is_r_auth_01():
 
 
 def test_a_success_within_the_window_of_only_two_of_its_failures_does_not_confirm_them():
-    # Failures at 0, 100 and 200 s with a success at 310 s: the success is within 300 s of the
-    # last failure, but no 300 s span holds all three failures *and* the success (a span ending
-    # at 310 s starts after 0 s and so holds only two failures). The burst stays R-AUTH-02.
+    # Failures at 0, 100 and 200 s with a success at 310 s. R-AUTH-01 cannot use the success
+    # (only 100 and 200 are in [10 s, 310 s)), and R-AUTH-02 declines the burst because a 4624 of
+    # the group *is* inside the span the burst opens: (0 s, 200 + 300 s] contains 310 s. So this
+    # timeline produces no detection, which T3.2's `(t(first failure), t(last failure) + W]`
+    # bound says explicitly. The next test shows the same burst with a success outside the span.
     events = [_auth(1, 4625, 0), _auth(2, 4625, 100), _auth(3, 4625, 200), _auth(4, 4624, 310)]
+    assert run_rule("R-AUTH-01", events) == ()
+    assert run_rule("R-AUTH-02", events) == ()
+
+
+def test_a_success_outside_the_burst_span_leaves_the_burst_to_r_auth_02():
+    # The benign counterpart of the test above: with the success at 510 s, no 4624 lies in
+    # (0 s, 500 s], so the burst is reported as a "no successful logon" finding and the claim
+    # its rationale makes is true.
+    events = [_auth(1, 4625, 0), _auth(2, 4625, 100), _auth(3, 4625, 200), _auth(4, 4624, 510)]
     assert run_rule("R-AUTH-01", events) == ()
     detections = run_rule("R-AUTH-02", events)
     assert [detection.trigger_evidence_ids for detection in detections] == [
@@ -387,6 +411,226 @@ def test_a_confirmed_burst_and_an_earlier_unconfirmed_one_partition_their_trigge
         for evidence_id in detection.trigger_evidence_ids
     }
     assert len(triggers) == 7
+
+
+def test_a_failure_exactly_one_window_before_the_success_confirms_it():
+    # F(S) is half-open at both ends (T3.2): a failure at exactly t(S) - 300 s is inside the span.
+    events = [_auth(1, 4625, 0), _auth(2, 4625, 10), _auth(3, 4625, 20), _auth(4, 4624, 300)]
+    detections = run_rule("R-AUTH-01", events)
+    assert len(detections) == 1
+    assert detections[0].trigger_evidence_ids == (
+        "SYN-B-SEC-1",
+        "SYN-B-SEC-2",
+        "SYN-B-SEC-3",
+        "SYN-B-SEC-4",
+    )
+    assert (detections[0].window_start_utc, detections[0].window_end_utc) == (at(0), at(300))
+    assert run_rule("R-AUTH-02", events) == ()
+
+
+def test_a_failure_at_the_success_tick_is_not_one_of_its_confirming_failures():
+    # A 4625 logged in the same 100 ns tick as the 4624 is not strictly before it, so it does not
+    # confirm the burst: the detection holds the three earlier failures and the success only.
+    events = [
+        _auth(1, 4625, 0),
+        _auth(2, 4625, 10),
+        _auth(3, 4625, 20),
+        _auth(4, 4625, 300),
+        _auth(5, 4624, 300),
+    ]
+    detections = run_rule("R-AUTH-01", events)
+    assert len(detections) == 1
+    assert detections[0].trigger_evidence_ids == (
+        "SYN-B-SEC-1",
+        "SYN-B-SEC-2",
+        "SYN-B-SEC-3",
+        "SYN-B-SEC-5",
+    )
+    assert detections[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-5"
+
+
+def test_the_f7_case_reports_the_success_and_not_the_late_failures():
+    # Phase-3 F7, the reviewer's first reproduction: failures at 0, 10 and 20 s, a 4624 at 30 s,
+    # then more failures at 40 and 50 s inside the same window. R-AUTH-01 fires on the three
+    # failures the success confirms; two late failures are not a burst, and no detection may claim
+    # that the pre-success span holds no successful logon.
+    events = [
+        _auth(1, 4625, 0),
+        _auth(2, 4625, 10),
+        _auth(3, 4625, 20),
+        _auth(4, 4624, 30),
+        _auth(5, 4625, 40),
+        _auth(6, 4625, 50),
+    ]
+    detections = run_rule("R-AUTH-01", events)
+    assert [detection.trigger_evidence_ids for detection in detections] == [
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4")
+    ]
+    assert detections[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-4"
+    assert "followed by a successful logon" in detections[0].rationale
+    assert run_rule("R-AUTH-02", events) == ()
+
+
+def test_the_f7_case_with_a_third_late_failure_reports_only_those_failures():
+    # The same shape with a third late failure. R-AUTH-02 now has a burst, but only the one the
+    # success cannot claim: its triggers start after the 4624, and the pre-success failures stay
+    # with R-AUTH-01.
+    events = [
+        _auth(1, 4625, 0),
+        _auth(2, 4625, 10),
+        _auth(3, 4625, 20),
+        _auth(4, 4624, 30),
+        _auth(5, 4625, 40),
+        _auth(6, 4625, 50),
+        _auth(7, 4625, 60),
+    ]
+    confirmed = run_rule("R-AUTH-01", events)
+    unconfirmed = run_rule("R-AUTH-02", events)
+    assert [detection.trigger_evidence_ids for detection in confirmed] == [
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4")
+    ]
+    assert [detection.trigger_evidence_ids for detection in unconfirmed] == [
+        ("SYN-B-SEC-5", "SYN-B-SEC-6", "SYN-B-SEC-7")
+    ]
+    assert "inside that same span" in unconfirmed[0].rationale
+
+
+def test_the_multi_threaded_shape_reports_the_success_and_the_in_flight_failures():
+    # Phase-3 F7, the reviewer's second reproduction: failures every second from 0 s to 19 s with
+    # the 4624 at 10 s — the shape a parallel brute-force tool produces, where attempts already in
+    # flight are logged after the one that succeeded. R-AUTH-01 confirms on the ten failures
+    # before the success; R-AUTH-02 reports the ten failures from the success's tick onwards,
+    # whose span (open at its first failure) no successful logon lies in.
+    events = [_auth(number + 1, 4625, number) for number in range(20)]
+    events.append(_auth(21, 4624, 10))
+    confirmed = run_rule("R-AUTH-01", events)
+    assert len(confirmed) == 1
+    assert confirmed[0].detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-21"
+    assert confirmed[0].trigger_evidence_ids == tuple(
+        f"SYN-B-SEC-{number}" for number in range(1, 11)
+    ) + ("SYN-B-SEC-21",)
+    assert (confirmed[0].window_start_utc, confirmed[0].window_end_utc) == (at(0), at(10))
+    unconfirmed = run_rule("R-AUTH-02", events)
+    assert [detection.trigger_evidence_ids for detection in unconfirmed] == [
+        tuple(f"SYN-B-SEC-{number}" for number in range(11, 21))
+    ]
+    assert "inside that same span" in unconfirmed[0].rationale
+    assert set(confirmed[0].trigger_evidence_ids) & set(unconfirmed[0].trigger_evidence_ids) == set()
+
+
+def test_two_successes_sharing_a_burst_are_two_detections_with_distinct_ids():
+    # T3.2 allows overlapping detections: both successes confirm the same three failures, so the
+    # *first* trigger is not unique to a detection. That is why detection_id names the closing
+    # trigger (the success). The run is still valid — the engine's fail-closed duplicate check
+    # accepts it — and R-AUTH-02 stays silent because a success lies in the burst's span.
+    events = [
+        _auth(1, 4625, 0),
+        _auth(2, 4625, 10),
+        _auth(3, 4625, 20),
+        _auth(4, 4624, 30),
+        _auth(5, 4624, 40),
+    ]
+    detections = run_rule("R-AUTH-01", events)
+    assert [detection.detection_id for detection in detections] == [
+        "SYN-B-R-AUTH-01-SYN-B-SEC-4",
+        "SYN-B-R-AUTH-01-SYN-B-SEC-5",
+    ]
+    assert [detection.trigger_evidence_ids for detection in detections] == [
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-4"),
+        ("SYN-B-SEC-1", "SYN-B-SEC-2", "SYN-B-SEC-3", "SYN-B-SEC-5"),
+    ]
+    engine = DetectionEngine(EventStore(events), corpus_manifest_sha256=SHA)
+    assert [detection.detection_id for detection in engine.triggers_for(SCENARIO)] == [
+        "SYN-B-R-AUTH-01-SYN-B-SEC-4",
+        "SYN-B-R-AUTH-01-SYN-B-SEC-5",
+    ]
+    assert run_rule("R-AUTH-02", events) == ()
+
+
+def _planner_reference(
+    failures: Sequence[NormalisedEvent], successes: Sequence[NormalisedEvent]
+) -> tuple[list[tuple[tuple[NormalisedEvent, ...], NormalisedEvent]], list[tuple[NormalisedEvent, ...]]]:
+    """A brute-force restatement of task_plan.md T3.2, for cross-checking the rule code.
+
+    The windows are enumerated the long way — every W-window anchored at a failure, then interval
+    merging — rather than by the streaming scan the rule uses.
+    """
+    span = FAILED_LOGON_WINDOW_SECONDS * TICKS_PER_SECOND
+    confirmed = []
+    for success in successes:
+        group = tuple(
+            failure
+            for failure in failures
+            if success.timestamp_ticks - span <= failure.timestamp_ticks < success.timestamp_ticks
+        )
+        if len(group) >= FAILED_LOGON_MIN_EVENTS:
+            confirmed.append((group, success))
+    intervals: list[list[int]] = []
+    for anchor in range(len(failures)):
+        last = anchor
+        while last < len(failures) and failures[last].timestamp_ticks - failures[anchor].timestamp_ticks <= span:
+            last += 1
+        if last - anchor < FAILED_LOGON_MIN_EVENTS:
+            continue
+        if any(
+            failures[anchor].timestamp_ticks < success.timestamp_ticks
+            <= failures[last - 1].timestamp_ticks + span
+            for success in successes
+        ):
+            continue
+        intervals.append([anchor, last - 1])
+    merged: list[list[int]] = []
+    for start, end in intervals:
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return confirmed, [tuple(failures[start : end + 1]) for start, end in merged]
+
+
+def test_the_failed_logon_rules_match_a_brute_force_restatement_on_random_timelines():
+    # A property-style check after three windowing defects in this rule family (phase-3 F1, F5,
+    # F7). For each pseudo-random timeline the rules must reproduce the reference exactly, and the
+    # invariants the reviews ask for must hold on every run:
+    #   * R-AUTH-01 and R-AUTH-02 never share a trigger;
+    #   * no R-AUTH-02 detection has a 4624 inside the span its rationale claims;
+    #   * every detection_id in the scenario is unique.
+    random = Random(20260922)
+    for _ in range(200):
+        events = []
+        seconds = 0
+        for record_id in range(1, random.randint(3, 14)):
+            seconds += random.choice((1, 2, 5, 40, 120, 280, 320))
+            events.append(_auth(record_id, 4625 if random.random() < 0.7 else 4624, seconds))
+        failures = [event for event in events if event.source_event_id == 4625]
+        successes = [event for event in events if event.source_event_id == 4624]
+        expected_confirmed, expected_bursts = _planner_reference(failures, successes)
+        confirmed = run_rule("R-AUTH-01", events)
+        unconfirmed = run_rule("R-AUTH-02", events)
+        assert sorted(detection.trigger_evidence_ids for detection in confirmed) == sorted(
+            tuple(event.evidence_id for event in (*group, success)) for group, success in expected_confirmed
+        ), events
+        assert sorted(detection.trigger_evidence_ids for detection in unconfirmed) == sorted(
+            tuple(event.evidence_id for event in burst) for burst in expected_bursts
+        ), events
+
+        confirmed_triggers = {
+            evidence_id for detection in confirmed for evidence_id in detection.trigger_evidence_ids
+        }
+        unconfirmed_triggers = {
+            evidence_id for detection in unconfirmed for evidence_id in detection.trigger_evidence_ids
+        }
+        assert confirmed_triggers & unconfirmed_triggers == set(), events
+        for detection in unconfirmed:
+            first, last = detection.trigger_evidence_ids[0], detection.trigger_evidence_ids[-1]
+            first_ticks = next(event.timestamp_ticks for event in failures if event.evidence_id == first)
+            last_ticks = next(event.timestamp_ticks for event in failures if event.evidence_id == last)
+            span = FAILED_LOGON_WINDOW_SECONDS * TICKS_PER_SECOND
+            assert not any(
+                first_ticks < success.timestamp_ticks <= last_ticks + span for success in successes
+            ), (detection.detection_id, events)
+        ids = [detection.detection_id for detection in (*confirmed, *unconfirmed)]
+        assert len(set(ids)) == len(ids), events
 
 
 # --- R-AUTH-03 ---------------------------------------------------------------------

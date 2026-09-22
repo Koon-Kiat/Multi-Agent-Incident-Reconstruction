@@ -34,7 +34,9 @@ END = ticks_to_iso(BASE + 10)
 
 def detection(**overrides) -> Detection:
     fields = {
-        "detection_id": make_detection_id("SYN-B", "R-AUTH-01", "SYN-B-SEC-1"),
+        # The ID names the closing trigger (the last of the pair), not the first: see
+        # m2/detection/schema.py — R-AUTH-01's overlapping detections share their first trigger.
+        "detection_id": make_detection_id("SYN-B", "R-AUTH-01", "SYN-B-SEC-2"),
         "rule_id": "R-AUTH-01",
         "rule_version": "1",
         "scenario_id": "SYN-B",
@@ -63,7 +65,7 @@ def run(**overrides) -> DetectionRun:
 def test_a_valid_detection_round_trips_through_its_wire_format():
     original = detection()
     assert Detection.model_validate_json(detection_to_json(original)) == original
-    assert original.detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-1"
+    assert original.detection_id == "SYN-B-R-AUTH-01-SYN-B-SEC-2"
     assert original.attack_technique == "T1110"
 
 
@@ -81,6 +83,13 @@ def test_a_single_event_detection_has_a_zero_width_window():
 def test_a_detection_id_that_is_not_derived_is_rejected():
     with pytest.raises(ValidationError, match="must equal"):
         detection(detection_id="whatever")
+
+
+def test_a_detection_id_must_name_the_closing_trigger_not_the_first_one():
+    # The change-control record for the T3.2 failed-logon semantics: with overlapping R-AUTH-01
+    # detections the first trigger is shared, so an ID built from it is no longer the detection's.
+    with pytest.raises(ValidationError, match="must equal"):
+        detection(detection_id=make_detection_id("SYN-B", "R-AUTH-01", "SYN-B-SEC-1"))
 
 
 def test_a_detection_needs_at_least_one_trigger():

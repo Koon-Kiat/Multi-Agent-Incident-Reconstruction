@@ -33,12 +33,13 @@ BASELINE_COUNTS = {
 
 # The four SHA-256 values in the doc's "Output digests" table, pinned here so a rule change
 # cannot leave the doc quoting stale bytes without a test failing. Re-pinned after the phase-3
-# F5 fix (R-AUTH-01/02 rule_version 3): the counts are unchanged, only the version bytes inside
-# each scenario file moved — `summary.json` records counts alone and so is byte-identical.
+# F7 fix (R-AUTH-01/02 rule_version 4, and R-AUTH-01's detection_id now names the success it is
+# anchored on): the counts are unchanged, only the version bytes and that one ID inside each
+# scenario file moved — `summary.json` records counts alone and so is byte-identical.
 BASELINE_DIGESTS = {
-    "S01.json": "a63bfb0b05bb248b9da314c36ee0340fd69b74fe93d8b6ce2e129d9c56538fd7",
-    "S02.json": "6c1a16f6c2c6e5ab79dc50cd5de0093df3064ac9ac08c931de04dd530c4dc68b",
-    "S03.json": "94ef74a8fb6a0d8633046a437d46b3a59ba1d44129ca2c058d3a785fe91a2d0c",
+    "S01.json": "6fc8657a22c0d2e2ef4789c2ff5b33e46bf9811d918c8a2d20751a3e21ad5be6",
+    "S02.json": "8c931f072914309328546783ff45d60910684b0e3f8b747b1125dd7531adf21a",
+    "S03.json": "2155809c3b7d88900f1e8d213b8d7aee576fe3ec50dcaf04d534a1ee799aad36",
     "summary.json": "b5942b87d30123390193257a319838f0482f3d45dde18ed3084c129853bea184",
 }
 
@@ -110,5 +111,15 @@ def test_the_s02_failed_logon_burst_ends_on_the_public_4624_anchor(real_corpus_d
     bursts = [detection for detection in engine.triggers_for("S02") if detection.rule_id == "R-AUTH-01"]
     assert len(bursts) == 1
     detection = bursts[0]
-    assert detection.trigger_evidence_ids[-1] == "S02-SEC-43584"
+    # The detection is anchored on the 4624 (T3.2), so its id names that success and its last
+    # trigger is the public S02-SEC-43584 anchor.
+    assert detection.detection_id == "S02-R-AUTH-01-S02-SEC-43584"
+    assert detection.trigger_evidence_ids == (
+        "S02-SEC-43571",
+        "S02-SEC-43573",
+        "S02-SEC-43575",
+        "S02-SEC-43578",
+        "S02-SEC-43580",
+        "S02-SEC-43584",
+    )
     assert detection.window_end_utc == ticks_to_iso(iso_to_ticks("2026-09-21T02:05:30.0430374Z"))
