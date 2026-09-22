@@ -39,3 +39,6 @@ opencode.json
 
 # Generated M2 corpus / detection output (regenerate with `python -m m2`)
 out/
+
+# Team role agreement PDF (local reference copy)
+MAIR_Six_Member_Roles_and_Boundaries.pdf
