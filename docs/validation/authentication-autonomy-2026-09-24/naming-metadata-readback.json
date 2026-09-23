@@ -1,0 +1,48 @@
+{
+  "original_commit": "3f134a42f1d0e94e9e975b06cf938bf5c60c083a",
+  "change": "Descriptive component labels only. Original bytes remain in the original commit. Model case files, replies, arguments, expectations, counts and per-case hashes are unchanged. Recorded source hashes still describe their original runs.",
+  "metadata_files": [
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/concise-v13-autonomy/manifest.json",
+      "original_sha256": "083028748cb9c4dfc18028e81a27944b07aa863d57ba7432660596e04386c409",
+      "corrected_sha256": "42d4957142fc58d70bc486b20af667e83424f99a67c9a8c81294e007612d51bd"
+    },
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/context-v12-autonomy/manifest.json",
+      "original_sha256": "3f8f3ed596bfd6a87bc7ddfb81fdbd554484b60dbe96dda6bc683c153fd1fbf0",
+      "corrected_sha256": "5121a14602adf10dd0691586673e2d389d5243ded928b41a09c9b65004f1d4e6"
+    },
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/decision-v11-autonomy/manifest.json",
+      "original_sha256": "03ff875cd728dcc5c07f30aaca2610c40d7b6d540333d6f813c6fc9118516936",
+      "corrected_sha256": "5ed33891284ae9187a02435b72030bd1ae489e581ae9f733a0e421cc7f67f826"
+    },
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/decision-v11-evaluator.py.txt",
+      "original_sha256": "120755345451502ad87cf92717017c0509091436f79c60d4b0a7afd3efc3fd00",
+      "corrected_sha256": "1cca9ca667dfa95bd77b92fd23313e2b1bb2d309b13a986db6f82ec939c578f3"
+    },
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/final-v15-autonomy/manifest.json",
+      "original_sha256": "e6d6714dc34195f64f4d8bdbda45dcef5fb08fe75df18fd7b222e863636e69fe",
+      "corrected_sha256": "386fe34f3923b4c359bcecd7277674579b61ae8312d46b378ae95dd8369eaa02"
+    },
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/final-v16-autonomy/manifest.json",
+      "original_sha256": "6a41a60eb6b9b3e5f7a98a9a3e6644a55c53922a6230e4dd628b65083dca2c62",
+      "corrected_sha256": "8320a1dc68b19fc1f0d7d2beedaebe907167864e482e52a96fa4bf49c767045b"
+    },
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/final-v16-thinking-autonomy/manifest.json",
+      "original_sha256": "95554516ba0e3920be4549fdc144b11486ae8cd73b10915574691461adb9bd10",
+      "corrected_sha256": "61ceb573ccf2ed87fb74a780924e2612cb8ff19a52e2070703749c5872621d0f"
+    },
+    {
+      "path": "docs/validation/authentication-autonomy-2026-09-24/thinking-v14-autonomy/manifest.json",
+      "original_sha256": "83d223319f7e4bf59f5524e8ebec326a9be107dc735c47c6c46226c9fa91b158",
+      "corrected_sha256": "7c21bc311f9e583acc6cbf08376e236ea96b0a3f6afffe7974f16b1ba52a8f4f"
+    }
+  ],
+  "evaluator_ast_unchanged_except_docstring_and_scope_label": true,
+  "all_other_authentication_source_unchanged": true
+}

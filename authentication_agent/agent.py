@@ -62,11 +62,12 @@ def investigate(request: InvestigationRequest, provider: AuthenticationEventProv
             model_observations = [{**observation.model_dump(mode="json"),
                 "events": [_event_context(tools.retrieved[eid]) for eid in observation.evidence_ids]}
                 for observation in observations]
-            response_schema = ModelReply.grounded_schema(observations)
+            response_schema = ModelReply.grounded_schema(observations, max_events_per_query=limits.max_events_per_query)
             context = {"request": request.model_dump(), "tool_calls_remaining": limits.max_tool_calls - tools.calls,
                 "last_tool_result": last_tool,
                 "operation_history": [op.model_dump(mode="json") for op in tools.operations],
-                "tool_argument_schemas": {name: model.model_json_schema() for name, model in TOOL_ARGUMENT_MODELS.items()},
+                "tool_argument_schemas": {name: response_schema["$defs"][model.__name__]
+                    for name, model in TOOL_ARGUMENT_MODELS.items()},
                 "limits": limits.model_dump(), "observations": model_observations}
             messages = [{"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": json.dumps(context)}]

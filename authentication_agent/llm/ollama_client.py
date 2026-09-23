@@ -12,11 +12,13 @@ from authentication_agent.errors import InvestigationError
 class OllamaClient:
     def __init__(self, config: OllamaConfig, transport: httpx.AsyncBaseTransport | None = None):
         self.config, self._transport = config, transport
+        self.last_response_metrics: dict = {}
 
     def metadata(self) -> dict:
         return {"runtime": "ollama", **self.config.model_dump()}
 
     def complete(self, messages: list[dict[str, str]], schema: dict, limits: Limits) -> str:
+        self.last_response_metrics = {}
         # The public Incident Reconstruction Orchestrator entry point is synchronous. Async orchestrators should run
         # investigate via asyncio.to_thread, keeping local model I/O off their loop.
         try:
@@ -47,6 +49,12 @@ class OllamaClient:
                             if len(chunks) > limits.max_model_output_bytes + 16384:
                                 raise InvestigationError("model_output_limit")
             envelope = json.loads(chunks)
+            if isinstance(envelope, dict):
+                # Development diagnostics only: no thinking text or machine data.
+                self.last_response_metrics = {key: envelope[key] for key in ("prompt_eval_count", "eval_count")
+                    if type(envelope.get(key)) is int and envelope[key] >= 0}
+                if envelope.get("done_reason") in ("stop", "length"):
+                    self.last_response_metrics["done_reason"] = envelope["done_reason"]
             if not isinstance(envelope, dict) or envelope.get("done") is not True or envelope.get("done_reason") == "length":
                 raise InvestigationError("incomplete_model_response")
             content = envelope["message"]["content"]

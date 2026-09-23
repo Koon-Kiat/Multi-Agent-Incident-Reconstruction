@@ -154,6 +154,23 @@ It reuses the existing factual checker; the compatibility name
 checks, not independent verification, baseline scoring or detection accuracy.
 Saved artifacts omit personal system specifications.
 
+The [autonomous follow-up report](../docs/AUTHENTICATION_AUTONOMY.md) separates
+factual completion, model-selected retrieval, trusted requirements, and directed
+tool-plan compliance. Useful local-model follow-ups were recorded, but consistent
+selection remains a limitation. The internal bounded decision assessment is not
+exported in v2 results. The decoder's query limits now agree with the active cap;
+host validation remains authoritative. The runtime defaults are unchanged.
+
+```powershell
+python -m authentication_agent.validate_autonomy --corpus out/corpus --mode ollama --repetitions 3 --output-dir out/validation/autonomy
+```
+
+This stricter development evaluation can exit 1 despite correct bounded facts:
+inspect `check_errors` separately from `evaluation_only.assessment.behavior_errors`.
+It does not give the model a desired tool or expected evidence ID. Its optional
+thinking experiment uses `--think on --max-output-tokens 4096 --timeout 120`;
+that profile is experimental and has also exhausted its output budget.
+
 See [orchestrator invocation and result handling](../docs/ORCHESTRATOR_HANDOFF.md)
 and [architecture](../docs/ARCHITECTURE.md). Endpoint investigation, incident
 reconstruction and independent verification/evaluation remain separate

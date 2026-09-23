@@ -74,6 +74,7 @@ def run_case(name, category, request, provider, llm, limits, required=None, expe
             "required_operations": required.model_dump(mode="json", exclude_unset=True) if required else None,
             "prescribed_model_tools": False, "expected_error": expected_error,
             "initial_events": initial_events, "optional_actions": optional,
+            "retrieved_events": [event.model_dump(mode="json") for event in recorded_provider.retrieved.values()],
             "elapsed_seconds": round(time.monotonic() - started, 3), "check_errors": errors,
             "result": result.model_dump(mode="json"), "model_calls": recorded_llm.calls,
             "provider_calls": recorded_provider.calls}
