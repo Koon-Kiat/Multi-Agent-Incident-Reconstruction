@@ -64,9 +64,10 @@ than copying historical PR descriptions.
 pull requests and pushes to main using Python 3.11. CI uses `lfs: false`; tests
 requiring original EVTX files skip explicitly. Run those tests locally after
 fetching Git LFS evidence. This application test check does not replace the
-metadata checks. The intentionally failing, explicitly invoked compatibility
-diagnostic is documented in `docs/AUTHENTICATION_CORPUS_INTEGRATION.md` and is
-not included in default test discovery; it is not a conformance pass.
+metadata checks. The reusable provider contract runs against the real adapter in default discovery.
+The original explicitly invoked diagnostic also remains available; PR #10 resolved
+its lookup and constructor-ownership failures. Current results are documented in
+`docs/AUTHENTICATION_CORPUS_INTEGRATION.md`.
 
 Maintainers must separately enable branch protection or a ruleset requiring
 **PR description**, **Commit messages**, and (recommended) **Python and contribution

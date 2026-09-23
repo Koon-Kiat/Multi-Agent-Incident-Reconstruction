@@ -6,7 +6,8 @@ a non-logon Security event. Unchecked *test-only* NormalisedEvent construction
 lets the original assertions reach the actual EventStore/adapter, without
 coercing fixtures, filtering cases, or weakening assertions. It is NOT a way to
 load a production corpus. Supported-schema/real-corpus tests live in
-tests/test_authentication_corpus.py. Known failures remain failures here.
+tests/test_authentication_corpus.py. PR #10 resolved the original lookup and
+constructor-ownership failures; this diagnostic retains the original assertions.
 """
 
 from copy import deepcopy
@@ -34,7 +35,7 @@ class TestProcessingProviderContract(AuthenticationProviderContract):
 
 
 def test_constructor_snapshot_detaches_supported_input():
-    """Focused regression proposal: constructor callers retain a mutable dict."""
+    """Regression for the constructor ownership fix inherited from PR #10."""
     original = make_event(event_id=4624, event_data={"TargetUserName": "original"})
     store = EventStore([original])
     original.event_data["TargetUserName"] = "caller mutation"

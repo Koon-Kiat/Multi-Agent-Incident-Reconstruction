@@ -27,6 +27,19 @@ Contract
   (any path component named either, case-insensitively), and when it is the corpus directory
   itself. Both are invalid input rather than a failed run: ``python -m event_processing detect`` exits ``2`` and
   writes nothing.
+* Before it writes, the engine checks every name it is about to use. A pre-existing file that does
+  not carry the Event Processing & Detection Engine detection marker is a foreign file, not a stale run of ours, so the whole run
+  fails (``python -m event_processing detect`` exits ``1``) and **nothing** — not even ``summary.json`` — is
+  written. The same refusal covers a name that is not a regular file (a directory called
+  ``S02.json``) and a symbolic link, because writing through either would not stay inside ``--out``
+  or would not be the artefact the check inspected. A genuine Event Processing & Detection Engine run for the same scenario is the
+  artefact this run refreshes.
+* The write itself is a two-phase rename: every document is first written to a dotted ``.tmp``
+  sibling and all of them must succeed before any is renamed onto its final name. An I/O failure
+  part way through therefore leaves the previous run's files in place and no temporary behind. A
+  run also sweeps **its own** staging leftovers out of ``--out`` before it writes, because a
+  process killed mid-run cannot clean up after itself; only a regular file matching the staging
+  name pattern is removed.
 * ``triggers_for(scenario_id)`` is the Incident Reconstruction Orchestrator-facing entry point: it returns the scenario's
   detections, ordered by ``(window_start_utc, detection_id)``, so a caller can route windows to
   Authentication Investigation Agent/Endpoint Investigation Agent without reading the written files.
@@ -35,6 +48,7 @@ Contract
 from __future__ import annotations
 
 import json
+import os
 from collections import Counter
 from collections.abc import Sequence
 from pathlib import Path
@@ -51,17 +65,16 @@ from event_processing.detection.schema import (
     run_to_json,
     summary_to_json,
 )
-from event_processing.ids import SCENARIO_ID_RE
+from event_processing.ids import SCENARIO_ID_RE, is_reserved_scenario_id
 from event_processing.manifest import sha256_file
+from event_processing.protected_paths import PROTECTED_OUTPUT_TREE_NAMES, protected_output_component
 from event_processing.query import EventStore
 
 SUMMARY_FILENAME = "summary.json"
-
-# Trees that the caller's output path must never resolve into. The check is by path component,
-# not by comparing against this repository's own roots, so it also refuses a directory named
-# `datasets` next to the caller's own evidence: over-refusal is harmless, data loss is not.
-PROTECTED_OUTPUT_TREE_NAMES = ("datasets", "ground_truth")
-_PROTECTED_OUTPUT_PARTS = frozenset(name.casefold() for name in PROTECTED_OUTPUT_TREE_NAMES)
+# The name `_write_all` stages a document under: `.<target name>.tmp`. Every document detect
+# writes ends in `.json`, so this one glob also matches a leftover whose scenario the corpus no
+# longer holds.
+STAGING_GLOB = ".*.json.tmp"
 
 
 class DetectionError(ValueError):
@@ -81,6 +94,12 @@ class DetectionEngine:
     """
 
     def __init__(self, store: EventStore, *, corpus_manifest_sha256: str, rules: tuple[Rule, ...] = RULES) -> None:
+        reserved = sorted(scenario_id for scenario_id in store.scenario_ids if is_reserved_scenario_id(scenario_id))
+        if reserved:
+            raise DetectionError(
+                f"scenario id {reserved[0]!r} is reserved; its run file would collide with "
+                f"detect's own {SUMMARY_FILENAME}"
+            )
         self._store = store
         self._corpus_manifest_sha256 = corpus_manifest_sha256
         self._rules = rules
@@ -161,7 +180,12 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     **Event Processing & Detection Engine detection artefact** among its direct children is removed, and every other file is left
     alone (see the module docstring). ``out_dir`` may not resolve inside a ``datasets/`` or
     ``ground_truth/`` tree, and may not be the corpus directory, whose ``corpus_manifest.json``
-    is not a detection artefact.
+    is not a detection artefact. A pre-existing file at a name this run would write must likewise
+    be an Event Processing & Detection Engine detection artefact, or the run fails before writing anything. Every document is staged
+    under a dotted temporary name and renamed into place only once all of them exist, so an I/O
+    failure part way through leaves the previous run's files intact. Before writing, the run
+    removes any regular staging file (``.<name>.json.tmp``) an earlier killed run left behind; only
+    a file matching that pattern is touched.
     """
     directory = Path(corpus_dir)
     destination = Path(out_dir)
@@ -175,26 +199,101 @@ def write_detections(corpus_dir: Path | str, out_dir: Path | str) -> DetectionSu
     engine = DetectionEngine(EventStore.load(directory), corpus_manifest_sha256=digest)
     runs = engine.runs()
 
+    written = {SUMMARY_FILENAME} | {f"{run.scenario_id}.json" for run in runs}
+    # Checked before anything is written: a foreign file at a name this run would use stops the
+    # whole run rather than being overwritten under the assumption that `--out` is ours.
+    _refuse_foreign_overwrite(destination, written)
+
     destination.mkdir(parents=True, exist_ok=True)
-    written = {SUMMARY_FILENAME}
-    for run in runs:
-        name = f"{run.scenario_id}.json"
-        _write_text(destination / name, f"{run_to_json(run)}\n")
-        written.add(name)
+    _sweep_own_staging_leftovers(destination)
     summary = summarise(engine.corpus_manifest_sha256, runs)
-    _write_text(destination / SUMMARY_FILENAME, f"{summary_to_json(summary)}\n")
+    payloads = [(destination / f"{run.scenario_id}.json", f"{run_to_json(run)}\n") for run in runs]
+    payloads.append((destination / SUMMARY_FILENAME, f"{summary_to_json(summary)}\n"))
+    _write_all(payloads)
     _remove_stale_runs(destination, written)
     return summary
 
 
 def _refuse_protected_output(destination: Path) -> None:
     """Fail closed when ``destination`` resolves into a tree ``detect`` must never write to."""
-    for part in destination.resolve().parts:
-        if part.casefold() in _PROTECTED_OUTPUT_PARTS:
-            raise DetectionOutputError(
-                f"--out {destination} is inside the {part}/ tree; "
-                f"{' and '.join(f'{name}/' for name in PROTECTED_OUTPUT_TREE_NAMES)} are read-only for event_processing"
+    component = protected_output_component(destination)
+    if component is not None:
+        raise DetectionOutputError(
+            f"--out {destination} is inside the {component}/ tree; "
+            f"{' and '.join(f'{name}/' for name in PROTECTED_OUTPUT_TREE_NAMES)} are read-only for event_processing"
+        )
+
+
+def _refuse_foreign_overwrite(destination: Path, names: set[str]) -> None:
+    """Refuse when a name this run would write is not an Event Processing & Detection Engine detection artefact ``detect`` may replace.
+
+    ``detect`` owns the *names* it writes, never the directory: a pre-existing ``SYN-B.json`` or
+    ``summary.json`` that does not carry the Event Processing & Detection Engine schema marker belongs to someone else, so the run
+    stops before writing anything rather than replacing it. A genuine Event Processing & Detection Engine run for the same scenario
+    is the artefact this run refreshes, so it is not a collision.
+
+    Anything that is not a regular file is refused outright, and a symbolic link is refused even when
+    it points at a genuine Event Processing & Detection Engine artefact: the marker check inspects the target, while the write would
+    follow the link and land outside ``--out`` (or fail half way, as a directory named ``S02.json``
+    did before).
+    """
+    for name in sorted(names):
+        path = destination / name
+        if path.is_symlink():
+            raise DetectionError(
+                f"{path} is a symbolic link; refusing to write through a link that may leave {destination}"
             )
+        if not path.exists():
+            continue
+        if not path.is_file():
+            raise DetectionError(
+                f"{path} already exists and is not a regular file; refusing to write over it"
+            )
+        if not _is_detection_artefact(path):
+            raise DetectionError(
+                f"{path} already exists and is not an event_processing detection artefact; "
+                "refusing to overwrite a file this run did not write"
+            )
+
+
+def _sweep_own_staging_leftovers(destination: Path) -> tuple[Path, ...]:
+    """Remove this package's staging leftovers from ``destination`` before a run writes.
+
+    ``_write_all`` removes its temporaries when a write raises, but a process killed mid-run (or a
+    power loss) leaves ``.<name>.json.tmp`` behind, and ``_remove_stale_runs`` never reaps them
+    because it scans ``*.json``. Only a regular file matching :data:`STAGING_GLOB` is removed —
+    including one from a killed run whose scenario the corpus no longer holds. A directory or a
+    symbolic link at such a name, and every other file, is left exactly as it is.
+    """
+    removed: list[Path] = []
+    for path in sorted(destination.glob(STAGING_GLOB)):
+        if path.is_symlink() or not path.is_file():
+            continue
+        path.unlink()
+        removed.append(path)
+    return tuple(removed)
+
+
+def _write_all(payloads: Sequence[tuple[Path, str]]) -> None:
+    """Write every payload through a dotted ``.tmp`` sibling, then rename all of them into place.
+
+    Nothing is renamed until every document has been written, so an I/O failure part way through
+    leaves the previous run's files exactly as they were instead of mixing two runs in one
+    directory. The temporaries are removed on failure. A ``.`` prefix and a ``.tmp`` suffix keep
+    them out of both ``_remove_stale_runs``'s ``*.json`` scan and a consumer's own glob.
+    """
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for target, payload in payloads:
+            temporary = target.with_name(f".{target.name}.tmp")
+            _write_text(temporary, payload)
+            staged.append((temporary, target))
+        for temporary, target in staged:
+            os.replace(temporary, target)
+    except BaseException:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
+        raise
 
 
 def _remove_stale_runs(destination: Path, written: set[str]) -> tuple[Path, ...]:

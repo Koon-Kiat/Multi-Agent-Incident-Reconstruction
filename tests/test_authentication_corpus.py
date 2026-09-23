@@ -69,7 +69,12 @@ def test_real_half_open_precision_collisions_and_exact_filters(corpus_store):
     event = provider.get_event("S02-SEC-43584")
     assert event.timestamp_utc == "2026-09-21T02:05:30.0430374Z"
     assert corpus_store.lookup("S03-SEC-43584").event.source_event_id == 4688
-    assert provider.get_event("S03-SEC-43584") is None
+    # Exact lookup preserves other Security types; query and agent tools enforce
+    # the narrower authentication scope agreed in PR #10.
+    assert provider.get_event("S03-SEC-43584").source_event_id == 4688
+    assert "S03-SEC-43584" not in {
+        e.evidence_id for e in provider.query(QueryRequest(**public_request("S03").model_dump())).events
+    }
     one_tick = QueryRequest(scenario_id="S02", start_utc=event.timestamp_utc,
                            end_utc=ticks_to_iso(utc_ticks(event.timestamp_utc) + 1))
     assert [e.evidence_id for e in provider.query(one_tick).events] == [event.evidence_id]
@@ -106,6 +111,22 @@ def test_real_cross_scenario_requests_fail_closed(corpus_store, tool, expected_e
     # The boundary rejects the event before it can be cited, even though the
     # recording provider necessarily saw the response to the rejected lookup.
     assert case["check_errors"] == []
+
+
+@pytest.mark.parametrize("event_id", [4634, 4688])
+def test_real_non_authentication_exact_lookup_cannot_enter_findings(corpus_store, event_id):
+    original = next(e for e in corpus_store.scenario_events("S03")
+                    if e.channel == "Security" and e.source_event_id == event_id)
+    provider = CorpusAuthenticationProvider(corpus_store)
+    assert provider.get_event(original.evidence_id).source_event_id == event_id
+    request = InvestigationRequest(scenario_id="S03", start_utc=original.timestamp_utc,
+                                   end_utc=ticks_to_iso(original.timestamp_ticks + 1))
+    tool = ToolCall(name="get_authentication_event", arguments={"evidence_id": original.evidence_id})
+    case = run_case(corpus_store, "unsupported_type", request, FakeLLM(), Limits(), tool,
+                    expected_error="provider_scope_violation")
+    assert not case["check_errors"]
+    assert case["result"]["status"] == "failed"
+    assert case["result"]["findings"] == []
 
 
 @pytest.mark.parametrize("error,code", [(TimeoutError(), "model_timeout"),

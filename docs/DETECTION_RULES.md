@@ -48,7 +48,8 @@ planner), not a quiet edit.
 | `SUSPICIOUS_PARENT_TECHNIQUE` | `T1204` | R-EXEC-03 | the artefact's technique field: user execution |
 | `SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE` | `T1059` | R-EXEC-03 | the spawned interpreter, named in the rationale |
 | `ENCODED_COMMAND_PATTERNS` | 5 patterns | R-EXEC-02 | encoded, hidden-window and downloader PowerShell markers |
-| `POWERSHELL_COMMAND_MARKERS` | `powershell`, `pwsh` | R-EXEC-02 | the command line must actually be a PowerShell one |
+| `POWERSHELL_COMMAND_MARKERS` | `powershell`, `pwsh` | R-EXEC-02 | the shell names `POWERSHELL_EXECUTABLES` derives `powershell.exe`/`pwsh.exe` from |
+| `POWERSHELL_EXECUTABLES` | `powershell.exe`, `pwsh.exe` | R-EXEC-02 | the process image basename or a whole command-line token must be one of these (B6: no substring match) |
 | `LSASS_ACCESS_MASKS` | 7 masks | R-CRED-01 | documented `PROCESS_VM_READ` / `ALL_ACCESS` combinations |
 | `FILE_DROP_EXTENSIONS` | 6 extensions | R-FILE-01 | executable and script payload types |
 | `FILE_DROP_USER_APP_DATA_MARKERS` | 2 path segments | R-FILE-01 | `\users\` **and** `\appdata\` must both appear, i.e. `\Users\<x>\AppData\` |
@@ -94,6 +95,12 @@ untouched: a `manifest.json`, a `package.json`, a foreign `S02.json` that lacks 
 malformed file all survive. Nothing outside `--out`, and no subdirectory, is touched. `detect`
 refuses an `--out` that resolves inside a `datasets/` or `ground_truth/` tree (any path component,
 case-insensitive) or that is the corpus directory itself, and exits `2` without writing.
+
+Before it writes, `detect` also checks every name it is about to use: if a file already exists
+there and does **not** carry the Event Processing & Detection Engine marker, it is a foreign file rather than a stale run of ours,
+so the whole run exits `1` and writes nothing — not even `summary.json`. Reserving the scenario id
+`summary` (case-insensitively, at corpus time and again at detect time) is the other half of the
+same guarantee: a scenario can never claim the summary's name.
 
 ```python
 from event_processing.detection.engine import DetectionEngine, write_detections
@@ -152,7 +159,7 @@ exact and case-sensitive.
 | R-AUTH-03 | 1 | low | T1078 | every Security 4648 (explicit-credential logon) | `runas`, admin tooling, backup and deployment software using alternate credentials — routine in admin workflows, hence low |
 | R-CRED-01 | 1 | high | T1003.001 | Sysmon 10 where the target image stem is `lsass` and `GrantedAccess` is one of 7 masks (`0x1010`, `0x1410`, `0x1418`, `0x1438`, `0x143a`, `0x1f0fff`, `0x1fffff`) | monitoring/EDR/backup agents that legitimately read `lsass`; the mask is what was *requested*, not what was granted |
 | R-EXEC-01 | 2 | medium (burst) / low (single) | the binary's own technique (see the map above) | ≥3 distinct discovery binaries by one account inside **any** 120 s window is one windowed detection; every matching event outside such a window is its own low detection | routine administration and troubleshooting running `whoami`/`net`/`ipconfig`; installers and scripts that call several discovery tools in a row |
-| R-EXEC-02 | 1 | high | T1059.001 | Security 4688 or Sysmon 1 whose `CommandLine` mentions `powershell`/`pwsh` **and** matches ≥1 of: `-enc`/`-EncodedCommand` token, `FromBase64String`, `-w`/`-WindowStyle hidden`, `IEX`/`Invoke-Expression`, `DownloadString` | management scripts that `-enc` a legitimate payload; modules that use `IEX` internally; scheduled tasks that run a hidden window. `-Encoding` is deliberately not matched |
+| R-EXEC-02 | 2 | high | T1059.001 | Security 4688 or Sysmon 1 that is a PowerShell process — its own image basename is `powershell.exe`/`pwsh.exe`, or a whitespace/quote-delimited `CommandLine` token's basename is — **and** the command line matches ≥1 of: `-enc`/`-EncodedCommand` token, `FromBase64String`, `-w`/`-WindowStyle hidden`, `IEX`/`Invoke-Expression`, `DownloadString` | management scripts that `-enc` a legitimate payload; modules that use `IEX` internally; scheduled tasks that run a hidden window. `-Encoding` is deliberately not matched. A binary whose *name* merely contains `powershell`/`pwsh` (`notpowershell.exe`, `pwshish`) is not PowerShell and never matches (B6) |
 | R-EXEC-03 | 2 | high | T1204 (field) / T1059 (rationale) | parent image stem in {winword, excel, powerpnt, outlook, msedge, chrome, firefox, wmiprvse, mshta} spawning a child stem in {cmd, powershell, pwsh, wscript, cscript, rundll32, regsvr32} | management agents that run scripts through `WmiPrvSE.exe` (SCCM/Intune-style); legacy Office add-ins that shell out |
 | R-FILE-01 | 1 | medium | T1105 | Sysmon 11 creating a file whose name ends in `.exe|.dll|.ps1|.bat|.vbs|.js` under `\Users\*\AppData\`, `\Temp\`, `\Downloads\` or `\ProgramData\` | installers and updaters that stage binaries in `%TEMP%`/`%APPDATA%`; browser and print-driver updates — deliberately noisy, hence medium |
 | R-LOG-01 | 1 | high | T1070.001 | every Security 1102 (audit log cleared) | an operator or log-rotation script legitimately clearing the log — see the baseline note below |
@@ -252,6 +259,25 @@ User and host grouping uses the normalised `user` and `host` fields exactly as s
 never case-folded or domain-stripped. `None` (a field the source did not carry) forms its own
 group and is never merged with `""` or with a real name.
 
+### R-EXEC-02 (version 2): the image match and double counting
+
+Two properties of the version-2 match are worth stating explicitly, because both change how a
+consumer reads the output.
+
+* **The process image can supply "is PowerShell" without the command line naming it.** The rule
+  fires when the event's own process image basename is `powershell.exe`/`pwsh.exe` (a 4688
+  `NewProcessName` or a Sysmon 1 `Image`) **or** when a whitespace/quote-delimited `CommandLine`
+  token's basename is — and the command line matches at least one encoded/hidden/downloader
+  marker. So a `powershell.exe` whose `CommandLine` is only `-enc <blob>`, and a `CommandLine`
+  that never spells the shell name at all, still fire on the image. The image alone is never
+  enough: a plain `powershell.exe -File script.ps1` carries no marker and produces nothing.
+* **`cmd.exe /c powershell.exe -enc …` produces two detections for one action.** The `cmd.exe`
+  process fires on the `powershell.exe` command-line token, and its `powershell.exe` child fires
+  again on its own image. Both are process-creation events describing one action, and the rule
+  reports each triggering event it is given, at the event level. A consumer that counts actions
+  must expect the duplicate rather than treating the pair as two incidents; this is the same
+  question as metrics open question 1 (one action seen through two rules or two channels).
+
 ## Not covered
 
 Stated so nobody reads absence of a detection as absence of activity.
@@ -330,6 +356,12 @@ first failure to the success. `summary.json` records only counts, so its digest 
 phase 5, and only because the file gained the `detection-summary` marker described under
 [Detection artefacts](#detection-artefacts).
 
+**Phase 6 (B6) also leaves the counts at 9/15/14.** R-EXEC-02 produces no detection on this
+corpus, so changing its PowerShell test from a substring to a whole-executable one changes no
+detection; only the rule's version moved (`1` → `2`, because the matching logic changed), which
+changed the `rules` array recorded in the three scenario files and therefore their digests.
+`summary.json` stores only counts, so its digest is unchanged.
+
 38 detections in total. What the run looked like, descriptively:
 
 * **Every R-EXEC-01 detection is a single hit.** No account reached three *distinct* discovery
@@ -366,9 +398,9 @@ Output digests (SHA-256), for reproducing the run byte for byte:
 
 | File | SHA-256 |
 |---|---|
-| `S01.json` | `bddcc3184d80a5ce07a27563d2f2a20a47af90830a418fc722d5a1dfc4318161` |
-| `S02.json` | `549afd3e9821a045b8b84cd425d0df592f6efc996bb5e26ee3e79f155f8b654a` |
-| `S03.json` | `dcd730c0e8eea90cf405906e9e2bed9c3c9dcca6586708cc52af7f56e0718028` |
+| `S01.json` | `2222118a463431303380867fd29b9193a4935fa1f2bef92f1c3f4d998e4fe158` |
+| `S02.json` | `63a6b2e231eac747967171d0291f0e7e73805ae822f2c9a80a9748ddcada04e6` |
+| `S03.json` | `6ed830c1c52b8448567c8bd6d2e47cfda082b3a040e270e1b51cc66475ffc3c7` |
 | `summary.json` | `a16836328abd1136bfb21fa573d221a6227c88c237d8544ab0783a645af8395c` |
 
 These are byte-identical across repeated runs, which the real test
@@ -408,6 +440,7 @@ Recorded so far:
 | 4 | R-AUTH-01, R-AUTH-02 | the scan is replaced by T3.2's anchors: R-AUTH-01 is one detection per success over `F(S) = failures in [t(S) - W, t(S))` (overlapping detections allowed), R-AUTH-02 is one detection per merged segment of qualifying bursts, and a burst qualifies only when no 4624 of the group lies in `(first failure, last failure + W]`. `detection_id` now names the **closing** trigger (the success for R-AUTH-01) because the first trigger is no longer unique | phase-3 review finding F7: a burst followed by a success and then more failures inside the same window produced no R-AUTH-01, and the R-AUTH-02 it produced claimed a "no successful logon" span that contained the success. Spec conformance, not tuning — no threshold changed and no real count moved |
 | 5 | R-AUTH-02 | R-AUTH-02 now reports only the **uncovered** failures — those that are not a trigger of any R-AUTH-01 detection of the same `(user, host)`. A burst starts at each uncovered failure `t_i` and covers the uncovered failures in `[t_i, t_i + W)`; ≥3 of them qualify, and overlapping qualifying bursts merge into one segment. The rationale becomes "not followed by a qualifying successful logon (R-AUTH-01)". The rule's description changed with it | task_plan.md T3.2 "Planner amendment A1" (after the phase-3 round-4 planner notes): version 4's suppression window let a success veto a burst it could not confirm, so failures at 0/100/200 s with a success at 310 s were reported by neither rule. Version 5 makes the two rules disjoint and exhaustive. Spec conformance, not tuning — no threshold changed and no real count moved (9/15/14 unchanged; only the version bytes in the scenario files moved) |
 | 5 (rationale only, no bump) | R-AUTH-02 | the rationale gained `window_span_seconds=…` — the merged segment's own span, exact to the 100 ns — so a consumer can see that a chained segment may exceed 300 s | task_plan.md T5.0 "Planner amendment A2": additive to the rationale **text only**. No threshold, matching logic, `params`, severity, trigger set, window or `detection_id` changed, so the recorded `params`/version bytes are unchanged and no artefact digest moves. R-AUTH-02 emits no detection on this corpus, so no stored `Detection` differs at all; on another corpus two version-5 runs could differ only in this string, which is why it is recorded here |
+| 2 **for R-EXEC-02** (phase 6; its version restarted from 1, every other rule keeps its own version) | R-EXEC-02 | the PowerShell test is now a whole-executable match — the process image basename, or a whitespace/quote-delimited command-line token, must be `powershell.exe`/`pwsh.exe` — instead of "the command line contains `powershell`/`pwsh` as a substring" | phase-6 review finding B6 (`PR #8`): the substring test fired on binaries merely named `notpowershell.exe`/`pwshish`, and the finding requires boundary matching. A matching-logic change, so the version moved per this section; no threshold, pattern, severity, `attack_technique`, `params` or count changed (9/15/14 unchanged). R-EXEC-02 emits nothing on this corpus, so only the recorded version bytes moved, which changed the three scenario digests (not `summary.json`, which stores counts only) |
 
 The component naming migration changes only `schema_version` and its dependent
 `corpus_manifest_sha256` in these outputs. All detection content and event JSONL
@@ -415,3 +448,12 @@ files were compared with the prior run and are identical. Updated byte hashes
 above reflect the intentional identifier change; canonical behavioral hashes
 remain pinned in the regression test. See the
 [migration readback](validation/authentication-corpus-2026-09-23/naming-migration-readback.json).
+
+PR #10 integration replays its unchanged upstream implementation and reproduces
+all upstream pinned digests. After accounting for descriptive schema identifiers
+and the dependent corpus digest, the integrated detections are identical to
+upstream. Compared with the prior feature-branch run, only the recorded
+R-EXEC-02 version changes from 1 to 2. Event JSONL, detections, counts, triggers
+and windows remain identical. The current byte and canonical hashes above were
+refreshed only after this comparison; see the
+[integration readback](validation/authentication-pr10-2026-09-23/integration-readback.json).

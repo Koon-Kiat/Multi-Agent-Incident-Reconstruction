@@ -33,12 +33,14 @@ import json
 from collections import Counter
 from collections.abc import Iterable, Sequence
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from event_processing.evtx_reader import RawRecord, iter_records
 from event_processing.manifest import MANIFEST_FILENAME, METADATA_DIRNAME, ScenarioInfo, SourceFile, load_scenario, sha256_file
 from event_processing.normalise import make_raw_reference, normalise_record
+from event_processing.protected_paths import ProtectedOutputError, refuse_protected_output
 from event_processing.schema import SHA256_PATTERN, NormalisedEvent, event_to_json
 
 CORPUS_MANIFEST_SCHEMA_VERSION = "security-corpus-v1"
@@ -48,6 +50,10 @@ JSONL_SUFFIX = ".jsonl"
 
 class CorpusError(ValueError):
     """The corpus could not be written from the given datasets."""
+
+
+class CorpusOutputError(CorpusError):
+    """``--out`` names a directory ``normalise`` must not write into; invalid input, not a run."""
 
 
 class SourceDigest(BaseModel):
@@ -89,7 +95,9 @@ class CorpusManifest(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
-    schema_version: str = CORPUS_MANIFEST_SCHEMA_VERSION
+    # Pinned to the exact constant: `EventStore.load` trusts this marker, so a manifest that
+    # declares another version is a different document, not a newer one it may interpret.
+    schema_version: Literal[CORPUS_MANIFEST_SCHEMA_VERSION] = CORPUS_MANIFEST_SCHEMA_VERSION
     scenarios: tuple[ScenarioCorpus, ...]
 
 
@@ -181,8 +189,31 @@ def scenario_directories(datasets_dir: Path | str) -> tuple[Path, ...]:
     )
 
 
+def refuse_corpus_output(datasets_dir: Path | str, out_dir: Path | str) -> None:
+    """Fail closed when a corpus ``--out`` would overwrite the evidence it is parsed from.
+
+    The corpus must live outside ``--datasets`` (writing it there would mix generated output into
+    the read-only evidence tree, and a re-run would then parse its own output), and outside any
+    ``datasets/`` or ``ground_truth/`` tree for the same reason ``detect`` and ``score`` refuse
+    those. The check runs before anything is created.
+    """
+    root = Path(datasets_dir).resolve()
+    destination = Path(out_dir)
+    try:
+        refuse_protected_output(destination)
+    except ProtectedOutputError as error:
+        raise CorpusOutputError(str(error)) from error
+    resolved = destination.resolve()
+    if resolved == root or resolved.is_relative_to(root):
+        raise CorpusOutputError(
+            f"--out {out_dir} is inside the --datasets tree {datasets_dir}; the corpus must be "
+            "written outside the evidence it was parsed from"
+        )
+
+
 def normalise_datasets(datasets_dir: Path | str, out_dir: Path | str) -> CorpusManifest:
     """Parse every scenario under ``datasets_dir`` and write the corpus under ``out_dir``."""
+    refuse_corpus_output(datasets_dir, out_dir)
     directories = scenario_directories(datasets_dir)
     if not directories:
         raise CorpusError(f"no scenario directories under {datasets_dir} (expected <scenario>/metadata/manifest.json)")

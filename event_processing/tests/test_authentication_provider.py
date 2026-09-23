@@ -88,11 +88,15 @@ def test_get_event_maps_every_field_exactly(provider: CorpusAuthenticationProvid
     assert event.evidence_id == evidence_id_for("SYN-B", 1)
 
 
-def test_get_event_returns_none_outside_the_authentication_contract(provider: CorpusAuthenticationProvider):
+def test_get_event_preserves_any_security_record_and_refuses_other_channels(provider: CorpusAuthenticationProvider):
+    # B15 corrected this expectation: Authentication Investigation Agent's contract fixture looks up a Security 4634 and requires
+    # it back unchanged, so exact lookup preserves any Security record (the Event ID is not
+    # filtered); `query`, below, stays restricted to 4624/4625.
     assert provider.get_event("SYN-B-SEC-99") is None  # well formed, absent
     assert provider.get_event("not-an-id") is None  # malformed
-    assert provider.get_event("SYN-B-SEC-4") is None  # Security 4688
-    assert provider.get_event("SYN-B-SYS-5") is None  # Sysmon 1
+    preserved = provider.get_event("SYN-B-SEC-4")  # Security 4688
+    assert preserved is not None and preserved.source_event_id == 4688
+    assert provider.get_event("SYN-B-SYS-5") is None  # Sysmon 1 is outside Authentication Investigation Agent's Security-only model
     assert provider.get_event("SYN-A-SEC-1") is None  # another scenario
 
 

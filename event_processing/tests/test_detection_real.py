@@ -32,18 +32,18 @@ BASELINE_COUNTS = {
     "S03": {"R-AUTH-03": 6, "R-EXEC-01": 4, "R-FILE-01": 3, "R-LOG-01": 1},
 }
 
-# Re-pinned for the owner-requested descriptive schema identifiers. Comparison
-# with the pre-migration run proved only schema_version and the dependent corpus
-# manifest hash changed. Counts, triggers and all detection content are unchanged;
-# the canonical behavioral digests below pin that independent comparison too.
+# PR #10 plus descriptive schema identifiers. Independent replay against the
+# unchanged upstream commit proves equivalent content after removing namespace
+# metadata. Compared with the prior feature run, only R-EXEC-02 version 1 -> 2
+# changes. The canonical digests pin all detection content, including versions.
 BASELINE_DIGESTS = {
-    "S01.json": "bddcc3184d80a5ce07a27563d2f2a20a47af90830a418fc722d5a1dfc4318161",
-    "S02.json": "549afd3e9821a045b8b84cd425d0df592f6efc996bb5e26ee3e79f155f8b654a",
-    "S03.json": "dcd730c0e8eea90cf405906e9e2bed9c3c9dcca6586708cc52af7f56e0718028",
+    "S01.json": "2222118a463431303380867fd29b9193a4935fa1f2bef92f1c3f4d998e4fe158",
+    "S02.json": "63a6b2e231eac747967171d0291f0e7e73805ae822f2c9a80a9748ddcada04e6",
+    "S03.json": "6ed830c1c52b8448567c8bd6d2e47cfda082b3a040e270e1b51cc66475ffc3c7",
     "summary.json": "a16836328abd1136bfb21fa573d221a6227c88c237d8544ab0783a645af8395c",
 }
 
-BEHAVIOR_DIGESTS = {'S01.json': 'bd5e6191bbe96e16b47907b83a3fdf4702e47cac6bad1cc722020db5c2d19ba5', 'S02.json': 'ba6ec25d1454b0be00c1d9b33c40ef3cda02f68cc0943b87ff9faa150ab1d72d', 'S03.json': '2a9143f12c629d5ad0150e677a133c3503e6d93a0daed1370bc67965544b013f'}
+BEHAVIOR_DIGESTS = {'S01.json': '7c67e52703d6099f13bd8ca3a1ee57f84dd1b2cc5141df2000d5ec2d9c9db369', 'S02.json': 'fcca13c0b322c2b73bad625d2b18866f279862332b2c0e463751fbdfead5fea7', 'S03.json': '0f8123efd5dfac765c76bcd5dfb3e709806e1b73154438b337d402f09cdf4fff'}
 
 RULE_VERSIONS = {rule.spec.rule_id: rule.spec.version for rule in RULES}
 

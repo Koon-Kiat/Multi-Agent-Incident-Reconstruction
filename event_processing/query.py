@@ -109,7 +109,12 @@ class EventStore:
         self._limits = limits or QueryLimits()
         by_id: dict[str, NormalisedEvent] = {}
         by_scenario: dict[str, list[NormalisedEvent]] = {}
-        for event in events:
+        for original in events:
+            # Detached on the way in: `EventStore(events)` is public, and a caller that keeps the
+            # list can still mutate an event's `event_data` dict after construction. Indexing the
+            # caller's object would let that mutation change later answers, so the store owns a
+            # deep copy instead.
+            event = original.model_copy(deep=True)
             if event.evidence_id in by_id:
                 raise QueryError(f"duplicate evidence_id in the corpus: {event.evidence_id}")
             by_id[event.evidence_id] = event
@@ -131,15 +136,18 @@ class EventStore:
         manifest = _read_corpus_manifest(directory)
         events: list[NormalisedEvent] = []
         for scenario in manifest.scenarios:
-            path = directory / scenario.jsonl.filename
+            path = _corpus_file(directory, scenario.jsonl.filename)
             _verify_jsonl(path, scenario.jsonl)
             lines = path.read_text(encoding="utf-8-sig").splitlines()
             if len(lines) != scenario.jsonl.line_count:
                 raise QueryError(
                     f"corpus file {path} holds {len(lines)} lines, manifest declares {scenario.jsonl.line_count}"
                 )
-            for line in lines:
-                event = event_from_json(line)
+            for number, line in enumerate(lines, start=1):
+                try:
+                    event = event_from_json(line)
+                except (ValidationError, json.JSONDecodeError) as error:
+                    raise QueryError(f"corpus file {path} line {number} is not a valid event: {error}") from error
                 if event.scenario_id != scenario.scenario_id:
                     raise QueryError(f"corpus file {path} holds an event of scenario {event.scenario_id!r}")
                 events.append(event)
@@ -310,12 +318,41 @@ class EventStore:
 
 
 def _detached(event: NormalisedEvent) -> NormalisedEvent:
-    """A copy that shares no mutable state with the store.
+    """A deep copy that shares no mutable state with the store, at any nesting depth.
 
-    Every other field is a ``str``, ``int``, ``bool`` or ``tuple`` and is therefore already
-    immutable, so detaching ``event_data`` — the only dict — is what actually matters.
+    Every other field is a ``str``, ``int``, ``bool`` or ``tuple`` and therefore already
+    immutable, but ``event_data`` is a dict whose values can themselves be containers once Authentication Investigation Agent's
+    JSON-typed events pass through the adapter, so a shallow copy of the dict would still expose
+    the store to a caller that mutates a nested object.
     """
-    return event.model_copy(update={"event_data": dict(event.event_data)})
+    return event.model_copy(deep=True)
+
+
+def _corpus_file(directory: Path, filename: str) -> Path:
+    """Resolve one manifest ``filename`` to a direct child of the corpus directory.
+
+    A manifest names a *file*, not a path: an absolute path, a separator, ``.``/``..`` or an
+    empty name is a malformed manifest, not a file to open. A symlink is resolved too, so a link
+    planted in the corpus directory that points outside it is refused rather than read.
+    """
+    if (
+        not filename
+        or filename in (".", "..")
+        or "/" in filename
+        or "\\" in filename
+        or Path(filename).is_absolute()
+        or Path(filename).name != filename
+    ):
+        raise QueryError(f"corpus manifest names {filename!r}; a scenario file must be a plain file name")
+    path = directory / filename
+    try:
+        resolved = path.resolve()
+        root = directory.resolve()
+    except OSError as error:
+        raise QueryError(f"corpus file {path} could not be resolved: {error}") from error
+    if not resolved.is_relative_to(root):
+        raise QueryError(f"corpus file {path} resolves outside the corpus directory {directory}")
+    return path
 
 
 def _field(event: NormalisedEvent, name: str) -> str | None:

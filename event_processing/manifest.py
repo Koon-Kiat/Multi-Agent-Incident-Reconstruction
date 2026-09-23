@@ -31,7 +31,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from event_processing.ids import CHANNEL_CODES
+from event_processing.ids import CHANNEL_CODES, is_reserved_scenario_id
 from event_processing.timeutil import iso_to_ticks
 
 MANIFEST_FILENAME = "manifest.json"
@@ -132,6 +132,11 @@ def load_scenario(scenario_dir: Path | str, *, verify_hashes: bool = True) -> Sc
 
     files = tuple(_source_file(directory, entry, shape) for entry in _manifest_entries(manifest, directory))
     scenario_id = _require_str(manifest, "scenario_id", directory)
+    if is_reserved_scenario_id(scenario_id):
+        raise ManifestError(
+            f"{directory}: scenario_id {scenario_id!r} is reserved; a scenario run file would "
+            "collide with detect's own summary.json"
+        )
     metadata_scenario_id = metadata.get("scenario_id")
     if metadata_scenario_id is not None and metadata_scenario_id != scenario_id:
         raise ManifestError(

@@ -134,11 +134,13 @@ def test_the_rule_catalogue_is_sorted_unique_and_fully_specified():
     # (phase-3 F5). Version 4: the same two rules moved to the T3.2 planner-fixed semantics —
     # R-AUTH-01 anchored on each success, R-AUTH-02 on the failure burst (phase-3 F7). Version 5:
     # R-AUTH-02 was redefined by T3.2's "Planner amendment A1" to report only the failures no
-    # R-AUTH-01 detection claims. Everything else is v1.
+    # R-AUTH-01 detection claims. Phase 6 (B6): R-EXEC-02's PowerShell test became a whole-executable
+    # match, a logic change, so it moved to v2. Everything else is v1.
     expected_versions = {
         "R-AUTH-01": "4",
         "R-AUTH-02": "5",
         "R-EXEC-01": "2",
+        "R-EXEC-02": "2",
         "R-EXEC-03": "2",
     }
     for rule in RULES:
@@ -1064,6 +1066,28 @@ def test_a_non_process_event_with_a_marked_command_line_is_ignored():
 def test_the_marked_command_line_must_be_powershell():
     events = [_proc(1, 0, image=CMD, command_line="cmd.exe /c tool.exe -enc abc")]
     assert run_rule("R-EXEC-02", events) == ()
+
+
+@pytest.mark.parametrize(
+    ("image", "command_line"),
+    (
+        # B6: `notpowershell.exe` contains the old substring; it is not PowerShell.
+        ("C:\\Tools\\notpowershell.exe", "notpowershell.exe -enc SQBFAFgA"),
+        ("C:\\Tools\\pwshish.exe", "pwshish -enc SQBFAFgA"),
+        ("C:\\Tools\\notpowershell.exe", "C:\\Tools\\notpowershell.exe -enc SQBFAFgA"),
+        ("C:\\Tools\\pwshish.exe", "pwshish.exe -enc SQBFAFgA"),
+    ),
+)
+def test_a_powershell_lookalike_never_fires_the_powershell_rule(image: str, command_line: str):
+    event = _proc(1, 0, image=image, command_line=command_line)
+    assert run_rule("R-EXEC-02", [event]) == ()
+
+
+def test_a_powershell_token_in_the_command_line_fires_even_with_a_non_powershell_image():
+    event = _proc(1, 0, image=CMD, command_line="powershell.exe -enc SQBFAFgA")
+    detections = run_rule("R-EXEC-02", [event])
+    assert len(detections) == 1
+    assert detections[0].trigger_evidence_ids == ("SYN-B-SEC-1",)
 
 
 # --- R-EXEC-03 ---------------------------------------------------------------------

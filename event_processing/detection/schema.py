@@ -125,7 +125,9 @@ class DetectionRun(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
-    schema_version: str = DETECTION_RUN_SCHEMA_VERSION
+    # Pinned to the exact constant: consumers (and detect's own stale-file marker) identify a run
+    # by this version, so a document declaring another one is not a run this package understands.
+    schema_version: Literal[DETECTION_RUN_SCHEMA_VERSION] = DETECTION_RUN_SCHEMA_VERSION
     scenario_id: str = Field(pattern=SCENARIO_ID_RE.pattern)
     corpus_manifest_sha256: str = Field(pattern=SHA256_PATTERN)
     rules: tuple[RuleRecord, ...]
@@ -174,7 +176,7 @@ class DetectionSummary(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
     artifact: Literal["detection-summary"] = DETECTION_SUMMARY_MARKER
-    schema_version: str = DETECTION_RUN_SCHEMA_VERSION
+    schema_version: Literal[DETECTION_RUN_SCHEMA_VERSION] = DETECTION_RUN_SCHEMA_VERSION
     corpus_manifest_sha256: str = Field(pattern=SHA256_PATTERN)
     scenarios: tuple[ScenarioSummary, ...]
 

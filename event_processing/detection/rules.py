@@ -83,7 +83,9 @@ Declared thresholds and vocabularies
 ``SUSPICIOUS_PARENT_SECONDARY_TECHNIQUE`` = T1059
                                         R-EXEC-03: the spawned interpreter, named in the rationale.
 ``ENCODED_COMMAND_PATTERNS``            R-EXEC-02: encoded/hidden/downloader PowerShell markers.
-``POWERSHELL_COMMAND_MARKERS``          R-EXEC-02: the command line must actually be a PowerShell one.
+``POWERSHELL_COMMAND_MARKERS``          R-EXEC-02: shell names; ``POWERSHELL_EXECUTABLES`` derives
+                                        the whole-basename match from them, so a lookalike binary
+                                        such as ``notpowershell.exe`` is not PowerShell (B6).
 ``LSASS_ACCESS_MASKS``                  R-CRED-01: documented PROCESS_VM_READ / ALL_ACCESS combos.
 ``FILE_DROP_EXTENSIONS``                R-FILE-01: executable and script payload types.
 ``FILE_DROP_USER_APP_DATA_MARKERS``     R-FILE-01: a path segment pair, so ``\\Users\\<x>\\AppData\\`` holds both.
@@ -201,6 +203,12 @@ ENCODED_COMMAND_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 POWERSHELL_COMMAND_MARKERS = ("powershell", "pwsh")
+
+# R-EXEC-02 applies only to a real PowerShell process. The shell names are matched as whole
+# executable basenames (the image's, or a command-line token's), not as substrings: a substring
+# match fired on `notpowershell.exe` and `pwshish`, which are not PowerShell at all. Derived from
+# the marker vocabulary above, so no new shell name is introduced here.
+POWERSHELL_EXECUTABLES = frozenset(f"{marker}.exe" for marker in POWERSHELL_COMMAND_MARKERS)
 
 LSASS_ACCESS_MASKS = frozenset({0x1010, 0x1410, 0x1418, 0x1438, 0x143A, 0x1F0FFF, 0x1FFFFF})
 
@@ -582,7 +590,7 @@ def detect_encoded_powershell(events: Sequence[NormalisedEvent]) -> tuple[Detect
         if not _is_process_creation(event):
             continue
         command_line = event.event_data.get("CommandLine")
-        if not command_line or not _is_powershell_command_line(command_line):
+        if not command_line or not _is_powershell_command_line(command_line, _process_image(event)):
             continue
         markers = [name for name, pattern in ENCODED_COMMAND_PATTERNS if pattern.search(command_line)]
         if not markers:
@@ -768,9 +776,27 @@ def _windows(
     return tuple(windows)
 
 
-def _is_powershell_command_line(command_line: str) -> bool:
-    lowered = command_line.lower()
-    return any(marker in lowered for marker in POWERSHELL_COMMAND_MARKERS)
+def _is_powershell_command_line(command_line: str, image: str | None = None) -> bool:
+    """True when the process is PowerShell: the image names one, or a command-line token does.
+
+    The comparison is against whole executable basenames, so ``notpowershell.exe`` and
+    ``pwshish`` never match however their text contains ``powershell`` or ``pwsh`` as a substring.
+    """
+    if _executable_name(image) in POWERSHELL_EXECUTABLES:
+        return True
+    return any(_executable_name(token) in POWERSHELL_EXECUTABLES for token in _command_line_tokens(command_line))
+
+
+def _executable_name(value: str | None) -> str:
+    """The lower-cased basename of a Windows image path or command-line token, extension included."""
+    if not value:
+        return ""
+    return value.replace("/", "\\").rsplit("\\", 1)[-1].casefold()
+
+
+def _command_line_tokens(command_line: str) -> tuple[str, ...]:
+    """Split a command line on whitespace and quotes, so a quoted executable token is its own."""
+    return tuple(part for part in re.split(r"[\s\"']+", command_line) if part)
 
 
 def _is_run_key(target_object: str | None) -> bool:
@@ -906,8 +932,11 @@ _SPECS: tuple[RuleSpec, ...] = (
     ),
     RuleSpec(
         rule_id="R-EXEC-02",
-        version="1",
-        description="PowerShell command line with an encoded, hidden-window or downloader marker",
+        version="2",
+        description=(
+            "PowerShell process (whole executable name, never a substring) whose command line "
+            "carries an encoded, hidden-window or downloader marker"
+        ),
         attack_technique="T1059.001",
         severity="high",
         params={

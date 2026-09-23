@@ -11,12 +11,17 @@ second definition of the contract.
 Mapping rules
 -------------
 
-* Only ``Security`` events 4624 and 4625 become an ``AuthenticationEvent``. Every other event
-  — Sysmon, or another Security event ID — is outside Authentication Investigation Agent's authentication provider contract,
-  so ``get_event`` returns ``None`` and ``query`` never offers it. ``None`` also covers a
-  malformed ID and a well-formed ID the corpus does not hold: Authentication Investigation Agent's contract has one
-  representation for "there is no such authentication event", and Event Processing & Detection Engine's own
+* Every ``Security`` event becomes an ``AuthenticationEvent`` under **exact lookup**, whatever
+  its Event ID: Authentication Investigation Agent's own contract fixture requires ``get_event`` to return a Security 4634
+  unchanged ("exact lookup retains that Security record"), and ``authentication_agent.models.AuthenticationEvent``
+  places no Event-ID restriction on the model. A Sysmon event is outside Authentication Investigation Agent's contract and
+  returns ``None``. ``None`` also covers a malformed ID and a well-formed ID the corpus does not
+  hold: Authentication Investigation Agent's contract has one representation for "there is no such event", and Event Processing & Detection Engine's own
   :class:`~event_processing.query.LookupResult` keeps the three cases apart for callers that need them.
+* ``query`` is narrower than ``get_event``: it offers only the ``Security`` events whose Event ID
+  the request admits (4624/4625 by default, and ``QueryRequest`` permits no others), because the
+  agent tools must see authentication evidence only. The pre-selection is an optimisation; Authentication Investigation Agent's
+  ``matches`` remains the sole decision on what the request admits.
 * ``event_data`` is copied verbatim, values unchanged, so Authentication Investigation Agent's ``account_of`` fallback to
   ``TargetUserName`` keeps working. ``user`` and ``host`` are passed through untouched: Event Processing & Detection Engine
   never case-folds or strips a domain.
@@ -53,11 +58,15 @@ class CorpusAuthenticationProvider:
         self._limits = limits or Limits()
 
     def get_event(self, evidence_id: str) -> AuthenticationEvent | None:
-        """Return the authentication view of an exact event, or ``None`` when there is none."""
+        """Return Authentication Investigation Agent's view of an exact event, or ``None`` when there is none.
+
+        Any Security record is preserved, not only 4624/4625: Authentication Investigation Agent's contract fixture looks up a
+        Security 4634 and requires it back unchanged. :meth:`query` is the narrower door.
+        """
         found = self._store.lookup(evidence_id)
         if found.status != "found" or found.event is None:
             return None
-        return _authentication_event(found.event)
+        return _security_event(found.event)
 
     def query(self, request: QueryRequest) -> QueryResult:
         """Return the authentication events ``request`` selects, in Authentication Investigation Agent's order.
@@ -70,7 +79,7 @@ class CorpusAuthenticationProvider:
         selected = [
             event
             for event in (
-                _authentication_event(candidate)
+                _security_event(candidate)
                 for candidate in self._store.scenario_events(request.scenario_id)
                 if candidate.channel == SECURITY_CHANNEL and candidate.source_event_id in AUTH_EVENT_IDS
             )
@@ -83,9 +92,15 @@ class CorpusAuthenticationProvider:
         )
 
 
-def _authentication_event(event: NormalisedEvent) -> AuthenticationEvent | None:
-    """Authentication Investigation Agent's authentication view of one normalised event, or ``None`` when it is out of contract."""
-    if event.channel != SECURITY_CHANNEL or event.source_event_id not in AUTH_EVENT_IDS:
+def _security_event(event: NormalisedEvent) -> AuthenticationEvent | None:
+    """Authentication Investigation Agent's view of one normalised Security event, or ``None`` when it is out of contract.
+
+    The only channel check is Authentication Investigation Agent's own model constraint (``channel == "Security"``); the Event ID
+    is deliberately not filtered here, because Authentication Investigation Agent's model and contract accept any Security record
+    under exact lookup. :meth:`CorpusAuthenticationProvider.query` applies the narrower Event-ID
+    filter before it calls this.
+    """
+    if event.channel != SECURITY_CHANNEL:
         return None
     return AuthenticationEvent(
         evidence_id=event.evidence_id,
