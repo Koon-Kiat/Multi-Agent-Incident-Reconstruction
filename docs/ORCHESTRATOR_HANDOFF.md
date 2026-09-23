@@ -117,13 +117,18 @@ remains available for other components.
 ## Result and trace contract
 
 New output metadata identifies `authentication-result-v2`,
-`authentication-prompt-v8` and `authentication-config-v3`.
+`authentication-prompt-v16` and `authentication-config-v3`.
 The v1 finding/status/request fields are retained. V2 adds
 `metadata.operations` and `metadata.evidence_readbacks`; readers using an old
 strict v1 schema must update. The current model can still read saved v1 results,
 which default to an empty trace and zero readbacks. No provider signature changes
 are needed. Export the current schema with
 `python -m authentication_agent.investigate_corpus --schema`.
+
+The Authentication Investigation Agent follow-up leaves this v2 handoff unchanged. A short internal model
+assessment and decoder query-limit constraints do not add result fields or
+change caller requirements. See the [follow-up report](AUTHENTICATION_AUTONOMY.md)
+for measured optional retrieval and the remaining model-selection limitations.
 
 | Result | Meaning |
 | --- | --- |

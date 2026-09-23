@@ -26,6 +26,27 @@ def test_structured_local_request():
     assert ModelReply.model_validate_json(client.complete([], ModelReply.model_json_schema(), Limits())).action == "finish"
 
 
+def test_response_diagnostics_keep_counts_without_thinking_or_machine_details():
+    def handler(_):
+        return httpx.Response(200, json={"done": True, "done_reason": "stop", "prompt_eval_count": 1234,
+            "eval_count": 234, "machine_detail": "do not retain", "message": {
+                "thinking": "do not retain", "content": '{"action":"finish","tool":null,"annotations":[]}'}})
+    client = OllamaClient(OllamaConfig(model="test-local"), httpx.MockTransport(handler))
+    client.complete([], {}, Limits())
+    assert client.last_response_metrics == {"prompt_eval_count": 1234, "eval_count": 234, "done_reason": "stop"}
+    assert "do not retain" not in json.dumps(client.metadata())
+    assert "last_response_metrics" not in client.metadata()
+
+
+def test_incomplete_response_records_output_budget_exhaustion():
+    client = OllamaClient(OllamaConfig(model="test-local"), httpx.MockTransport(lambda _: httpx.Response(200,
+        json={"done": True, "done_reason": "length", "prompt_eval_count": 1000, "eval_count": 2048})))
+    with pytest.raises(InvestigationError, match="incomplete_model_response"):
+        client.complete([], {}, Limits())
+    assert client.last_response_metrics["done_reason"] == "length"
+    assert client.last_response_metrics["eval_count"] == 2048
+
+
 def test_absolute_request_deadline():
     async def handler(_):
         await asyncio.sleep(3)

@@ -1,5 +1,9 @@
 # Authentication corpus integration and validation
 
+This is the historical PR #9 integration report. PR #9 was merged on 2026-09-23.
+The subsequent Authentication Investigation Agent investigation is documented in the
+[autonomous follow-up report](AUTHENTICATION_AUTONOMY.md).
+
 Updated 2026-09-23 on `codex/authentication-corpus-integration`, continuing PR #9.
 PR #10 was already integrated before this work. The branch contained main
 `9dfe89c` through merge `d9d9a63`; the starting feature commit was `4f249ed`.

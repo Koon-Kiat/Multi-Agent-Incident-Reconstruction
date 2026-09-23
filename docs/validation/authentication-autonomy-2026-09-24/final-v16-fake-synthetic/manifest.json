@@ -1,0 +1,165 @@
+{
+  "completed_at_utc": "2026-09-23T18:50:12.855460+00:00",
+  "python": "3.14.6",
+  "synthetic_only": true,
+  "runtime": {
+    "runtime": "fake"
+  },
+  "source_sha256": {
+    "agent.py": "d0e6713c44415348a62e0288dd5245d189d037d271760cdb9abf7ff17dc90ef8",
+    "models.py": "a3a9cb5d722eeaaf10122ab3e7f9b125501401fae4b43146d6ff83994274d957",
+    "config.py": "75823cb9b5d61773e17425a1387cfa64fd21d0d91363376d09bd297dde26d57b",
+    "prompts.py": "f8dd4373549b5090948923d684701bfde9a594dfd35f23db41011a68ae14e8d4",
+    "llm/ollama_client.py": "dec04c3d1e8cf4b468b982f55bb93d204fa052df50be0720e10e16b8aa77ed46",
+    "fixtures/synthetic_events.json": "84ea6681f3f4b2435d984ca4ce0c4009ab501df182018f701a32c1e0b8b555a5",
+    "testing/factual_checks.py": "ff6fc2e4a9e58dc109e82f2a7ab15896b5d6c6b0963cf49de92c43a5262cb04f",
+    "validate_synthetic.py": "ea2a8b82b2dda599192e3ba10ff914b1a98dd8349540958e65c9f2befa3d943a"
+  },
+  "cases": [
+    {
+      "case": "SYN-A",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.004,
+      "file": "SYN-A.json",
+      "sha256": "2cb4c4e6e5418e89dabe171ad1246cf45b46be7a348ae920912a117cb5284d97"
+    },
+    {
+      "case": "SYN-B",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "SYN-B.json",
+      "sha256": "3c1337dee83a9a9d9429c464395cc5fc5771b93a5cdb3c43039b6d19e4866428"
+    },
+    {
+      "case": "SYN-C",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "SYN-C.json",
+      "sha256": "a0e87ead6b119f3ac3ecf04727d9b7412f67e444361fe17e592a5405b8c30344"
+    },
+    {
+      "case": "SYN-D",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "SYN-D.json",
+      "sha256": "89d7e84629e8bb71cb8529c532fa57af38cf98028b904686ccb62e437875eeb0"
+    },
+    {
+      "case": "SYN-E",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.002,
+      "file": "SYN-E.json",
+      "sha256": "19b1b7b13810c0c0e12d83ad01e687952888257c52951cfa1ed40b24d648bab4"
+    },
+    {
+      "case": "SYN-F",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "SYN-F.json",
+      "sha256": "64bb65941a6f65516992d51848803bd85970b61fac6ac7fd242705c004b3ff22"
+    },
+    {
+      "case": "SYN-H1",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.002,
+      "file": "SYN-H1.json",
+      "sha256": "494cdebcf28a73ef9339cc1549895b775ca5e740528de58f6622f320b48eed86"
+    },
+    {
+      "case": "SYN-H2",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.002,
+      "file": "SYN-H2.json",
+      "sha256": "d891030096908fc5821d8baf3bb97e968588dea14a9d53d6c7fe658a3d2d5d7b"
+    },
+    {
+      "case": "SYN-I",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "SYN-I.json",
+      "sha256": "d316078bfd5c5aba4e609d980da1f859cdd0355a0b8197dc78251685e016488f"
+    },
+    {
+      "case": "get_existing",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.005,
+      "file": "get_existing.json",
+      "sha256": "0c591d06ce9f532a3fedc20130c666c86e83de87a3f8d02c0f810ff592710d59"
+    },
+    {
+      "case": "get_missing",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.005,
+      "file": "get_missing.json",
+      "sha256": "ad4b3fb8410ddfef1bf84aeb3066ea35c7282ec1f0bd61fb60ff3a6e3bea77a1"
+    },
+    {
+      "case": "query_tool",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.005,
+      "file": "query_tool.json",
+      "sha256": "030af96eb79d1f3e750e89bb64afe10eb2d0d6e4e8de2886acc8f6cdd58f464b"
+    },
+    {
+      "case": "account_history",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.006,
+      "file": "account_history.json",
+      "sha256": "3aa8f5fac75229ab4d1e71370c6bc27e1b48c318c07ce0af8c735d24a1f06dc9"
+    },
+    {
+      "case": "tool_budget",
+      "status": "failed",
+      "error_code": "tool_budget_exhausted",
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "tool_budget.json",
+      "sha256": "f13fabcd69c22cc89d25e23f550a60f3e818eaa1b5a7ab559011d5b9c155c861"
+    },
+    {
+      "case": "bounded_query",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "bounded_query.json",
+      "sha256": "3dc69c1251cc2f03fdab08512385501b1e710babb158dffd5678e1927a74f6f3"
+    },
+    {
+      "case": "interpretation",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.003,
+      "file": "interpretation.json",
+      "sha256": "ab5ea6e26ecb4f723312a5bd8b03502cac5ac89b33cb390c8eb70512f35a0bda"
+    }
+  ],
+  "scope": "Authentication Investigation Agent synthetic development assertions; not independent verification or attack-detection evaluation"
+}

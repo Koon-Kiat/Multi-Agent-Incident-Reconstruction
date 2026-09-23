@@ -1,0 +1,32 @@
+import json
+from pathlib import Path
+from authentication_agent.config import OllamaConfig
+from authentication_agent.investigate_corpus import local_model_runtime
+from authentication_agent.llm.ollama_client import OllamaClient
+from authentication_agent.validate_autonomy import evaluation_cases, availability_probe, assess
+from authentication_agent.validate_investigations import run_case, source_hashes
+from authentication_agent.validate_synthetic import write_json_artifact
+from authentication_agent.__main__ import synthetic_provider
+from event_processing.adapters.authentication_provider import CorpusAuthenticationProvider
+from event_processing.query import EventStore
+store=EventStore.load("out/corpus")
+output=Path("docs/validation/authentication-autonomy-2026-09-24/thinking-v13-autonomy")
+if output.exists(): raise SystemExit("preserve earlier experiment")
+output.mkdir()
+config=OllamaConfig(model="qwen3:8b",num_ctx=8192,think=True,temperature=0.0,seed=0)
+runtime=local_model_runtime(config)
+llm=OllamaClient(config)
+before=source_hashes()
+summaries=[]
+for name,kind,request,limits,required,outcome,question in evaluation_cases(store):
+    limits=limits.model_copy(update={"max_output_tokens":4096,"model_timeout_seconds":120})
+    provider=CorpusAuthenticationProvider(store,limits) if kind=="corpus" else synthetic_provider(limits)
+    witness=availability_probe(request,provider,limits,outcome)
+    case=run_case(name,"autonomy",request,provider,llm,limits,required)
+    assessment=assess(case,outcome)
+    case["evaluation_only"]={"unresolved_question":question,"availability_witness":witness,"assessment":assessment}
+    file=name+".json"
+    digest=write_json_artifact(output/file,case)
+    item={"case":name,"file":file,"sha256":digest,"check_errors":case["check_errors"],**assessment}
+    summaries.append(item); print(json.dumps(item),flush=True)
+write_json_artifact(output/"manifest.json",{"runtime":runtime,"source_sha256":before,"source_unchanged_during_run":before==source_hashes(),"cases":summaries})

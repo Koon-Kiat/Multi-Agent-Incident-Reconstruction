@@ -108,6 +108,8 @@ class RecordedLLM:
             entry["error_code"] = error.code
             raise
         finally:
+            if isinstance(self.llm, OllamaClient):
+                entry["response_metrics"] = dict(self.llm.last_response_metrics)
             entry["elapsed_seconds"] = round(time.monotonic() - started, 3)
             self.calls.append(entry)
 
