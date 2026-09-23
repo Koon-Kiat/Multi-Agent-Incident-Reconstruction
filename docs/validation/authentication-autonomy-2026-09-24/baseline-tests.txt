@@ -1,0 +1,2 @@
+Command: python -m pytest -q --basetemp .test-tmp-autonomy-baseline
+774 passed, 3 skipped in 95.69s

@@ -1,0 +1,33 @@
+# M3 follow-up completion audit
+
+Scope: the user's ten-part Authentication Investigation Agent follow-up request.
+This audit treats reliable model selection as unproven. The request explicitly
+permits an honest limitation after reasonable focused improvements; it does not
+permit fabricated success. Actual useful retrieval is demonstrated separately.
+
+| Requirement | Current evidence and disposition |
+| --- | --- |
+| 1. Current baseline and PR state | PR #9 merged 2026-09-23; fetched main `4ad96da`; clean starting tree; separate `codex/m3-autonomous-followup`. Fresh baseline manifest: 16 ordinary factual passes, zero optional calls; 7 required checks. Baseline full suite: 774 passed, 3 skipped. |
+| 2. Genuine specialised agent | Initial/required operations remain host-controlled. Every optional operation is parsed from an actual model reply and dispatched through the unchanged `AuthenticationTools` boundary. No fixed ordinary plan, injected expected ID, scenario-specific production branch, or manufactured mandatory follow-up. |
+| 3. Initial coverage and genuine gaps | Complete S01/S02/S03 windows need no re-fetch. Existing two-record coverage cases have real additional records; independent approved-tool witnesses prove availability without entering model input. |
+| 3. Context/prompt/tools/schema/results | Inspected agent, prompts, model schema, tools, transport, corpus/synthetic evaluators and original recordings. Actual experiments distinguish prompt-only non-improvement, optional assessment omission, per-query default mismatch, capped-prefix repetition, and successful returned-evidence review. The report identifies contributing factors without claiming one proven exclusive cause. |
+| 3. Context/output budgets | Standard configuration preserved. Selected count-only runtime metrics recorded. Useful ordinary turns fit well below budgets. Thinking experiment length failures remain visible; no thinking text or machine specifications retained. Token counters do not prove all long contexts are untrimmed. |
+| 4. Fair evaluation | New six-case evaluator: sufficient, two useful opportunities, empty, missing/conflicting fields, exact missing record. Witness/expectations are evaluation-only. The absent exact record is a trusted requirement and is never autonomy credit. Actual messages, replies, arguments, initial/retrieved events, provider calls, receipts and final results are saved. |
+| 5. Focused improvements | Bounded internal assessment; role/tool/coverage guidance; explicit decoder query limits aligned with active cap and identical model-facing tool schemas; privacy-safe token counts; separate behavior evaluator. Rejected broader prompt/context/runtime variants remain recorded. |
+| 6. Typed names and arguments | New cap regression plus existing schema, malformed/unsupported/cross-tool tests. The final decoder cannot advertise an omitted 100-record default under a 2-record cap. Host rejection remains independently tested. |
+| 6. Original scope and event types | Existing required/model tests cover scenario/window escape and real 4634/4688 rejection. Original authentication query restrictions and provider contracts unchanged. |
+| 6. Budgets and execution | Shared limits and duplicate cache unchanged, including rejected attempt accounting and pre-inference required budget rejection. Actual selected success query executes through the sole approved boundary. |
+| 6. Returned evidence and continuation | Two final ordinary runs select 4624-only retrieval, receive new `SYN-A-SEC-4`, review updated events/counts, and finish with a cautious assessment. Receipts and next-turn model contexts prove this is model-directed retrieval. |
+| 6. Supported final findings and uncertainty | Exact source readback verifies completed findings, counts, IDs and 100ns ordering. Demonstrated run preserves sticky truncation and does not claim compromise. Missing IDs retain not-found uncertainty without substitution. |
+| 6. Non-repetition and consistency | **Not reliably achieved by Qwen3.** Actual redundant calls are reported and fail strict behavior checks. Provider re-execution is suppressed by the existing cache; attempts still consume budget. The final dedicated opportunity matrix fails all six useful-outcome targets. This limitation is not converted into a pass. |
+| 6. At least one genuine useful follow-up | **Demonstrated twice on final code and established runtime** in `final-v16-investigations/ordinary-synthetic_bounded-{1,2}.json`. Additional real-corpus examples exist only in clearly labeled experimental variants. No mandatory query is counted as autonomy. |
+| 7. Existing functionality/contracts | `verify_contract.py`: seven public schemas and positional/keyword entry signature identical to merged PR #9. `verify_recordings.py`: processing code, datasets and original provider contract unchanged; all six original EVTX hashes match. M4/M5/M6 implementation untouched. |
+| 8. Automated regression scope | Full final suite 790 passed/3 skipped; authentication 178 passed/1 skipped; all 30 real-corpus cases included and passed; provider modules each 13 passed; optional live smoke 1 passed/792 deselected; dependency check passed. Original required, optional, reference, missing, empty, truncated, duplicate and budget assertions retained. |
+| 8. Actual local inference/repeats | Installed qwen3:8b via local Ollama only. Ordinary matrix repeated twice, dedicated evaluation three times; thinking experiment and failures separately recorded. No alternate model, cloud inference or downloads. |
+| 8. Categories and historical expectations | A: ordinary facts 16/16; B: genuine useful retrieval twice but inconsistent; C: required checks 7/7; D: unchanged directed matrices 6/11 and 11/16. Both directed totals remain failures and are below historical PR #9 totals. |
+| 9. Documentation/reproduction | M3 report, README and handoff updated; complete commands/configurations, proof of useful retrieval, failure distinctions, limitations, normalized source readback and immutable artifact hashes supplied. No v2 change or unrelated component work. |
+| 10. Delivery | Separate follow-up PR, left unmerged. Exact commit, URL and final check status are recorded in the delivery response. The open model-selection limitation is prominent in the PR and report. |
+
+The permitted limitation path has been used for consistency and prescribed-plan
+following after multiple focused experiments. No claim is made that every
+investigation is now autonomous or that optional-call count measures quality.
