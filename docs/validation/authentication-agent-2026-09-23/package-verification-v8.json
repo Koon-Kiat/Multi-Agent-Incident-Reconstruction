@@ -1,0 +1,12 @@
+{
+  "wheel": "mair_incident_reconstruction-0.2.0-py3-none-any.whl",
+  "sha256": "e74342d0ff0c33b8ac853939b6a8a6fa68be1e780df89c60b65794eed4dfe19b",
+  "retired_package_paths": [],
+  "isolated_invocation": {
+    "status": "completed",
+    "findings": 7,
+    "required_status": "no_evidence",
+    "contract_version": "authentication-result-v2"
+  },
+  "fresh_staging": true
+}

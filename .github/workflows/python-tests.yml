@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   tests:
-    name: M3 and contribution tests
+    name: Python and contribution tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

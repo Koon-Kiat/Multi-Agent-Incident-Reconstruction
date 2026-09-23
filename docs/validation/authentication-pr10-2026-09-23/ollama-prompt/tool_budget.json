@@ -1,0 +1,85 @@
+{
+  "case": "tool_budget",
+  "elapsed_seconds": 2.832,
+  "check_errors": [],
+  "expected_error": "tool_budget_exhausted",
+  "result": {
+    "status": "failed",
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "findings": [],
+    "error_code": "tool_budget_exhausted",
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v3",
+      "configuration_version": "authentication-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "corpus_validation_trace": true,
+        "directed_first_tool": "get_authentication_event",
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 1,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "6f334ec1f6354af25e3e0943964bd1350bcd21e44e6416227b427a6215e9f862",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"S02-SEC-43503\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.808
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T02:04:30Z",
+        "end_utc": "2026-09-21T02:06:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "S02-SEC-43503",
+        "S02-SEC-43547",
+        "S02-SEC-43554",
+        "S02-SEC-43558",
+        "S02-SEC-43559",
+        "S02-SEC-43571",
+        "S02-SEC-43573",
+        "S02-SEC-43575",
+        "S02-SEC-43578",
+        "S02-SEC-43580",
+        "S02-SEC-43584",
+        "S02-SEC-43591"
+      ],
+      "truncated": false
+    }
+  ]
+}

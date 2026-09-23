@@ -1,0 +1,197 @@
+{
+  "case": "SYN-C",
+  "elapsed_seconds": 16.997,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-C",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "AUTH-ec1b70b7c212feb76769ff10",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-C",
+        "observed_events": {
+          "description": "Retrieved 3 failed logon(s) and 0 successful logon(s) with these recorded entity values.",
+          "failed_logons": 3,
+          "successful_logons": 0,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000000Z",
+          "last_utc": "2026-01-10T00:00:03.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-C-SEC-1",
+          "SYN-C-SEC-2",
+          "SYN-C-SEC-3"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v3",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 8,
+      "model_calls": 8
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "6e72005ee150b0c5036c87ab611800389ac256f8bcbf298ab81c2c2ef5f6c812",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"SYN-C-SEC-1\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.232
+    },
+    {
+      "request_sha256": "45c21e4ef887e477fe85a90be216d39c8d804c4a813aa8c69a613ada65c25bc6",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"SYN-C-SEC-1\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.192
+    },
+    {
+      "request_sha256": "813ac5fa0254fee4853c0e09a545134448ec65b6bd8ef0914933443e22a601d8",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"SYN-C-SEC-1\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.205
+    },
+    {
+      "request_sha256": "51f1591020b52793409c4b07669b2e237f1f3020f4cb1b49c58082d4b94e5de0",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"SYN-C-SEC-1\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.296
+    },
+    {
+      "request_sha256": "d560ff593c9e47b05d4023b980c2868df32180a405dd0b51e9917bbf78ecbd7e",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"SYN-C-SEC-1\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.301
+    },
+    {
+      "request_sha256": "ecd457ab2b2a38a9bbbdd98c1256e7d0679488c1a9087f3a7cc6aae1e0c95800",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"SYN-C-SEC-1\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.186
+    },
+    {
+      "request_sha256": "c55b25d91dabe10a384adcb9b25ee0317a9bbd2ee91f5c986cdcbd3faca59600",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"SYN-C-SEC-1\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 2.143
+    },
+    {
+      "request_sha256": "8dfa43a232dc178bfea5c7afbdab56db62a7bf6e1dc25b2fc61ffd826cf0c1c8",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
+      "elapsed_seconds": 1.392
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-C",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-C-SEC-1",
+        "SYN-C-SEC-2",
+        "SYN-C-SEC-3"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-3",
+      "found": true
+    }
+  ]
+}

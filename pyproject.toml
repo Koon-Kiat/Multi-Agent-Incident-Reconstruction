@@ -3,9 +3,9 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mair-m3"
-version = "0.1.0"
-description = "Standalone, local MAIR authentication investigation agent"
+name = "mair-incident-reconstruction"
+version = "0.2.0"
+description = "Local security event processing and evidence-based authentication investigation"
 requires-python = ">=3.11"
 dependencies = ["pydantic>=2.10,<3", "httpx>=0.28,<1", "python-evtx>=0.8.1,<1"]
 
@@ -13,16 +13,17 @@ dependencies = ["pydantic>=2.10,<3", "httpx>=0.28,<1", "python-evtx>=0.8.1,<1"]
 test = ["pytest>=8,<10"]
 
 [project.scripts]
-mair-m3 = "m3.__main__:main"
-mair-m2 = "m2.__main__:main"
+mair-authentication = "authentication_agent.__main__:main"
+mair-events = "event_processing.__main__:main"
+mair-investigate-authentication = "authentication_agent.investigate_corpus:main"
 
 [tool.setuptools.packages.find]
-include = ["m3*", "m2*"]
-exclude = ["m3.tests*", "m2.tests*"]
+include = ["authentication_agent*", "event_processing*"]
+exclude = ["authentication_agent.tests*", "event_processing.tests*"]
 
 [tool.setuptools.package-data]
-m3 = ["fixtures/*.json"]
+authentication_agent = ["fixtures/*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["m3/tests", "m2/tests", "tests"]
+testpaths = ["authentication_agent/tests", "event_processing/tests", "tests"]
 markers = ["ollama: optional test requiring explicitly configured local Ollama"]

@@ -1,0 +1,49 @@
+........................................................................ [  9%]
+..............................s..................................s...... [ 19%]
+........................................................................ [ 29%]
+...................s..ssssss............................................ [ 39%]
+........................................................................ [ 48%]
+..................sss................................................... [ 58%]
+.....................s.................................................. [ 68%]
+................................s.....................................s. [ 78%]
+..ssssssssssssss.........s.............................................. [ 87%]
+.............................ssssssssssss.s............................. [ 97%]
+.................                                                        [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] authentication_agent\tests\test_ollama_client.py:95: optional: set MAIR_RUN_OLLAMA_SMOKE=1 and MAIR_OLLAMA_MODEL
+SKIPPED [1] event_processing\tests\test_authentication_provider.py:161: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_detection_engine.py:399: symlinks are not available in this environment
+SKIPPED [1] event_processing\tests\test_detection_real.py:51: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_detection_real.py:56: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_detection_real.py:72: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_detection_real.py:84: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_detection_real.py:105: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_detection_real.py:117: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [2] event_processing\tests\test_evtx_reader.py:121: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_evtx_reader.py:133: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\conftest.py:62: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [2] event_processing\tests\conftest.py:62: original evidence out\no-evtx-ci-final\S02\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_query.py:384: symlinks are not available in this environment
+SKIPPED [1] event_processing\tests\test_query_real.py:34: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_query_real.py:47: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_query_real.py:60: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_query_real.py:64: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_query_real.py:84: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:63: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:71: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:80: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:89: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:94: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:100: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:115: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:119: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] event_processing\tests\test_real_corpus.py:124: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [3] tests\test_authentication_corpus.py:40: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] tests\test_authentication_corpus.py:67: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] tests\test_authentication_corpus.py:91: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [2] tests\test_authentication_corpus.py:103: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [2] tests\test_authentication_corpus.py:116: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [2] tests\test_authentication_corpus.py:132: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] tests\test_authentication_corpus.py:142: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+SKIPPED [1] tests\test_authentication_corpus.py:164: original evidence out\no-evtx-ci-final\S01\raw\Security.evtx is absent (Git LFS content not fetched)
+694 passed, 43 skipped in 5.79s

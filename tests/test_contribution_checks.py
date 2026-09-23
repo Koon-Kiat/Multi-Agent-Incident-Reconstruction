@@ -27,7 +27,7 @@ def test_missing_sections_and_template():
     assert len(policy.validate_pr_body(template.read_text())) == 3
 
 
-@pytest.mark.parametrize("subject", ["Add authentication query limits", "fix: handle missing evidence", "Fix: handle missing evidence", "Document M3 setup (#5)", "Merge branch 'main' into m3/authentication-investigation-agent", 'Revert "Add authentication query limits"', "Merge " + "x" * 120])
+@pytest.mark.parametrize("subject", ["Add authentication query limits", "fix: handle missing evidence", "Fix: handle missing evidence", "Document Authentication Investigation Agent setup (#5)", "Merge branch 'main' into authentication_agent/authentication-investigation-agent", 'Revert "Add authentication query limits"', "Merge " + "x" * 120])
 def test_valid_commit_subjects(subject):
     assert policy.validate_subject(subject) is None
 

@@ -1,0 +1,228 @@
+{
+  "case": "empty",
+  "elapsed_seconds": 27.83,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T00:00:00Z",
+      "end_utc": "2026-09-21T00:01:00Z"
+    },
+    "findings": [],
+    "error_code": null,
+    "uncertainty": [
+      "No authentication evidence was returned for this window; this does not establish absence of activity."
+    ],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v3",
+      "configuration_version": "authentication-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "corpus_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 8,
+      "model_calls": 8
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "3b0ea82731fec7fb553a8cd31064aa8cf62f647d5d8bab8d1bb73bcb9fcb7006",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 4.15
+    },
+    {
+      "request_sha256": "c30f761dc65e7f411133c5afa8a5766fbaf315cb429c30774ee6e9abde3b9a59",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 3.877
+    },
+    {
+      "request_sha256": "3b9f4e75a60557b54df1c3ce08a40902493d7fcacd8b73d901f983aa924f0685",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 3.904
+    },
+    {
+      "request_sha256": "5d2ba8e50eb1802c29527de3d8884f84298accab164ab2706a25415c98253e6e",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 4.025
+    },
+    {
+      "request_sha256": "2a8741e023eb822cda5ead2e0640aaf71cf2addc6cacd5a3187edc35ae5a31c0",
+      "reply": "{\"action\":\"tool\",\"tool\":{\"name\":\"query_authentication_events\",\"arguments\":{\"scenario_id\":\"S02\",\"start_utc\":\"2026-09-21T00:00:00Z\",\"end_utc\":\"2026-09-21T00:01:00Z\",\"event_ids\":[4624,4625],\"account\":null,\"host\":null,\"limit\":100}},\"annotations\":[]}",
+      "elapsed_seconds": 2.97
+    },
+    {
+      "request_sha256": "a0063fb46e13b99dae359791ba416a1a84d50f61810ee258466ca5c0bac64eeb",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 3.802
+    },
+    {
+      "request_sha256": "da9e134f73590f4e2ddc59de87c6f7e26238755cf47ce94a1c0390a20820e256",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 4.12
+    },
+    {
+      "request_sha256": "0e127485a91188ea8dffaa545973bc42985b24d64aadea4619fe1f573b0e7c75",
+      "reply": "{\"action\":\"finish\",\"tool\":null,\"annotations\":[]}",
+      "elapsed_seconds": 0.813
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "check": "full-suite",
+    "command": [
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "-ra",
+      "--basetemp",
+      ".test-tmp/final-pr10"
+    ],
+    "exit_code": 0,
+    "environment_override": {}
+  },
+  {
+    "check": "provider-contract",
+    "command": [
+      "-m",
+      "pytest",
+      "-q",
+      "event_processing/tests/test_authentication_provider_contract.py::TestCorpusAuthenticationProviderContract",
+      "--basetemp",
+      ".test-tmp/final-contract"
+    ],
+    "exit_code": 0,
+    "environment_override": {}
+  },
+  {
+    "check": "original-diagnostic",
+    "command": [
+      "-m",
+      "pytest",
+      "-q",
+      "authentication_agent/testing/check_processing_contract.py",
+      "--basetemp",
+      ".test-tmp/final-diagnostic"
+    ],
+    "exit_code": 0,
+    "environment_override": {}
+  },
+  {
+    "check": "ci-shape",
+    "command": [
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "-ra",
+      "--basetemp",
+      ".test-tmp/final-ci"
+    ],
+    "exit_code": 0,
+    "environment_override": {
+      "MAIR_DATASETS_DIR": "out/no-evtx-ci-final"
+    }
+  },
+  {
+    "check": "dependency-check",
+    "command": [
+      "-m",
+      "pip",
+      "check"
+    ],
+    "exit_code": 0,
+    "environment_override": {}
+  }
+]
