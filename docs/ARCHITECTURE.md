@@ -38,7 +38,7 @@ commands are `mair-events`, `mair-authentication` and
 `mair-investigate-authentication`.
 
 Schema identifiers describe content: `security-event-v1`, `security-corpus-v1`,
-`detection-run-v1`, `detection-score-v1` and `authentication-result-v1`.
+`detection-run-v1`, `detection-score-v1` and `authentication-result-v2`.
 Finding IDs now begin `AUTH-`. Original evidence IDs such as `S02-SEC-43584`
 and scenario IDs such as `S01` remain unchanged.
 
@@ -47,3 +47,12 @@ Update downstream imports/configuration and regenerate derived corpora and
 findings. No compatibility aliases for retired names are introduced. Earlier
 recordings remain immutable in Git history; current artifacts are regenerated.
 See the [migration guide](COMPONENT_NAMING.md) for the complete active interface.
+
+Within the Authentication Investigation Agent, trusted application requirements
+execute through the same bounded tools as optional model choices. The initial
+query remains mandatory; the optional typed `RequiredOperations` list is not a
+cross-agent plan. After it completes, the local model chooses whether to query
+further, reviews results and selects tentative interpretations. Python computes
+facts and validates references. Operation receipts distinguish these roles.
+Exact duplicate operations reuse the immutable invocation snapshot and still
+consume budget. See the [call boundary](ORCHESTRATOR_HANDOFF.md).

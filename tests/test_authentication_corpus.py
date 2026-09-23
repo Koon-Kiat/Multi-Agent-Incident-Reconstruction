@@ -16,7 +16,7 @@ from event_processing.schema import NormalisedEvent
 from event_processing.tests.conftest import real_datasets
 from event_processing.tests.synthetic import build_scenario_dir, make_event
 from event_processing.timeutil import ticks_to_iso
-from authentication_agent import InvestigationRequest, investigate
+from authentication_agent import InvestigationRequest, RequiredOperations, investigate
 from authentication_agent.config import Limits, OllamaConfig
 from authentication_agent.investigate_corpus import main
 from authentication_agent.llm.fake import FakeLLM
@@ -127,6 +127,44 @@ def test_real_non_authentication_exact_lookup_cannot_enter_findings(corpus_store
     assert not case["check_errors"]
     assert case["result"]["status"] == "failed"
     assert case["result"]["findings"] == []
+
+
+@pytest.mark.parametrize("scenario", ["S01", "S02", "S03"])
+def test_real_required_operations_preserve_exact_ids_scope_and_receipts(corpus_store, scenario):
+    from authentication_agent.validate_investigations import run_case as run_investigation
+    request = public_request(scenario)
+    limits = Limits()
+    provider = CorpusAuthenticationProvider(corpus_store, limits)
+    events = provider.query(QueryRequest(**request.model_dump())).events
+    anchor = next(event for event in events if event.user is not None)
+    missing = f"{scenario}-SEC-999999999"
+    calls = (
+        ToolCall(name="get_authentication_event", arguments={"evidence_id": missing}),
+        ToolCall(name="get_authentication_event", arguments={"evidence_id": anchor.evidence_id}),
+        ToolCall(name="query_authentication_events", arguments={**request.model_dump(), "event_ids": [4624]}),
+        ToolCall(name="get_account_authentication_history", arguments={**request.model_dump(), "account": anchor.user}),
+    )
+    case = run_investigation("required", "required", request, provider, FakeLLM(), limits, RequiredOperations.from_calls(*calls))
+    assert not case["check_errors"]
+    assert case["result"]["status"] == "completed"
+    receipts = case["result"]["metadata"]["operations"]
+    assert receipts[1]["status"] == "no_evidence" and receipts[1]["call"]["arguments"]["evidence_id"] == missing
+    assert receipts[2]["evidence_ids"] == [anchor.evidence_id]
+    assert all(provider.get_event(eid).source_event_id == 4624 for eid in receipts[3]["evidence_ids"])
+    assert all(provider.get_event(eid).user == anchor.user for eid in receipts[4]["evidence_ids"])
+    assert len([call for call in case["provider_calls"] if call["phase"] == "final_readback"]) == len(events)
+    assert not case["optional_actions"]  # Fake finishing cannot demonstrate model autonomy.
+
+
+@pytest.mark.parametrize("event_id", [4634, 4688])
+def test_real_required_non_authentication_record_fails_closed(corpus_store, event_id):
+    original = next(e for e in corpus_store.scenario_events("S03") if e.channel == "Security" and e.source_event_id == event_id)
+    request = InvestigationRequest(scenario_id="S03", start_utc=original.timestamp_utc,
+                                   end_utc=ticks_to_iso(original.timestamp_ticks + 1))
+    required = RequiredOperations.from_calls(ToolCall(name="get_authentication_event", arguments={"evidence_id": original.evidence_id}))
+    result = investigate(request, CorpusAuthenticationProvider(corpus_store), FakeLLM(), required_operations=required)
+    assert result.error_code == "provider_scope_violation" and not result.findings
+    assert result.metadata.model_calls == 0 and result.metadata.operations[-1].status == "failed"
 
 
 @pytest.mark.parametrize("error,code", [(TimeoutError(), "model_timeout"),

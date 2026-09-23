@@ -1,9 +1,11 @@
 # Authentication Investigation Agent
 
 The agent describes bounded Windows Security authentication evidence and lets a
-local model select optional tentative interpretations. It now runs against the
+local model choose optional queries, review their results and select tentative
+interpretations. It runs against the
 Event Processing & Detection Engine's corpus through `CorpusAuthenticationProvider`.
-The investigation call signature and evidence validation remain intact. Packages,
+Existing positional calls remain valid; an optional typed `required_operations`
+keyword supports trusted caller requirements. Evidence validation remains strict. Packages,
 commands, schema identifiers and finding IDs now use descriptive names; see the
 [migration guide](../docs/COMPONENT_NAMING.md). The orchestrator is not connected.
 
@@ -85,6 +87,11 @@ Python renders qualified text. Unsupported references fail the investigation;
 no free-form model narrative becomes a finding.
 
 Results contain status, request, findings, error code, uncertainty and metadata.
+Result v2 adds operation receipts that distinguish the initial query, trusted
+required operations and model-selected actions, plus separate final readback
+counts. Strict v1 consumers must update their output schema; the provider API and
+existing finding fields are unchanged. See the [programmatic handoff](../docs/ORCHESTRATOR_HANDOFF.md)
+for required exact lookup, filtered query and account-history examples.
 Empty results do not prove absence of activity. Failures contain no partial
 findings. Truncated results cover only retrieved evidence, with no pagination or
 completeness claim. Independent verification remains a separate responsibility.
@@ -108,6 +115,11 @@ Mandatory retrieval remains deterministic because Qwen3 does not reliably follow
 directed tool plans. Actions use the existing structured JSON protocol with typed arguments paired
 to each tool name; native Ollama function calling is not claimed. The host still
 enforces event scope, budgets and exact evidence references after model parsing.
+The decoder also binds annotations to existing observation/evidence pairs without
+choosing tools or interpretations for the model. Required operations run before
+model inference. Identical operations reuse their prior result; duplicates still
+consume budget and distinct filters/windows remain available. No automatic retries
+or model-generated mandatory plans are accepted.
 
 Final exact-ID reads are outside the model tool count and bounded by the retrieved
 union. The model deadline covers each HTTP request, not the whole investigation
@@ -125,6 +137,8 @@ python -m pytest -q tests/test_authentication_corpus.py --basetemp .test-tmp/int
 python -m pytest -q authentication_agent/testing/check_processing_contract.py --basetemp .test-tmp/compatibility
 python -m authentication_agent.validate_corpus --corpus out/corpus --mode fake --output-dir out/validation/fake
 python -m authentication_agent.validate_corpus --corpus out/corpus --mode ollama --model qwen3:8b --output-dir out/validation/ollama
+python -m authentication_agent.validate_investigations --corpus out/corpus --mode ollama --output-dir out/validation/ordinary-required
+python -m authentication_agent.examples.investigate_required_corpus --corpus out/corpus --ollama --required-id S02-SEC-999999999
 ```
 
 Use new/empty output directories. PR #10 resolved the compatibility diagnostic

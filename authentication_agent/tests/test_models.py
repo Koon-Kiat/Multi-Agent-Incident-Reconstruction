@@ -82,3 +82,24 @@ def test_model_tool_names_cannot_be_paired_with_another_argument_shape(name, arg
 def test_missing_lookup_id_remains_a_valid_request_not_a_claim():
     reply = ModelReply.model_validate_json('{"action":"tool","tool":{"name":"get_authentication_event","arguments":{"evidence_id":"SYN-A-SEC-999999999"}},"annotations":[]}')
     assert reply.tool.arguments == {"evidence_id": "SYN-A-SEC-999999999"}
+
+
+def test_grounded_decoder_only_binds_existing_annotation_pairs(provider, request_a):
+    from authentication_agent.agent import investigate
+    from authentication_agent.llm.fake import FakeLLM
+    result = investigate(request_a, provider, FakeLLM())
+    schema = ModelReply.grounded_schema(result.findings)
+    pairs = schema["$defs"]["Annotation"]["anyOf"]
+    assert len(pairs) == len(result.findings)
+    for branch, observation in zip(pairs, result.findings):
+        assert branch["properties"]["observation_id"]["const"] == observation.finding_id
+        evidence = branch["properties"]["evidence_ids"]
+        assert tuple(item["const"] for item in evidence["prefixItems"]) == observation.evidence_ids
+        assert evidence["minItems"] == evidence["maxItems"] == len(observation.evidence_ids)
+        assert branch["properties"]["interpretation"] == ModelReply.model_json_schema()["$defs"]["Annotation"]["properties"]["interpretation"]
+    # No approved tool/action is pinned to a validation plan or observed ID.
+    base = ModelReply.model_json_schema()
+    for definition in ("_ToolReply", "_GetTool", "GetArguments", "_QueryTool", "QueryRequest", "_HistoryTool", "HistoryArguments"):
+        assert schema["$defs"][definition] == base["$defs"][definition]
+    assert "minItems" not in schema["$defs"]["_FinishReply"]["properties"]["annotations"]
+    assert ModelReply.grounded_schema(())["$defs"]["_FinishReply"]["properties"]["annotations"]["maxItems"] == 0

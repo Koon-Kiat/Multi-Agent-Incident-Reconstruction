@@ -27,6 +27,14 @@ The broader `EventStore` remains available for cross-source evidence access by
 other components. An authentication-provider exact lookup does not authorize an
 authentication finding. The agent validates scope and event type independently.
 
+The agent's optional `required_operations` keyword uses this same provider API;
+no processing-side change is needed. New result v2 operation receipts distinguish
+required retrieval from optional model choices. Within one invocation identical
+operations reuse the verified snapshot, including absent lookups. Providers must
+remain consistent for the invocation; final exact record readbacks still run.
+Malformed or cross-scenario lookup arguments are now rejected by agent tools
+before provider access. The provider's broader exact-lookup behavior is unchanged.
+
 ## Contract and ownership verification
 
 All **12 original reusable provider-contract checks pass** against the actual

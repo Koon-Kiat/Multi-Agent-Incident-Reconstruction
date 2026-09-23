@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from authentication_agent.config import CONFIGURATION_VERSION, Limits
 from authentication_agent.errors import InvestigationError
 from authentication_agent.llm import LLMAdapter
-from authentication_agent.models import InvestigationRequest, InvestigationResult, ModelReply, RunMetadata, ToolCall
+from authentication_agent.models import InvestigationRequest, InvestigationResult, ModelReply, RequiredOperations, RunMetadata, ToolCall
 from authentication_agent.observations import build_observations
 from authentication_agent.prompts import PROMPT_VERSION, SYSTEM_PROMPT
 from authentication_agent.queries.interface import AuthenticationEventProvider
@@ -20,13 +20,19 @@ INTERPRETATIONS = {
 
 
 def investigate(request: InvestigationRequest, provider: AuthenticationEventProvider,
-                llm: LLMAdapter, limits: Limits | None = None) -> InvestigationResult:
+                llm: LLMAdapter, limits: Limits | None = None, *,
+                required_operations: RequiredOperations | None = None) -> InvestigationResult:
     """Run locally against any compatible provider; operational failure returns no findings."""
     limits = limits or Limits()
     tools = AuthenticationTools(request, provider, limits)
     model_calls = 0
+    required_calls = ()
+    required_attempted = 0
 
     def result(status: str, findings: tuple = (), error: str | None = None) -> InvestigationResult:
+        if status == "failed":
+            for index in range(required_attempted, len(required_calls)):
+                tools.not_run(required_calls[index], index)
         uncertainty = []
         if tools.truncated:
             uncertainty.append("At least one query was truncated; this is not a complete window inventory.")
@@ -37,24 +43,37 @@ def investigate(request: InvestigationRequest, provider: AuthenticationEventProv
         return InvestigationResult(status=status, request=request, findings=findings, error_code=error,
             uncertainty=tuple(uncertainty), metadata=RunMetadata(prompt_version=PROMPT_VERSION,
             configuration_version=CONFIGURATION_VERSION, llm=llm.metadata(), limits=limits.model_dump(),
-            tool_calls=tools.calls, model_calls=model_calls))
+            tool_calls=tools.calls, model_calls=model_calls, operations=tuple(tools.operations),
+            evidence_readbacks=tools.evidence_readbacks))
 
     try:
+        if required_operations is not None:
+            if not isinstance(required_operations, RequiredOperations):
+                raise ValueError("required operations must use the trusted typed interface")
+            required_calls = RequiredOperations.model_validate_json(required_operations.model_dump_json(exclude_unset=True)).calls()
         # Mandatory bounded initial retrieval prevents unsupported model-only answers.
         last_tool = tools.execute(ToolCall(name="query_authentication_events", arguments={
-            **request.model_dump(), "limit": limits.max_events_per_query}))
+            **request.model_dump(), "limit": limits.max_events_per_query}), origin="initial")
+        for index, call in enumerate(required_calls):
+            required_attempted = index + 1
+            last_tool = tools.execute(call, origin="required", required_index=index)
         while True:
             observations = build_observations(tools.retrieved.values(), tools.truncated)
+            model_observations = [{**observation.model_dump(mode="json"),
+                "events": [_event_context(tools.retrieved[eid]) for eid in observation.evidence_ids]}
+                for observation in observations]
+            response_schema = ModelReply.grounded_schema(observations)
             context = {"request": request.model_dump(), "tool_calls_remaining": limits.max_tool_calls - tools.calls,
-                "last_tool_result": last_tool, "observations": [o.model_dump(mode="json") for o in observations],
+                "last_tool_result": last_tool,
+                "operation_history": [op.model_dump(mode="json") for op in tools.operations],
                 "tool_argument_schemas": {name: model.model_json_schema() for name, model in TOOL_ARGUMENT_MODELS.items()},
-                "response_schema": ModelReply.model_json_schema(), "limits": limits.model_dump()}
+                "limits": limits.model_dump(), "observations": model_observations}
             messages = [{"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": json.dumps(context)}]
-            if len(json.dumps(messages).encode()) > limits.max_context_bytes:
+            if len(json.dumps({"messages": messages, "schema": response_schema}).encode()) > limits.max_context_bytes:
                 raise InvestigationError("context_size_limit")
             model_calls += 1
-            reply_text = llm.complete(messages, ModelReply.model_json_schema(), limits)
+            reply_text = llm.complete(messages, response_schema, limits)
             if not isinstance(reply_text, str):
                 raise InvestigationError("invalid_model_response")
             if len(reply_text.encode()) > limits.max_model_output_bytes:
@@ -85,3 +104,13 @@ def investigate(request: InvestigationRequest, provider: AuthenticationEventProv
     except Exception:
         # Provider/adapter extensions must not leak log contents in public errors.
         return result("failed", error="adapter_failure")
+
+
+def _event_context(event) -> dict:
+    """Bounded authentication details, without raw XML or arbitrary event text."""
+    return {"evidence_id": event.evidence_id, "timestamp_utc": event.timestamp_utc,
+            "event_id": event.source_event_id, "account": event.user, "host": event.host,
+            "authentication_fields": {key: value for key, value in event.event_data.items()
+                if key in {"TargetUserName", "TargetDomainName", "IpAddress", "WorkstationName",
+                           "LogonType", "Status", "SubStatus", "AuthenticationPackageName", "LogonProcessName"}
+                and isinstance(value, (str, int, type(None)))}}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from copy import deepcopy
 from datetime import date
 from typing import Annotated, Literal
 
@@ -94,7 +95,7 @@ class QueryResult(Model):
 
 
 class GetArguments(Model):
-    evidence_id: str = Field(min_length=1, max_length=200)
+    evidence_id: str = Field(max_length=200, pattern=r"^[A-Za-z0-9_-]{1,80}-SEC-[1-9][0-9]*$")
 
 
 class HistoryArguments(QueryRequest):
@@ -162,6 +163,35 @@ class _HistoryTool(Model):
     arguments: HistoryArguments
 
 
+class RequiredOperations(Model):
+    """Trusted caller requirements, never populated from model replies or evidence."""
+
+    operations: Annotated[tuple[_QueryTool | _GetTool | _HistoryTool, ...], Field(max_length=99)] = ()
+
+    @classmethod
+    def from_calls(cls, *calls: ToolCall) -> RequiredOperations:
+        import json
+        return cls.model_validate_json(json.dumps({"operations": [call.model_dump(mode="json") for call in calls]}))
+
+    def calls(self) -> tuple[ToolCall, ...]:
+        return tuple(ToolCall(name=op.name, arguments=op.arguments.model_dump(mode="json", exclude_unset=True))
+                     for op in self.operations)
+
+
+class OperationReceipt(Model):
+    index: int
+    origin: Literal["initial", "required", "model"]
+    required_index: int | None = None
+    call: ToolCall
+    status: Literal["completed", "no_evidence", "rejected", "failed", "not_run"]
+    evidence_ids: tuple[str, ...] = ()
+    new_evidence_ids: tuple[str, ...] = ()
+    truncated: bool = False
+    provider_invoked: bool = False
+    reused_from: int | None = None
+    error_code: str | None = None
+
+
 class _ToolReply(Model):
     action: Literal["tool"]
     tool: _QueryTool | _GetTool | _HistoryTool
@@ -182,6 +212,28 @@ class ModelReply(RootModel[_ToolReply | _FinishReply]):
     Host-side scope, budget and reference checks still run after parsing.
     """
 
+    @classmethod
+    def grounded_schema(cls, observations: tuple[Finding, ...]) -> dict:
+        """Restrict annotation references, leaving every tool and interpretation optional.
+
+        This decoder aid cannot replace the independent host reference checks.
+        Lookup arguments remain open to well-formed, possibly absent IDs.
+        """
+        schema = cls.model_json_schema()
+        if not observations:
+            schema["$defs"]["_FinishReply"]["properties"]["annotations"]["maxItems"] = 0
+            return schema
+        choices = []
+        for observation in observations:
+            annotation = deepcopy(schema["$defs"]["Annotation"])
+            annotation["properties"]["observation_id"] = {"type": "string", "const": observation.finding_id}
+            annotation["properties"]["evidence_ids"] = {
+                "type": "array", "prefixItems": [{"type": "string", "const": eid} for eid in observation.evidence_ids],
+                "minItems": len(observation.evidence_ids), "maxItems": len(observation.evidence_ids)}
+            choices.append(annotation)
+        schema["$defs"]["Annotation"] = {"anyOf": choices}
+        return schema
+
     @property
     def action(self) -> Literal["tool", "finish"]:
         return self.root.action
@@ -199,13 +251,15 @@ class ModelReply(RootModel[_ToolReply | _FinishReply]):
 
 
 class RunMetadata(Model):
-    contract_version: str = "authentication-result-v1"
+    contract_version: str = "authentication-result-v2"
     prompt_version: str
     configuration_version: str
     llm: dict[str, JsonValue]
     limits: dict[str, JsonValue]
     tool_calls: int
     model_calls: int
+    operations: tuple[OperationReceipt, ...] = ()
+    evidence_readbacks: int = 0
 
 
 class InvestigationResult(Model):

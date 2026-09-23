@@ -37,15 +37,26 @@ class RecordedProvider:
         self.calls = []
 
     def query(self, request):
-        response = self.provider.query(request)
+        entry = {"operation": "query", "request": request.model_dump(mode="json")}
+        self.calls.append(entry)
+        try:
+            response = self.provider.query(request)
+        except Exception:
+            entry["failed"] = True
+            raise
         self.retrieved.update((event.evidence_id, event) for event in response.events)
-        self.calls.append({"operation": "query", "request": request.model_dump(mode="json"),
-                           "evidence_ids": [event.evidence_id for event in response.events], "truncated": response.truncated})
+        entry.update(evidence_ids=[event.evidence_id for event in response.events], truncated=response.truncated)
         return response
 
     def get_event(self, evidence_id):
-        event = self.provider.get_event(evidence_id)
-        self.calls.append({"operation": "get_event", "evidence_id": evidence_id, "found": event is not None})
+        entry = {"operation": "get_event", "evidence_id": evidence_id}
+        self.calls.append(entry)
+        try:
+            event = self.provider.get_event(evidence_id)
+        except Exception:
+            entry["failed"] = True
+            raise
+        entry["found"] = event is not None
         if event is not None:
             self.retrieved[evidence_id] = event
         return event
@@ -53,9 +64,10 @@ class RecordedProvider:
 
 class RecordedLLM:
     def __init__(self, llm: LLMAdapter, first_tool: ToolCall | None = None, annotate=False,
-                 *, validation_scope="synthetic"):
+                 *, validation_scope="synthetic", capture_context=True):
         self.llm, self.first_tool, self.annotate = llm, first_tool, annotate
         self.validation_scope = validation_scope
+        self.capture_context = capture_context
         self.calls = []
 
     def metadata(self):
@@ -81,6 +93,9 @@ class RecordedLLM:
                 "Copy its complete evidence_ids array unchanged and select a permitted tentative interpretation.")
         started = time.monotonic()
         entry = {"request_sha256": hashlib.sha256(json.dumps(copied).encode()).hexdigest()}
+        if self.capture_context:
+            entry["messages"] = copied
+            entry["response_schema"] = schema
         try:
             if isinstance(self.llm, FakeLLM) and self.first_tool and not self.calls:
                 reply = json.dumps({"action": "tool", "tool": self.first_tool.model_dump(mode="json"), "annotations": []})

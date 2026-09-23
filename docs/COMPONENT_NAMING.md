@@ -30,8 +30,8 @@ Active version identifiers:
 - `security-corpus-v1`: corpus manifest.
 - `detection-run-v1`: conventional detection runs.
 - `detection-score-v1`: scoring output.
-- `authentication-result-v1`: investigation result envelope.
-- `authentication-config-v3` and `authentication-prompt-v4`: agent configuration and prompt revisions.
+- `authentication-result-v2`: investigation result envelope, adding operation receipts and readback counts to the v1 fields.
+- `authentication-config-v3` and `authentication-prompt-v8`: agent configuration and prompt revisions.
 
 Finding IDs use `AUTH-` plus the existing deterministic digest; their identity
 namespace changed while supporting evidence IDs did not. Historical results and

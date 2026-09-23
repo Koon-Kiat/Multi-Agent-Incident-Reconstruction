@@ -1,220 +1,234 @@
 # Authentication corpus integration and validation
 
-Updated 2026-09-23 after safely merging PR #10 (`9dfe89c`) into
-`codex/authentication-corpus-integration` with merge commit `d9d9a63`.
-The initial working tree was clean. Main was fetched, compared and merged without
-rewriting history. The descriptive `event_processing/`, `authentication_agent/`
-and `CorpusAuthenticationProvider` interfaces remain authoritative. PR #9 stays
-open for review; the Incident Reconstruction Orchestrator is not implemented.
+Updated 2026-09-23 on `codex/authentication-corpus-integration`, continuing PR #9.
+PR #10 was already integrated before this work. The branch contained main
+`9dfe89c` through merge `d9d9a63`; the starting feature commit was `4f249ed`.
+The initial working tree was clean, origin was fetched, and PR #9 had no newer
+commits or review comments. Its owner had marked it ready for review; that state
+is preserved. Main is not modified and PR #9 is not merged.
 
-## Fixes inherited from PR #10
+The agent now executes trusted required retrieval explicitly and retains a
+separate model-controlled optional tool loop. Deterministic enforcement and
+factual checks pass. **Useful autonomous follow-up retrieval was not demonstrated
+by the installed Qwen3 model:** it finished all 16 ordinary runs without selecting
+an optional tool. Required host operations must not be counted as model autonomy.
 
-The merged provider distinguishes exact lookup from filtered queries:
+## Reproduced problems and classification
 
-- `get_event()` preserves any supported Security record, including 4634/4688.
-  Missing/malformed IDs and Sysmon records return `None`.
-- `query()` offers only Security 4624/4625, as permitted by `QueryRequest`.
-- The agent separately validates scenario, window, event type and final exact
-  readback. Real 4634/4688 lookup tests fail at that boundary with
-  `provider_scope_violation` and no findings.
-- `EventStore` deep-copies constructor inputs and detaches returned records.
-  The original ownership regression now passes. This fix belongs to PR #10.
-  The broader store remains available to other components for cross-source access.
+Before changing production code, fresh local runs reproduced **8/11 corpus**
+and **15/16 synthetic** checks, rather than assuming the historical 7/11.
+See [corpus baseline](validation/authentication-agent-2026-09-23/baseline-corpus/manifest.json)
+and [synthetic baseline](validation/authentication-agent-2026-09-23/baseline-synthetic/manifest.json).
 
-All **12 original reusable provider-contract checks pass** against the actual
-integrated adapter. PR #10's default-discovery wrapper and the earlier explicit
-diagnostic both exercise the unchanged generic suite. The latter reports
-**13 passed** including the original constructor regression. Generic fixtures use
-unchecked test-only records for fields outside the EVTX schema; production corpus
-validation remains strict. No generic assertion was relaxed, skipped or marked xfail.
+| Observation | Classification and evidence | Treatment |
+| --- | --- | --- |
+| Requested absent `S02-SEC-999999999`, model selected `S02-SEC-43571` | Test-only prescribed plan plus model/context limitation. The old production API could not declare this requirement. | Trusted typed requirements now preserve and dispatch the exact ID; the directed model test is retained unchanged. |
+| Success-only query and account history skipped | Prescribed-plan failures; optional retrieval would add no records after the full initial S02 query. Finishing is valid in an ordinary investigation. | Keep optional finishing valid; required filters/history use the trusted interface. |
+| Historical directed budget exercise finished early | Not reproduced in the fresh baseline: its extra lookup was rejected at the configured limit. It recurred in the final directed run. | Independent deterministic tests enforce the budget; directed expectations remain unchanged. |
+| Empty-window initial query repeated once | Model redundancy combined with a loop defect: no operation history or duplicate suppression. | Return cached exact-operation results and charge attempts to the shared budget. |
+| Malformed/absent cross-scenario lookup could reach provider | Dispatcher validation gap, independently of provider not-found behavior. | Reject malformed IDs and scenario mismatch before provider access. |
+| Provider timeout labeled model timeout | Error-attribution defect. | Separate sanitized provider timeout/connection/failure codes. |
 
-The merge also retains protected output paths, manifest/schema validation,
-detection-output ownership and staging, scoring input/corpus-revision validation,
-error handling, zero-hit rule reporting and R-EXEC-02 version 2. These fixes were
-ported to the descriptive packages rather than reimplemented independently.
+The old context contained observations and only the last result's IDs, without
+the arguments or earlier operation history. Its default-finish instruction also
+discouraged optional exploration. Required retrieval is an application contract
+gap when callers actually need a specific follow-up, rather than proof that every
+skipped optional query is an agent error. No directed test expectations were
+changed to declare these model choices successful.
 
-An isolated replay of unchanged PR #10 reproduced its original pinned corpus and
-detection digests. Integrated event JSONL is byte-identical. Detection content is
-identical after excluding renamed schema metadata and its dependent corpus hash.
-Against the prior feature run, only the recorded R-EXEC-02 version changes from
-1 to 2; detection counts remain **S01 9 / S02 15 / S03 14**. Current byte and
-canonical hashes were updated only after these comparisons. See
-[integration readback](validation/authentication-pr10-2026-09-23/integration-readback.json).
-No threshold, trigger, window or expected count was adjusted to obtain a pass.
+## Implementation and factual boundaries
 
-## New changes in this session
+- `investigate(request, provider, llm, limits, *, required_operations=None)`
+  preserves existing positional callers. `RequiredOperations` is a typed,
+  at-most-99 list using the existing tool argument models. The initial query
+  remains mandatory. Requirements execute through `AuthenticationTools` before
+  inference; evidence and model text cannot create mandatory operations.
+- Required and optional operations share original scope, event type, argument,
+  query-size and tool-attempt limits. Receipts retain exact arguments and IDs,
+  origin, returned/new evidence, truncation, failure and cache reuse. An absent
+  lookup is `no_evidence`, not a provider failure. Later omitted requirements
+  are explicitly `not_run` after a failure; failed investigations return no findings.
+- Equivalent successful queries/lookups execute once per immutable invocation
+  snapshot. Duplicates still consume budget. Changed windows, account/host/event
+  filters and limits remain available. Final consistency reads are separate and
+  cannot be mistaken for model-selected exploration.
+- Each model turn contains history and authentication details grouped with their
+  computed observations. The model chooses tools, reviews returned evidence and
+  chooses whether to finish or interpret. There is no scenario-specific plan,
+  minimum query count, hidden evidence or injected ordinary follow-up request.
+- Python remains authoritative for counts, exact IDs, timestamps, entities,
+  cohorts and references. A grounded decoder schema permits only actual
+  observation/evidence pairs for annotations, while retaining every approved
+  tool and interpretation choice. Independent host checks still reject invalid
+  references, including replies from adapters that ignore the schema.
 
-`ModelReply` now pairs each approved tool name with its actual argument model
-in both the decoder's JSON schema and host-side parsing. Unknown keys, omitted
-required arguments and arguments for a different tool are rejected. The public
-`ToolCall` and result wire shapes remain unchanged. Tool scope/budget checks and
-exact-reference validation remain in place after parsing. Five additional model
-regressions cover mismatched argument shapes and a valid unknown-ID lookup.
+Early richer-context experiments exposed a new citation-copying regression:
+Qwen merged separate cohorts' IDs or used event IDs as observation IDs. Prompt
+clarification alone did not resolve every case. Recorded ordinary/required
+experiment totals were v5 **9/23**, v6 **17/23**, v7 **18/23**; those failures remain
+in their original folders. V8's grounded annotation choices resolved the
+regression in the recorded runs without rewriting replies or weakening checks.
+No tool choice, missing-ID request or interpretation is pinned to an expected answer.
+Current versions are `authentication-prompt-v8`, `authentication-config-v3`,
+and `authentication-result-v2`.
 
-The prompt now gives an explicit trusted tool request precedence over the default
-finish preference and explains that a requested lookup ID can be absent. It also
-encourages finishing empty windows instead of repeating retrieval. Versions are
-`authentication-prompt-v4` and `authentication-config-v3`; results remain
-`authentication-result-v1`, with `AUTH-` finding IDs. Two real-corpus regressions
-verify the provider's broader exact lookup cannot introduce unsupported types
-into authentication findings. The original stale 4688 lookup assertion was
-updated to the agreed contract, not removed.
+V2 adds `metadata.operations` and `metadata.evidence_readbacks` to existing
+finding/status/request fields. The current parser reads old v1 recordings;
+consumers with a strict old schema must update. The provider API is unchanged.
 
-## Current automated and local verification
+## Final automated verification
 
-| Check | Result |
+| Check | Actual result |
 | --- | --- |
-| Full suite with real EVTX, final prompt | **734 passed, 3 skipped** |
-| CI-shaped local suite without EVTX | **694 passed, 43 skipped** |
-| Actual adapter: original reusable contract | **12 passed** |
-| Original explicit contract + ownership diagnostic | **13 passed** |
-| Synthetic fake matrix | **16/16** |
-| Real-corpus fake matrix | **11/11** |
-| Final real-corpus local-model matrix | **7/11**, exit 1; four directed plans failed |
-| Final synthetic local-model matrix | **15/16**, exit 1; success-only query selected a different tool |
-| Explicit live smoke | **1 passed, 736 deselected** |
-| Final wheel | Fresh staging, descriptive package paths only; isolated wheel import runs real S01 with 6 findings |
-| Dependency consistency | `python -m pip check` passed |
+| Full repository suite with real EVTX | **774 passed, 3 skipped** |
+| Authentication unit/regression suite | **162 passed, 1 skipped** |
+| Actual corpus integration tests | **30 passed** |
+| Original reusable provider contract against actual adapter | **12 passed** |
+| Original explicit contract plus constructor ownership regression | **13 passed** |
+| Fake corpus / synthetic historical matrices | **11/11 / 16/16** |
+| Fake ordinary and required-operation matrix | **23/23** |
+| Explicit real local Ollama smoke | **1 passed, 776 deselected** |
+| Fresh wheel, isolated import and required missing lookup | Completed; 7 S02 findings, explicit no-evidence receipt, descriptive packages only |
+| Dependency consistency | `pip check` passed |
 
 Full-suite skips are the opt-in live smoke and two Windows symlink cases.
-The live smoke runs separately; Linux CI exercises symlinks. CI-shaped skips add
-40 tests requiring real EVTX. Logs: [full suite](validation/authentication-pr10-2026-09-23/full-suite-v4.txt),
-[CI shape](validation/authentication-pr10-2026-09-23/ci-shape-v4.txt),
-[12-check contract](validation/authentication-pr10-2026-09-23/provider-contract.txt),
-[original diagnostic](validation/authentication-pr10-2026-09-23/original-diagnostic.txt),
-[wheel](validation/authentication-pr10-2026-09-23/package-verification-v4.json),
-[live smoke](validation/authentication-pr10-2026-09-23/live-smoke-v4.txt),
-[synthetic model matrix](validation/authentication-pr10-2026-09-23/synthetic-ollama-final-v4/manifest.json).
+The smoke ran separately. Normal tests require no model server.
+New tests cover exact missing IDs, required filtered/history operations,
+pre-inference execution, optional continuation and review, duplicates, distinct
+queries, shared budgets, scope/type/schema rejection, provider failures and
+independent rejection of invalid references. Real 4634/4688 rejection is tested
+through both required and model tool paths. No assertion was removed or marked xfail.
 
-## Real corpus and evidence safeguards
+Logs: [full](validation/authentication-agent-2026-09-23/full-suite-v8.txt),
+[authentication](validation/authentication-agent-2026-09-23/authentication-tests-v8.txt),
+[corpus](validation/authentication-agent-2026-09-23/real-corpus-tests-v8.txt),
+[provider contract](validation/authentication-agent-2026-09-23/provider-contract-v8.txt),
+[ownership diagnostic](validation/authentication-agent-2026-09-23/original-diagnostic-v8.txt),
+[smoke](validation/authentication-agent-2026-09-23/live-smoke-v8.txt),
+[wheel](validation/authentication-agent-2026-09-23/package-verification-v8.json).
 
-The digest-verified corpus holds **6,661 records**: S01 2,700, S02 1,930,
-S03 2,031. All six original EVTX objects remain unchanged against their Git LFS
-hashes. No source export, private evaluation material, answer key or runbook was
-modified or supplied to the model. Validation uses public telemetry windows:
+## Real local model results: three separate categories
 
-| Scenario | UTC window, start inclusive / end exclusive | Findings | Failures / successes |
+Final preflight recorded **Ollama 0.34.3 / qwen3:8b**,
+digest `500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41`.
+Every final run used loopback inference, context 8192, thinking disabled,
+temperature 0 and seed 0. No model download or cloud inference occurred.
+Personal hardware specifications are absent from saved reports and runtime data.
+
+| Category | Result | What it establishes |
+| --- | --- | --- |
+| A. Ordinary investigations, eight cases repeated twice | **16/16** completed and factually checked; **zero optional tool selections** | Sufficient/empty/missing-context/truncated handling and bounded findings; no demonstrated autonomous retrieval |
+| B. Trusted required operations | **7/7 checks**: six complete investigations with Qwen plus one expected budget rejection before inference | Exact required execution, missing/filter/history/combined/duplicate handling and deterministic budget enforcement |
+| C. Retained historical corpus matrix | **7/11**; exit 1 | Prescribed-plan limitations remain; ordinary findings still pass factual readback |
+| C. Retained historical synthetic matrix | **15/16**; exit 1 | Success-only query still selects a different approved tool |
+
+Category A contains S01, S02, S03, an empty real window, the existing two-record
+S02 coverage case, sufficient synthetic evidence, missing/conflicting synthetic
+context and the existing two-record synthetic coverage case. Every case is
+repeated with the same configured runtime. Initial evidence, actual messages,
+decoder schema, replies, optional actions, provider receipts and final findings
+are saved in [the ordinary/required recordings](validation/authentication-agent-2026-09-23/ollama-investigations-v8/manifest.json).
+
+The full initial real windows contain all permitted authentication records, so a
+repeat query cannot add evidence. In the bounded cases, narrower event/account
+queries could retrieve additional records under the same cap; Qwen did not choose
+them. Truncation remained explicit. Missing-context cases retained uncertainty.
+These exercises expose an opportunity for optional retrieval without hiding data
+or forcing tools. Controlled adapter tests prove the loop can select a distinct
+query, receive new evidence and review it on the next turn. Those tests are not
+evidence of Qwen's autonomous capability.
+
+Category B's exact-missing receipt records `S02-SEC-999999999` as absent without
+substitution. Required success filtering and exact account history execute even
+though category C shows Qwen sometimes omits them. Duplicate required calls reuse
+their first result. The one-slot budget case fails before inference, with one
+rejected and one not-run follow-up; it is not counted as a successful model decision.
+
+In the [final corpus matrix](validation/authentication-agent-2026-09-23/directed-corpus-v8/manifest.json),
+the model substitutes `S02-SEC-43503` for the missing ID, finishes without the
+success-only query or history, and finishes within the directed one-slot budget
+exercise. This last result fails the prescribed exercise, not budget enforcement.
+The [final synthetic matrix](validation/authentication-agent-2026-09-23/directed-synthetic-v8/manifest.json)
+still fails the success-only directed query. Its other checks pass.
+The retained matrices include ordinary and interpretation cases alongside directed
+tool exercises; their totals are not pure autonomy scores.
+
+No redundant query was selected in the final ordinary runs. One fixed-runtime
+repeat set does not establish general reliability. All completed final results
+passed factual readback, including directed cases whose plan checks failed.
+No detection-accuracy, compromise, common-actor or independent-verification claim
+follows from those checks.
+
+## Inherited fixes and real evidence integrity
+
+PR #10 resolved the provider and EventStore defects. This session does not
+reimplement or claim those fixes. Exact lookup preserves any supported Security
+record, including 4634/4688; query remains limited to 4624/4625. Sysmon and
+unknown/malformed provider IDs return None. Agent tools reject unsupported
+records before findings. Constructor inputs and returned records remain detached.
+
+The processing package, original generic provider suite and original datasets
+are unchanged from the starting feature commit. This preserves PR #10's protected
+paths, manifest/schema validation, detection output safety, scoring/revision
+validation, error handling and R-EXEC-02 version 2. Their tests pass in the full suite.
+The earlier [PR #10 integration readback](validation/authentication-pr10-2026-09-23/integration-readback.json)
+retains the merge's corpus/detection parity evidence.
+
+The digest-verified corpus contains **6,661 records**: S01 2,700, S02 1,930,
+S03 2,031. All six original EVTX files still match their LFS hashes.
+
+| Scenario | UTC window, start inclusive / end exclusive | Findings | Failed / successful logons |
 | --- | --- | ---: | ---: |
-| S01 | 2022-08-31 17:46:00-17:49:00 | 6 | 0 / 6 |
-| S02 | 2026-09-21 02:04:30-02:06:00 | 7 | 5 / 7 |
-| S03 | 2026-09-21 02:24:50-02:26:00 | 7 | 2 / 7 |
+| S01 | 2022-08-31T17:46:00Z to 2022-08-31T17:49:00Z | 6 | 0 / 6 |
+| S02 | 2026-09-21T02:04:30Z to 2026-09-21T02:06:00Z | 7 | 5 / 7 |
+| S03 | 2026-09-21T02:24:50Z to 2026-09-21T02:26:00Z | 7 | 2 / 7 |
 
-Natural investigations passed factual checks for counts, entities, chronological
-ordering, original seven-digit timestamps and exact evidence readback. Missing
-optional fields retain uncertainty. The one-tick query boundary remains tested.
-`S02-SEC-43584` is 4624 at `2026-09-21T02:05:30.0430374Z`;
-`S03-SEC-43584` is a distinct 4688 record, returned by exact lookup but excluded
-from authentication queries/findings. Fabricated, changed, missing and
-cross-scenario citations still fail closed. Empty and truncated results retain
-explicit uncertainty; operational failures return no partial findings.
+IDs, seven-digit timestamps, one-tick boundaries and scenario collisions remain
+tested. Only public telemetry and neutral synthetic fixtures were used. No private
+answer key, ground truth or runbook was accessed or used to plan retrieval.
 
-These windows cover 27 authentication records; full exports contain 6, 20 and 17
-respectively. They are bounded integration checks, not detection accuracy,
-independent Evidence Verification & Evaluation or end-to-end reconstruction.
+[Final readback](validation/authentication-agent-2026-09-23/final-readback.json)
+checks every new run's artifact hashes, completed findings against provider
+receipts and unchanged records, failed empty envelopes, final-v8 source hashes,
+corpus digest and original LFS objects. Earlier source hashes describe their
+recorded versions, not the final tree. Recordings from prior PR #10 work remain
+untouched. Source hashes include the local file bytes and line endings.
 
-## Qwen3 tool-selection investigation
+## Handoff and remaining limitations
 
-All corpus experiments ran against actual local **Ollama 0.34.2 / qwen3:8b**,
-digest `500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41`,
-loopback endpoint, context 8192, thinking off, temperature 0, seed 0,
-2048 output tokens and a 60-second per-request deadline. Preflight verified
-installed local weights and no cloud-backed alias. No model was downloaded.
+The [handoff](ORCHESTRATOR_HANDOFF.md) and runnable
+[corpus example](../authentication_agent/examples/investigate_required_corpus.py)
+cover optional requirements, local configuration, receipt consumption, missing
+evidence, incomplete coverage and failure handling. Existing calls with no plan
+remain valid. Descriptive packages and `CorpusAuthenticationProvider` remain intact.
 
-| Experiment | Checks | Empty-window tool calls, including initial query | Evidence |
-| --- | ---: | ---: | --- |
-| Fresh integrated baseline, original prompt/schema | 6/11 | 1 | [baseline](validation/authentication-pr10-2026-09-23/ollama-baseline/manifest.json) |
-| Prompt v3 only | 8/11 | 8 | [prompt experiment](validation/authentication-pr10-2026-09-23/ollama-prompt/manifest.json) |
-| Prompt v3 + typed schema | 8/11 | 8 | [typed experiment](validation/authentication-pr10-2026-09-23/ollama-typed/manifest.json) |
-| Repeat of typed v3 | 8/11 | 8 | [repeat](validation/authentication-pr10-2026-09-23/ollama-final/manifest.json) |
-| Final prompt v4 + typed schema | **7/11** | **2** | [current run](validation/authentication-pr10-2026-09-23/ollama-final-v4/manifest.json) |
+Within the authentication agent, reliable spontaneous useful retrieval and
+prescribed-plan following remain model limitations. No bypass, relaxed assertion,
+automatic response repair or alternate downloaded model is used to conceal them.
+Mandatory retrieval is reliable through the trusted interface, while optional
+retrieval remains model-controlled. Treat `completed` as bounded factual
+completion, never a certificate of autonomy or complete investigation coverage.
 
-The original 6/11 result was rerun, not assumed current. Removing the conflicting
-finish preference improved prescribed-tool selection but introduced redundant
-queries. The final prompt limits that regression to one extra empty-window query
-in this run, while losing the v3 budget-exercise selection. That tradeoff remains
-visible; neither version reliably executes prescribed plans. The typed schema
-makes arguments concrete but did not alone improve the measured pass count.
-This follows Ollama's documented [schema and validation interface](https://docs.ollama.com/capabilities/structured-outputs);
-structured validity does not establish that the requested action was selected.
-
-A [token-count probe](validation/authentication-pr10-2026-09-23/token-probe.json)
-of the failing typed-v3 missing-ID request measured 5,222 prompt tokens plus 57
-output tokens in an 8,192 context, with stop rather than length termination.
-That measured failure is not explained by context exhaustion. Prompt/schema
-sensitivity is observed; no general causal claim about Qwen3 internals is made.
-
-The final live failures are explicit:
-
-- Missing-ID request: asked for `S02-SEC-999999999`, looked up observed
-  `S02-SEC-43571` instead; no missing-lookup uncertainty was produced.
-- Success-only query and account-history requests: finished without executing
-  the prescribed tools.
-- One-call budget exercise: finished within budget rather than attempting the
-  requested extra lookup. This fails the exercise, not the budget limit.
-
-Natural S01-S03, empty/truncated windows, existing lookup and interpretation
-checks pass. All completed results pass factual readback even when plan checks
-fail. Fake/synthetic host tests still prove all tool paths and budget exhaustion.
-The real model is never replaced with a fake, its responses are not rewritten,
-and its schema is not pinned to the expected action or identifier. Directed
-exercises test developer plans; they are not spontaneous investigative skill.
-The final synthetic live run passes 15/16: its success-only query selects
-account history instead. Natural synthetic cases and the synthetic budget
-exercise pass; that does not remove the real-corpus plan failures.
-No native Ollama function-calling claim is made.
-
-## Handoff and unresolved work
-
-The [orchestrator handoff](ORCHESTRATOR_HANDOFF.md) specifies invocation, typed
-result handling, the broader exact-lookup contract, failure/empty/truncation
-semantics, async worker-thread usage, limits and outstanding orchestration
-decisions. Required retrieval must remain deterministic. A completed finding
-set does not certify adherence to an external model plan. Do not retry unsupported
-model behavior indefinitely.
-
-Remaining issues are model plan-following/redundant queries and the separate
-owners' orchestrator dispatch, deadlines/cancellation, bounded retries,
-truncation continuation, endpoint findings and cross-source reconstruction.
-No orchestrator implementation or end-to-end reconstruction claim is included.
-Real baseline scoring remains blocked on agreed definitions and supplied labels;
-no precision, recall or F1 was computed.
-
-Per-case JSON, provider receipts, runtime/configuration and exact-byte hashes
-are saved under `validation/authentication-pr10-2026-09-23/`. Prior evidence is
-preserved, including superseded v3 experiments and the original integration
-recordings. [Final readback](validation/authentication-pr10-2026-09-23/final-readback.json)
-checks artifact hashes, final source hashes, corpus factual references and all
-six original LFS hashes. Source hashes include local line endings; historical
-source hashes are not claimed to match the final tree.
+The actual orchestrator is not implemented or connected. Its owner retains
+dispatch, cross-agent correlation, whole-run deadlines/cancellation and final
+reconstruction; endpoint analysis and independent evaluation remain separate.
+The updated result metadata is the only downstream output-contract addition.
 
 ## Reproduce
 
+Use new output directories; the runners refuse to overwrite prior recordings.
+
 ```powershell
-python -m pip install -e '.[test]'
-python -m event_processing normalise --datasets datasets --out out/corpus
-python -m pytest -q --basetemp .test-tmp/reproduce
+python -m pytest -q --basetemp .test-tmp-reproduce
 python -m pytest -q event_processing/tests/test_authentication_provider_contract.py::TestCorpusAuthenticationProviderContract
 python -m pytest -q authentication_agent/testing/check_processing_contract.py
-
-$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-python -m authentication_agent.validate_corpus --corpus out/corpus --mode fake --output-dir "out/validation/fake-$stamp"
-# Exit 1 is the observed model-plan failure, not a successful matrix.
-python -m authentication_agent.validate_corpus --corpus out/corpus --mode ollama --model qwen3:8b --output-dir "out/validation/ollama-$stamp"
-python -m authentication_agent.validate_synthetic --mode fake --output-dir "out/validation/synthetic-fake-$stamp"
-python -m authentication_agent.validate_synthetic --mode ollama --model qwen3:8b --num-ctx 8192 --think off --output-dir "out/validation/synthetic-ollama-$stamp"
-
-$env:MAIR_RUN_OLLAMA_SMOKE = '1'
-$env:MAIR_OLLAMA_MODEL = 'qwen3:8b'
-$env:MAIR_OLLAMA_NUM_CTX = '8192'
-$env:MAIR_OLLAMA_THINK = 'off'
-python -m pytest -q -m ollama
-Remove-Item Env:MAIR_RUN_OLLAMA_SMOKE
-$env:MAIR_DATASETS_DIR = Join-Path (Get-Location) 'out/no-evtx-ci'
-python -m pytest -q --basetemp .test-tmp/ci-reproduce
-Remove-Item Env:MAIR_DATASETS_DIR
+python -m pytest -q tests/test_authentication_corpus.py --basetemp .test-tmp-corpus-reproduce
+python -m authentication_agent.validate_investigations --corpus out/corpus --mode ollama --output-dir out/validation/ordinary-required
+python -m authentication_agent.validate_corpus --corpus out/corpus --mode ollama --model qwen3:8b --output-dir out/validation/directed-corpus
+python -m authentication_agent.validate_synthetic --mode ollama --model qwen3:8b --num-ctx 8192 --think off --output-dir out/validation/directed-synthetic
+python docs/validation/authentication-agent-2026-09-23/verify_recordings.py
 python -m pip check
 ```
 
-Use new output directories: validation refuses to overwrite recorded evidence.
-The original generic suite is unchanged. Runtime/model changes can alter choices
-even with fixed seed and temperature; inspect `check_errors`, not status alone.
+The two retained model matrices currently exit 1. Inspect their exact
+`check_errors`; required-operation success does not turn those failures into passes.
