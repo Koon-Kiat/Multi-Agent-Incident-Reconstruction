@@ -59,11 +59,12 @@ ties, empty windows and scope failures.
 ## Provider and findings
 
 `EventStore.load()` verifies corpus digests. Supply the same `Limits` to
-`CorpusAuthenticationProvider` and `investigate`. Only Security 4624/4625 are exposed.
-Exact lookup returns `None` for missing or unsupported authentication records.
+`CorpusAuthenticationProvider` and `investigate`. Queries expose Security 4624/4625.
+Exact lookup preserves any supported Security record, including 4634/4688, and
+returns `None` for missing/malformed IDs or Sysmon records.
 The agent checks scenario, window, event type and consistency after retrieval,
 then resolves cited records again before returning findings. See the
-[provider handoff](../docs/AUTHENTICATION_PROVIDER_HANDOFF.md) for compatibility differences.
+[provider handoff](../docs/AUTHENTICATION_PROVIDER_HANDOFF.md) for the agreed exact-lookup and filtered-query contract.
 
 Query filters are exact and case-sensitive. Account uses non-null `user`, otherwise
 a string `TargetUserName`. Empty values remain distinct from null. Records sort
@@ -104,8 +105,9 @@ completeness claim. Independent verification remains a separate responsibility.
 CLI overrides: `--max-tool-calls`, `--max-events`, `--max-window-seconds`,
 `--timeout`. `Limits` exposes all settings. Tool arguments cannot expand scope.
 Mandatory retrieval remains deterministic because Qwen3 does not reliably follow
-directed tool plans. Actions use the existing structured JSON protocol; native
-Ollama function calling is not claimed.
+directed tool plans. Actions use the existing structured JSON protocol with typed arguments paired
+to each tool name; native Ollama function calling is not claimed. The host still
+enforces event scope, budgets and exact evidence references after model parsing.
 
 Final exact-ID reads are outside the model tool count and bounded by the retrieved
 union. The model deadline covers each HTTP request, not the whole investigation
@@ -125,9 +127,9 @@ python -m authentication_agent.validate_corpus --corpus out/corpus --mode fake -
 python -m authentication_agent.validate_corpus --corpus out/corpus --mode ollama --model qwen3:8b --output-dir out/validation/ollama
 ```
 
-Use new/empty output directories. The separately invoked compatibility diagnostic
-retains known failures outside default discovery; see the
-[current report](../docs/AUTHENTICATION_CORPUS_INTEGRATION.md). Default tests never
+Use new/empty output directories. PR #10 resolved the compatibility diagnostic
+failures; all 12 reusable checks also run against the actual adapter in default
+discovery. See the [current report](../docs/AUTHENTICATION_CORPUS_INTEGRATION.md). Default tests never
 require a model. Public EVTX tests run with Git LFS content and otherwise skip
 explicitly; private answers and expected classifications are never used.
 

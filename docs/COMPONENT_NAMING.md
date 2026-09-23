@@ -31,7 +31,7 @@ Active version identifiers:
 - `detection-run-v1`: conventional detection runs.
 - `detection-score-v1`: scoring output.
 - `authentication-result-v1`: investigation result envelope.
-- `authentication-config-v2` and `authentication-prompt-v2`: agent configuration and prompt revisions.
+- `authentication-config-v3` and `authentication-prompt-v4`: agent configuration and prompt revisions.
 
 Finding IDs use `AUTH-` plus the existing deterministic digest; their identity
 namespace changed while supporting evidence IDs did not. Historical results and

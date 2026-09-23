@@ -15,3 +15,9 @@ Current validation is regenerated under those interfaces and documented in
 [the corpus integration report](AUTHENTICATION_CORPUS_INTEGRATION.md).
 For reproduction, use the [agent manual](../authentication_agent/README.md).
 No prior artifact hashes are claimed to describe the current source tree.
+
+The fresh PR #10 integration rerun with prompt v4/configuration v3 also passes
+15/16, with the directed success-only query still selecting account history.
+This is a new measurement, saved in the
+[current synthetic manifest](validation/authentication-pr10-2026-09-23/synthetic-ollama-final-v4/manifest.json).
+The final real-corpus matrix passes 7/11; the handoff records its separate failures.

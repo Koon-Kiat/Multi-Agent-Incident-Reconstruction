@@ -93,6 +93,14 @@ class QueryResult(Model):
     truncated: bool
 
 
+class GetArguments(Model):
+    evidence_id: str = Field(min_length=1, max_length=200)
+
+
+class HistoryArguments(QueryRequest):
+    account: str = Field(max_length=512)
+
+
 class Entities(Model):
     account: str | None
     reported_account: str | None
@@ -139,9 +147,24 @@ class ToolCall(Model):
     arguments: dict[str, JsonValue]
 
 
+class _QueryTool(Model):
+    name: Literal["query_authentication_events"]
+    arguments: QueryRequest
+
+
+class _GetTool(Model):
+    name: Literal["get_authentication_event"]
+    arguments: GetArguments
+
+
+class _HistoryTool(Model):
+    name: Literal["get_account_authentication_history"]
+    arguments: HistoryArguments
+
+
 class _ToolReply(Model):
     action: Literal["tool"]
-    tool: ToolCall
+    tool: _QueryTool | _GetTool | _HistoryTool
     annotations: Annotated[tuple[Annotation, ...], Field(max_length=0)]
 
 
@@ -152,10 +175,11 @@ class _FinishReply(Model):
 
 
 class ModelReply(RootModel[_ToolReply | _FinishReply]):
-    """Same wire shape, with action constraints visible to structured decoding.
+    """Same wire shape, with action and tool argument constraints visible to decoding.
 
-    A Python-only cross-field validator was invisible in Ollama's JSON schema,
-    allowing tool calls and final annotations to be generated together.
+    Each tool name is paired with its actual argument model. The decoder can no
+    longer choose arbitrary JSON arguments independently of the selected tool.
+    Host-side scope, budget and reference checks still run after parsing.
     """
 
     @property
@@ -164,7 +188,10 @@ class ModelReply(RootModel[_ToolReply | _FinishReply]):
 
     @property
     def tool(self) -> ToolCall | None:
-        return self.root.tool
+        if self.root.tool is None:
+            return None
+        return ToolCall(name=self.root.tool.name,
+                        arguments=self.root.tool.arguments.model_dump(mode="json", exclude_unset=True))
 
     @property
     def annotations(self) -> tuple[Annotation, ...]:

@@ -2,21 +2,11 @@
 
 import json
 
-from pydantic import Field
-
 from authentication_agent.config import Limits
 from authentication_agent.errors import InvestigationError
-from authentication_agent.models import AuthenticationEvent, InvestigationRequest, Model, QueryRequest, QueryResult, ToolCall, utc_ticks
+from authentication_agent.models import AuthenticationEvent, GetArguments, HistoryArguments, InvestigationRequest, QueryRequest, QueryResult, ToolCall, utc_ticks
 from .interface import AuthenticationEventProvider
 from .semantics import check_bounds, event_order, matches
-
-
-class GetArguments(Model):
-    evidence_id: str = Field(min_length=1, max_length=200)
-
-
-class HistoryArguments(QueryRequest):
-    account: str = Field(max_length=512)
 
 
 TOOL_ARGUMENT_MODELS = {

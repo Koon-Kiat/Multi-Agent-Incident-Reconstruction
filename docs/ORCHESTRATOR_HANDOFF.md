@@ -35,7 +35,13 @@ provider and agent. Load once and reuse the verified read-only snapshot.
 Account/host filters belong to query tools, not the top-level request.
 
 `AuthenticationEventProvider` supplies `query(QueryRequest) -> QueryResult` and
-`get_event(evidence_id) -> AuthenticationEvent | None`. `LLMAdapter` supplies
+`get_event(evidence_id) -> AuthenticationEvent | None`. Exact lookup can return
+any supported Security event, including 4634/4688; queries only return 4624/4625.
+The agent rejects unsupported event types before using them in findings. Sysmon,
+unknown and malformed IDs return `None` through this provider; use `EventStore`
+for cross-source access. PR #10
+detaches constructor inputs and returned records, so caller mutation cannot
+change the snapshot. `LLMAdapter` supplies
 `metadata()` and `complete(messages, schema, limits) -> str`.
 For async dispatch use
 `await asyncio.to_thread(investigate, request, provider, llm, limits)`.
@@ -58,7 +64,9 @@ The [real-data CLI](../authentication_agent/README.md) runs this boundary;
 Each finding has `finding_id`, `agent_type: authentication`, `scenario_id`,
 `observed_events`, `timestamps`, `entities`, ordered `evidence_ids`, `uncertainty`
 and nullable `interpretation`. Metadata records versions, LLM settings, limits
-and call counts. Record runtime version/digest from preflight when needed.
+and call counts. Current prompt/configuration versions are
+`authentication-prompt-v4` and `authentication-config-v3`; the result schema and
+call signature are unchanged. Record runtime version/digest from preflight when needed.
 
 Python computes observations. Optional interpretations are qualified phrases:
 review may be warranted or more context is needed. Authentication patterns alone
@@ -88,10 +96,18 @@ corpus loading can raise before dispatch. CLI setup diagnostics (exit 2) are not
 typed investigation results. Exit 3 preserves the completed-but-truncated typed
 result without changing the public schema.
 
-Qwen3 still fails directed tool-selection checks. Required retrieval must remain
+The final real-corpus Qwen3 matrix passes **7/11 checks**, with all natural
+S01-S03 findings passing factual readback. It still substitutes an observed ID
+for a requested missing ID, skips the success-only query and account-history requests,
+and finishes instead of attempting the budget-exhaustion exercise. These are
+plan-following failures, not a demonstrated budget bypass. Even an empty window
+produced one redundant query in the final run. Required retrieval must remain
 deterministic; do not depend on model execution of a prescribed follow-up plan.
-See [actual results](AUTHENTICATION_CORPUS_INTEGRATION.md). Do not retry the same
-unsupported response indefinitely.
+Tool execution still validates arguments, scope, event type and budgets. The
+unchanged result schema does not certify that a developer's external plan was
+followed; the validation runner reports those failures separately in `check_errors`.
+See [actual results](AUTHENTICATION_CORPUS_INTEGRATION.md). Avoid unbounded retries
+of an unsupported model response. Do not treat `completed` as an accuracy verdict.
 
 Outstanding decisions: final envelope agreement, provider lifetime,
 model/configuration ownership, scenario/window dispatch, whole-run deadlines,

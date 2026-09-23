@@ -40,7 +40,8 @@ integration without inference. JSON goes to stdout; exit 3 signals truncation.
 See the [integration report and reproduction commands](docs/AUTHENTICATION_CORPUS_INTEGRATION.md),
 [agent manual](authentication_agent/README.md), [processing manual](event_processing/README.md), and
 [orchestrator handoff](docs/ORCHESTRATOR_HANDOFF.md). Local model tool-selection
-limitations and provider compatibility differences are recorded as failures.
+limitations remain explicit; PR #10 resolved the provider lookup and constructor
+ownership failures, and the actual adapter now passes all 12 reusable checks.
 
 ## Synthetic development
 

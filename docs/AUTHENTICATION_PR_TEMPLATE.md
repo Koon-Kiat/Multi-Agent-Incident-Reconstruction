@@ -5,7 +5,8 @@ Explain the concrete behavior, actual validation and unresolved dependencies.
 State the model/runtime, provider/corpus and exact commands used. Distinguish
 completed execution from factual correctness and detection accuracy.
 
-Retain model-selection failures and shared-provider compatibility failures.
+Retain genuine model-selection and provider-contract failures. Attribute the
+resolved provider conversion and constructor ownership issues to PR #10.
 Report which tests skipped because original EVTX files or a local model were
 unavailable. Do not claim Incident Reconstruction Orchestrator integration
 until its implementation is connected and exercised.
