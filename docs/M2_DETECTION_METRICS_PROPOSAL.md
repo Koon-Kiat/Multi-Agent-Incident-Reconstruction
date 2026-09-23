@@ -76,6 +76,11 @@ flagged event overall (the deduplicated figure is the headline), and it is attri
 the rules that flagged it in the per-rule table. The per-rule TPs therefore do not sum to the
 overall TP.
 
+The per-rule table lists **every rule that ran** — taken from the run's own rule catalogue, not
+from the detections — including a rule that flagged nothing (0 flagged, precision `null`, its
+false negatives counted). Dropping a zero-hit rule would make "the rule found nothing" look the
+same as "the rule was never run".
+
 ### Window detections count only their trigger IDs
 
 A detection is a group of events, and some of its
@@ -151,6 +156,9 @@ Three checks make a mislabelled or partial input an error rather than a quietly 
 * The run set must be **one corpus revision with one run per scenario**: two runs for one scenario
   (the per-scenario table would keep one while the per-rule table unioned both), or runs naming
   different `corpus_manifest_sha256` values, are rejected instead of merged.
+* The run set must name **the corpus being scored**: `python -m m2 score` compares every run's
+  `corpus_manifest_sha256` with the `--corpus` manifest digest and exits `1` on a mismatch, so a
+  stale `out/detections` from another revision cannot be scored against fresh labels.
 
 ## Worked example
 

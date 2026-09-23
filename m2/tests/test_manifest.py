@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,19 @@ from m2.timeutil import iso_to_ticks
 
 SECURITY = "Security"
 SYSMON = "Microsoft-Windows-Sysmon/Operational"
+
+
+def test_a_reserved_scenario_id_is_rejected_before_anything_is_written(tmp_path: Path):
+    # B4: a scenario called `summary` would write `summary.json`, which detect uses for its own
+    # summary. The reserved name is refused at the manifest, where the id enters m2.
+    directory = build_scenario_dir(tmp_path, "lab")
+    for name in ("manifest.json", "scenario_metadata.json"):
+        path = directory / "metadata" / name
+        document = json.loads(path.read_text(encoding="utf-8"))
+        document["scenario_id"] = "summary"
+        path.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ManifestError, match="is reserved"):
+        load_scenario(directory)
 
 
 def test_loads_the_s01_shape(tmp_path: Path):
