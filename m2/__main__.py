@@ -18,9 +18,24 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from m2.corpus import CORPUS_MANIFEST_FILENAME, normalise_datasets
-from m2.detection.engine import SUMMARY_FILENAME, DetectionOutputError, write_detections
-from m2.metrics import ScoreCounts, ScoreError, load_detection_runs, load_labels, score, write_report
+from m2.corpus import CORPUS_MANIFEST_FILENAME, CorpusOutputError, normalise_datasets
+from m2.detection.engine import (
+    SUMMARY_FILENAME,
+    DetectionError,
+    DetectionOutputError,
+    corpus_manifest_digest,
+    write_detections,
+)
+from m2.metrics import (
+    ScoreCounts,
+    ScoreError,
+    load_detection_runs,
+    load_labels,
+    score,
+    validate_corpus_manifest,
+    write_report,
+)
+from m2.protected_paths import ProtectedOutputError, refuse_protected_output
 from m2.query import EventStore, QueryError
 from m2.schema import event_to_json
 
@@ -42,6 +57,10 @@ def _not_implemented(command: str) -> int:
 def _normalise(args: argparse.Namespace) -> int:
     try:
         manifest = normalise_datasets(Path(args.datasets), Path(args.out))
+    except CorpusOutputError as error:
+        # An --out the evidence tree owns is invalid input, not a failed parse: refuse before mkdir.
+        print(f"m2 normalise: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
     except (ValueError, OSError) as error:
         print(f"m2 normalise: {error}", file=sys.stderr)
         return EXIT_FAILED
@@ -139,8 +158,22 @@ def _score_line(label: str, counts: ScoreCounts) -> str:
 def _score(args: argparse.Namespace) -> int:
     detections_dir = Path(args.detections)
     labels_path = Path(args.labels)
+    try:
+        refuse_protected_output(Path(args.out))
+    except ProtectedOutputError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
+    # A path that exists but is the wrong kind of thing is reported as itself: `is_file()` is also
+    # False for a directory, so the missing-file wording would send the operator looking for a path
+    # that is right there. The loader repeats these checks for API callers.
+    if labels_path.is_dir():
+        print(f"m2 score: label file {labels_path} is a directory, not a label file", file=sys.stderr)
+        return EXIT_FAILED
     if not labels_path.is_file():
         print(f"m2 score: label file {labels_path} does not exist", file=sys.stderr)
+        return EXIT_FAILED
+    if detections_dir.exists() and not detections_dir.is_dir():
+        print(f"m2 score: detections path {detections_dir} is not a directory", file=sys.stderr)
         return EXIT_FAILED
     if not detections_dir.is_dir():
         print(f"m2 score: detections directory {detections_dir} does not exist", file=sys.stderr)
@@ -149,13 +182,37 @@ def _score(args: argparse.Namespace) -> int:
     if isinstance(store, int):
         return store
     try:
+        digest = corpus_manifest_digest(Path(args.corpus))
+    except DetectionError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    try:
+        runs = load_detection_runs(detections_dir)
+        rows = load_labels(labels_path)
+    except ScoreError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
+    except OSError as error:
+        # Defensive backstop: the loaders already turn a read failure into a ScoreError, so this
+        # only catches an OS error outside their own reads (a directory listing, say) and still
+        # prints one line instead of a traceback.
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    try:
+        # B1: a run computed from another corpus revision is a failed run, not malformed input.
+        validate_corpus_manifest(runs, digest)
+    except ScoreError as error:
+        print(f"m2 score: {error}", file=sys.stderr)
+        return EXIT_FAILED
+    try:
         report = score(
-            load_detection_runs(detections_dir),
-            load_labels(labels_path),
+            runs,
+            rows,
             known_evidence_ids=store.evidence_ids,
+            corpus_manifest_sha256=digest,
         )
         path = write_report(report, Path(args.out))
-    except ScoreError as error:
+    except (ScoreError, ProtectedOutputError) as error:
         print(f"m2 score: {error}", file=sys.stderr)
         return EXIT_INVALID_INPUT
     except OSError as error:

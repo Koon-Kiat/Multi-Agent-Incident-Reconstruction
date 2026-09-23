@@ -11,12 +11,17 @@ second definition of the contract.
 Mapping rules
 -------------
 
-* Only ``Security`` events 4624 and 4625 become an ``AuthenticationEvent``. Every other event
-  — Sysmon, or another Security event ID — is outside M3's authentication provider contract,
-  so ``get_event`` returns ``None`` and ``query`` never offers it. ``None`` also covers a
-  malformed ID and a well-formed ID the corpus does not hold: M3's contract has one
-  representation for "there is no such authentication event", and M2's own
+* Every ``Security`` event becomes an ``AuthenticationEvent`` under **exact lookup**, whatever
+  its Event ID: M3's own contract fixture requires ``get_event`` to return a Security 4634
+  unchanged ("exact lookup retains that Security record"), and ``m3.models.AuthenticationEvent``
+  places no Event-ID restriction on the model. A Sysmon event is outside M3's contract and
+  returns ``None``. ``None`` also covers a malformed ID and a well-formed ID the corpus does not
+  hold: M3's contract has one representation for "there is no such event", and M2's own
   :class:`~m2.query.LookupResult` keeps the three cases apart for callers that need them.
+* ``query`` is narrower than ``get_event``: it offers only the ``Security`` events whose Event ID
+  the request admits (4624/4625 by default, and ``QueryRequest`` permits no others), because the
+  agent tools must see authentication evidence only. The pre-selection is an optimisation; M3's
+  ``matches`` remains the sole decision on what the request admits.
 * ``event_data`` is copied verbatim, values unchanged, so M3's ``account_of`` fallback to
   ``TargetUserName`` keeps working. ``user`` and ``host`` are passed through untouched: M2
   never case-folds or strips a domain.
@@ -53,11 +58,15 @@ class M2AuthenticationProvider:
         self._limits = limits or Limits()
 
     def get_event(self, evidence_id: str) -> AuthenticationEvent | None:
-        """Return the authentication view of an exact event, or ``None`` when there is none."""
+        """Return M3's view of an exact event, or ``None`` when there is none.
+
+        Any Security record is preserved, not only 4624/4625: M3's contract fixture looks up a
+        Security 4634 and requires it back unchanged. :meth:`query` is the narrower door.
+        """
         found = self._store.lookup(evidence_id)
         if found.status != "found" or found.event is None:
             return None
-        return _authentication_event(found.event)
+        return _security_event(found.event)
 
     def query(self, request: QueryRequest) -> QueryResult:
         """Return the authentication events ``request`` selects, in M3's order.
@@ -70,7 +79,7 @@ class M2AuthenticationProvider:
         selected = [
             event
             for event in (
-                _authentication_event(candidate)
+                _security_event(candidate)
                 for candidate in self._store.scenario_events(request.scenario_id)
                 if candidate.channel == SECURITY_CHANNEL and candidate.source_event_id in AUTH_EVENT_IDS
             )
@@ -83,9 +92,15 @@ class M2AuthenticationProvider:
         )
 
 
-def _authentication_event(event: NormalisedEvent) -> AuthenticationEvent | None:
-    """M3's authentication view of one normalised event, or ``None`` when it is out of contract."""
-    if event.channel != SECURITY_CHANNEL or event.source_event_id not in AUTH_EVENT_IDS:
+def _security_event(event: NormalisedEvent) -> AuthenticationEvent | None:
+    """M3's view of one normalised Security event, or ``None`` when it is out of contract.
+
+    The only channel check is M3's own model constraint (``channel == "Security"``); the Event ID
+    is deliberately not filtered here, because M3's model and contract accept any Security record
+    under exact lookup. :meth:`M2AuthenticationProvider.query` applies the narrower Event-ID
+    filter before it calls this.
+    """
+    if event.channel != SECURITY_CHANNEL:
         return None
     return AuthenticationEvent(
         evidence_id=event.evidence_id,

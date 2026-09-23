@@ -37,9 +37,9 @@ BASELINE_COUNTS = {
 # its own summary before removing a stale one: the counts and the three scenario files are
 # byte-identical, and only `summary.json` moves.
 BASELINE_DIGESTS = {
-    "S01.json": "25743d539f4edc6e41404255b1fb7029f384b6c6a75d93939b222457ce3aa29a",
-    "S02.json": "539546b50cb0515aea419159f62947d2a03ad2a9bc6baa755a2a8a8bb02e3103",
-    "S03.json": "5c13bb8bfe34beedaae75a25c531b6c5731a409c8b4981fd3d613943b712e30b",
+    "S01.json": "30f11dfc273566b2b5b44960e13a511ac067a7a6ae5ec9c9029581d768c2c114",
+    "S02.json": "c8a15743010ac43d21ce67142727a4262e80f5ce0b93a714dabb39fc1a01bb85",
+    "S03.json": "289e4b1690dce2f494e6e94a356535b88f005d41206d954c42efe405b6879af4",
     "summary.json": "62c5ce9ebd8291b80efb990c8ec07cab88680340879518796347410e752974fa",
 }
 

@@ -12,17 +12,19 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from m2.detection.schema import Detection, DetectionRun
+from m2.detection.schema import Detection, DetectionRun, RuleRecord
 from m2.metrics import (
     SCORE_REPORT_FILENAME,
     LabelRow,
     ScoreError,
+    ScoreReport,
     load_detection_runs,
     load_labels,
     report_to_json,
     score,
     write_report,
 )
+from m2.protected_paths import ProtectedOutputError
 
 SCENARIO = "SYN-B"
 OTHER_SCENARIO = "SYN-C"
@@ -228,6 +230,35 @@ def test_two_runs_for_one_scenario_are_rejected():
         score(runs, ())
 
 
+def test_a_run_that_does_not_describe_the_scored_corpus_is_rejected():
+    # B1: the same corpus revision check `--corpus` performs, available to API callers.
+    with pytest.raises(ScoreError, match="do not describe"):
+        score(_runs(), _labels(), corpus_manifest_sha256="0" * 64)
+    assert score(_runs(), _labels(), corpus_manifest_sha256=SHA).overall.tp == 2
+
+
+def test_every_declared_rule_is_reported_even_when_it_flagged_nothing():
+    # B14: `DetectionRun.rules` is the rule catalogue that was run; a rule with no hits still has
+    # to appear so its false negatives are visible (and so it cannot vanish from the report).
+    only = DetectionRun(
+        scenario_id=SCENARIO,
+        corpus_manifest_sha256=SHA,
+        rules=(RuleRecord(rule_id="R-A", version="1"), RuleRecord(rule_id="R-Z", version="1")),
+        detections=(_detection(SCENARIO, "R-A", (1,)),),
+    )
+    labels = (
+        LabelRow(evidence_id="SYN-B-SEC-1", label="positive"),
+        LabelRow(evidence_id="SYN-B-SEC-5", label="positive"),
+    )
+    report = score((only,), labels)
+    by_rule = {rule.rule_id: rule.counts for rule in report.rules}
+    assert sorted(by_rule) == ["R-A", "R-Z"]
+    assert (by_rule["R-A"].flagged, by_rule["R-A"].tp, by_rule["R-A"].fn) == (1, 1, 1)
+    assert (by_rule["R-Z"].flagged, by_rule["R-Z"].tp, by_rule["R-Z"].fp, by_rule["R-Z"].fn) == (0, 0, 0, 2)
+    assert by_rule["R-Z"].precision is None
+    assert by_rule["R-Z"].recall == 0.0
+
+
 def test_runs_from_different_corpora_are_rejected():
     other_sha = "0" * 64
     other = DetectionRun(
@@ -281,6 +312,16 @@ def test_a_duplicate_evidence_id_in_the_labels_raises():
 def test_an_unsupported_unit_is_rejected():
     with pytest.raises(ScoreError, match="unit"):
         score(_runs(), _labels(), unit="window")
+
+
+def test_a_report_declaring_another_schema_version_is_rejected():
+    # B9: `score_report.json` identifies itself with one exact version, not free text.
+    report = score(_runs(), _labels())
+    assert report.schema_version == "m2-score-v1"
+    document = report.model_dump()
+    document["schema_version"] = "m2-score-v2"
+    with pytest.raises(ValidationError, match="schema_version"):
+        ScoreReport.model_validate(document)
 
 
 # --- the label file formats --------------------------------------------------------
@@ -362,6 +403,32 @@ def test_a_malformed_json_label_document_is_rejected(tmp_path: Path):
         load_labels(path)
 
 
+def test_a_label_file_that_is_not_utf8_is_a_score_error(tmp_path: Path):
+    # B10: an encoding failure is an unusable label file, not a raw UnicodeDecodeError through
+    # the CLI. Both shapes must fail the same way.
+    csv_path = tmp_path / "labels.csv"
+    csv_path.write_bytes(b"evidence_id,label\nSYN-B-SEC-1,positive\n\xff\xfe\x00")
+    with pytest.raises(ScoreError, match="not valid UTF-8"):
+        load_labels(csv_path)
+    json_path = tmp_path / "labels.json"
+    json_path.write_bytes(b'[{"evidence_id": "SYN-B-SEC-1", "label": "positive"}, \xff]')
+    with pytest.raises(ScoreError, match="not valid UTF-8"):
+        load_labels(json_path)
+
+
+def test_a_csv_label_file_whose_parse_fails_is_a_score_error(tmp_path: Path):
+    import csv
+
+    path = tmp_path / "labels.csv"
+    path.write_text("evidence_id,label\nSYN-B-SEC-1," + "x" * 100 + "\n", encoding="utf-8")
+    previous = csv.field_size_limit(10)
+    try:
+        with pytest.raises(ScoreError, match="could not be parsed"):
+            load_labels(path)
+    finally:
+        csv.field_size_limit(previous)
+
+
 # --- reading a written detections directory ----------------------------------------
 
 
@@ -393,6 +460,55 @@ def test_a_file_that_is_not_a_detection_run_is_rejected(tmp_path: Path):
         load_detection_runs(directory)
 
 
+def test_a_detection_run_that_is_not_utf8_is_a_score_error(tmp_path: Path):
+    # B11: reading a run file is part of `score`, so a decode failure is a ScoreError too.
+    directory = tmp_path / "detections"
+    directory.mkdir()
+    (directory / "SYN-B.json").write_bytes(b'{"schema_version": \xff\xfe}')
+    with pytest.raises(ScoreError, match="not valid UTF-8"):
+        load_detection_runs(directory)
+
+
+def test_a_directory_named_like_a_run_file_is_a_score_error(tmp_path: Path):
+    # F1: `glob("*.json")` matches a directory whose name ends in `.json` too, and reading one
+    # raises an OSError (PermissionError on Windows, IsADirectoryError on POSIX). That must be a
+    # ScoreError so the CLI prints one line instead of a traceback.
+    directory = tmp_path / "detections"
+    (directory / "S01.json").mkdir(parents=True)
+    with pytest.raises(ScoreError, match="not a regular file"):
+        load_detection_runs(directory)
+
+
+def _fail_reads_for(monkeypatch: pytest.MonkeyPatch, target: Path) -> None:
+    """Make ``Path.read_text`` fail with ``PermissionError`` for exactly ``target`` (a lock, say)."""
+    real_read_text = Path.read_text
+
+    def read_text(self: Path, *args: object, **kwargs: object) -> str:
+        if self == target:
+            raise PermissionError(13, "Permission denied", str(self))
+        return real_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", read_text)
+
+
+def test_an_os_read_failure_of_a_label_file_is_a_score_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    path = tmp_path / "labels.csv"
+    path.write_text("evidence_id,label\nSYN-B-SEC-1,positive\n", encoding="utf-8")
+    _fail_reads_for(monkeypatch, path)
+    with pytest.raises(ScoreError, match="could not be read"):
+        load_labels(path)
+
+
+def test_an_os_read_failure_of_a_run_file_is_a_score_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    directory = tmp_path / "detections"
+    directory.mkdir()
+    path = directory / f"{SCENARIO}.json"
+    path.write_text(f"{_json(_run(SCENARIO, _detection(SCENARIO, 'R-A', (1,))))}\n", encoding="utf-8")
+    _fail_reads_for(monkeypatch, path)
+    with pytest.raises(ScoreError, match="could not be read"):
+        load_detection_runs(directory)
+
+
 def test_a_run_file_whose_name_disagrees_with_its_scenario_is_rejected(tmp_path: Path):
     directory = tmp_path / "detections"
     directory.mkdir()
@@ -400,6 +516,16 @@ def test_a_run_file_whose_name_disagrees_with_its_scenario_is_rejected(tmp_path:
     (directory / f"{OTHER_SCENARIO}.json").write_text(f"{_json(run)}\n", encoding="utf-8")
     with pytest.raises(ScoreError, match="must be named"):
         load_detection_runs(directory)
+
+
+@pytest.mark.parametrize("tree", ["datasets", "ground_truth", "GROUND_TRUTH"])
+def test_the_report_refuses_an_output_directory_inside_a_protected_tree(tmp_path: Path, tree: str):
+    # B2: the same tree check detect applies, so `score --out` cannot write into the evidence.
+    report = score(_runs(), _labels())
+    destination = tmp_path / tree / "scores"
+    with pytest.raises(ProtectedOutputError, match="read-only"):
+        write_report(report, destination)
+    assert not destination.exists()
 
 
 def test_the_report_is_written_as_deterministic_sorted_key_json(tmp_path: Path):
