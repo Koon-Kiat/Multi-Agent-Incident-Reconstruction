@@ -1,0 +1,205 @@
+{
+  "completed_at_utc": "2026-09-23T13:18:37.301512+00:00",
+  "python": "3.14.6",
+  "synthetic_only": true,
+  "runtime": {
+    "runtime": "ollama",
+    "version": "0.34.3",
+    "installed_model": {
+      "name": "qwen3:8b",
+      "model": "qwen3:8b",
+      "modified_at": "2026-09-21T23:14:46.0487862+08:00",
+      "size": 5225388164,
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "8.2B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 40960,
+        "embedding_length": 4096
+      },
+      "capabilities": [
+        "completion",
+        "tools",
+        "thinking"
+      ]
+    },
+    "capabilities": [
+      "completion",
+      "tools",
+      "thinking"
+    ],
+    "configuration": {
+      "model": "qwen3:8b",
+      "endpoint": "http://127.0.0.1:11434",
+      "temperature": 0.0,
+      "seed": 0,
+      "num_ctx": 8192,
+      "think": false
+    }
+  },
+  "source_sha256": {
+    "agent.py": "f59c81996a1f49e4a44d8a69b930efcf097ce9ddca06f9ab1af8c04a57c0ffc8",
+    "models.py": "4d34e7e79f9d434ba0e89abad88f3bfddb5697ec78e853932471f6fee64c21be",
+    "config.py": "244db2fb38b60e95ed742417b75f4a639efd29dabb0769b61c08d728dad215aa",
+    "prompts.py": "9c200185458e6d4a95552473c89ef7edb81ed92d116bb1741095102a336569d4",
+    "llm/ollama_client.py": "bfb6984196b85f5a32f5ba2f8fe29af5e6cdf49c21cf692c6201c5cb3eb17cec",
+    "fixtures/synthetic_events.json": "babefcc8f92258e9bd392a0ff45a0fab91ae36a15c260687342ada7cbe9783c3",
+    "testing/factual_checks.py": "20265956422bb10563c6fb75c2ecc597f70ba02fa550b33e844a960756da40e5",
+    "validate_synthetic.py": "61e3ccf1322d25f36eed6d5bbeaf8f93d8ee816e53a1dffd7630d15a8969b6db"
+  },
+  "cases": [
+    {
+      "case": "SYN-A",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 2.065,
+      "file": "SYN-A.json",
+      "sha256": "e9655be63c6571808a9d90713205c27afa0ad646a23fb5e19925a4b7f20282fb"
+    },
+    {
+      "case": "SYN-B",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.903,
+      "file": "SYN-B.json",
+      "sha256": "0fcd8d9a920ae5ebae589ab3c4b2d13ec6ae80d2fbb0a78c1a3d38f6d6d5b970"
+    },
+    {
+      "case": "SYN-C",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 1.871,
+      "file": "SYN-C.json",
+      "sha256": "f85e7b5e44fe72e4626456b9a6f0dc3589d757551ad905705c18c8d48aafc3f8"
+    },
+    {
+      "case": "SYN-D",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 6.156,
+      "file": "SYN-D.json",
+      "sha256": "c847b5ae1e6f6da652d11bcd5280c3f2c8cf2ef160d46aa6fec9a15bce118754"
+    },
+    {
+      "case": "SYN-E",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.8,
+      "file": "SYN-E.json",
+      "sha256": "06a3c1c567107db6a19cc3b1f5c128054509d0f1e23b5f3bd4da21a2ba432c8f"
+    },
+    {
+      "case": "SYN-F",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 2.618,
+      "file": "SYN-F.json",
+      "sha256": "86b3581c7d8a6dc44d0c29f8ab5a2878b2c7fa698661d53c24171f90eb529166"
+    },
+    {
+      "case": "SYN-H1",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.913,
+      "file": "SYN-H1.json",
+      "sha256": "6d5fd71516e4e778521e08ac88a550da34d12917f2eeb5630db312b190d94dff"
+    },
+    {
+      "case": "SYN-H2",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.905,
+      "file": "SYN-H2.json",
+      "sha256": "84d591686fa0704e9d7a5450a6e0daff56eeea636dd3eb80317bf3e01022a383"
+    },
+    {
+      "case": "SYN-I",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 1.868,
+      "file": "SYN-I.json",
+      "sha256": "d907482bf46d7fefa7130cb5ba7252abf0b05314b2f238b8528838de056b1092"
+    },
+    {
+      "case": "get_existing",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 3.3,
+      "file": "get_existing.json",
+      "sha256": "3e3be3dd540d03b9264ba6b2506791dca0d907903350eb3d200d5ef0ca3ef770"
+    },
+    {
+      "case": "get_missing",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 3.296,
+      "file": "get_missing.json",
+      "sha256": "f4c4a477c02133ace1ee7ca5cb0ec377fa8c09c26ff3bd13c216ca9dcbd2b6d6"
+    },
+    {
+      "case": "query_tool",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [
+        "model did not emit the directed approved tool call"
+      ],
+      "elapsed_seconds": 2.854,
+      "file": "query_tool.json",
+      "sha256": "a169a9c569852c2a9f814542fdfbd43880630f8fa321d106b1a5fd2181aac8b0"
+    },
+    {
+      "case": "account_history",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 3.781,
+      "file": "account_history.json",
+      "sha256": "c41646189aa75d3aa3bc4991d21c00c37c12719f06923687741f7650995788bd"
+    },
+    {
+      "case": "tool_budget",
+      "status": "failed",
+      "error_code": "tool_budget_exhausted",
+      "check_errors": [],
+      "elapsed_seconds": 1.291,
+      "file": "tool_budget.json",
+      "sha256": "c2fd4ee0e879af705318d5b28431ba5e52d0741c6ae396c07c21d8bb3b2cb5eb"
+    },
+    {
+      "case": "bounded_query",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.913,
+      "file": "bounded_query.json",
+      "sha256": "d9bd241c72fa7dfe2fb5e7114f8941d99956e2ff5561fb2aafa0822b8dc0d471"
+    },
+    {
+      "case": "interpretation",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 2.009,
+      "file": "interpretation.json",
+      "sha256": "109f9fb69ca8047a9802640d8d57eb9a07723397709269625455b11ac70e69cd"
+    }
+  ],
+  "scope": "Authentication Investigation Agent synthetic development assertions; not independent verification or attack-detection evaluation"
+}

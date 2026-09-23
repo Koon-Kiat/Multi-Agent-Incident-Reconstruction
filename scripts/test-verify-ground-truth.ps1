@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Negative tests for the M6 ground-truth evidence validator.
+    Negative tests for the Evidence Verification & Evaluation ground-truth evidence validator.
 
 .DESCRIPTION
     A validator that only ever reports PASS proves nothing. This script copies
@@ -15,9 +15,9 @@
     record IDs, timestamps, hosts, stage IDs, labels or techniques. Every test
     fixture is derived from the private CSVs at runtime, so nothing about the
     answer key is embedded in a committed file. This also means the tests keep
-    working if M1 revises the ground truth.
+    working if Dataset & Ground Truth Management revises the ground truth.
 
-    Ownership: M6 (Evidence Verification & Evaluation).
+    Ownership: Evidence Verification & Evaluation.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File scripts/test-verify-ground-truth.ps1
@@ -35,7 +35,7 @@ if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $PSScriptRoot }
 if (-not $GroundTruthDir) { $GroundTruthDir = Join-Path $RepoRoot 'ground_truth\private' }
 
 $validator = Join-Path $PSScriptRoot 'verify-ground-truth.ps1'
-$workRoot = Join-Path ([System.IO.Path]::GetTempPath()) "mair-m6-tests-$PID"
+$workRoot = Join-Path ([System.IO.Path]::GetTempPath()) "mair-evidence-tests-$PID"
 
 $passed = 0
 $failed = 0
@@ -107,7 +107,7 @@ function Assert-Detects {
 }
 
 Write-Host ''
-Write-Host '=== M6 validator negative tests ===' -ForegroundColor Cyan
+Write-Host '=== Evidence Verification & Evaluation validator negative tests ===' -ForegroundColor Cyan
 Write-Host ''
 
 try {

@@ -1,0 +1,69 @@
+{
+  "case": "empty",
+  "elapsed_seconds": 0.019,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T00:00:00Z",
+      "end_utc": "2026-09-21T00:01:00Z"
+    },
+    "findings": [],
+    "error_code": null,
+    "uncertainty": [
+      "No authentication evidence was returned for this window; this does not establish absence of activity."
+    ],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v3",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "fake",
+        "model": "deterministic-fake-v1",
+        "corpus_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "4914845bb686e5d87ff0ffb7a14ae3f561334216ee44d8a4258806c35b27fe06",
+      "reply": "{\"action\": \"finish\", \"tool\": null, \"annotations\": []}",
+      "elapsed_seconds": 0.0
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    }
+  ]
+}

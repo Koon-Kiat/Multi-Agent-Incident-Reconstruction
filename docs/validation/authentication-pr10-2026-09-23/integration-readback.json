@@ -1,0 +1,51 @@
+{
+  "upstream_commit": "9dfe89c0cf49120839aa0c2b1a58e7a36f89d158",
+  "detections": {
+    "S01.json": {
+      "upstream_sha256": "30f11dfc273566b2b5b44960e13a511ac067a7a6ae5ec9c9029581d768c2c114",
+      "integrated_sha256": "2222118a463431303380867fd29b9193a4935fa1f2bef92f1c3f4d998e4fe158",
+      "prior_sha256": "bddcc3184d80a5ce07a27563d2f2a20a47af90830a418fc722d5a1dfc4318161",
+      "canonical_behavior_sha256": "7c67e52703d6099f13bd8ca3a1ee57f84dd1b2cc5141df2000d5ec2d9c9db369",
+      "upstream_equal_except_schema_and_manifest_digest": true,
+      "prior_equal_except_rule_version": true
+    },
+    "S02.json": {
+      "upstream_sha256": "c8a15743010ac43d21ce67142727a4262e80f5ce0b93a714dabb39fc1a01bb85",
+      "integrated_sha256": "63a6b2e231eac747967171d0291f0e7e73805ae822f2c9a80a9748ddcada04e6",
+      "prior_sha256": "549afd3e9821a045b8b84cd425d0df592f6efc996bb5e26ee3e79f155f8b654a",
+      "canonical_behavior_sha256": "fcca13c0b322c2b73bad625d2b18866f279862332b2c0e463751fbdfead5fea7",
+      "upstream_equal_except_schema_and_manifest_digest": true,
+      "prior_equal_except_rule_version": true
+    },
+    "S03.json": {
+      "upstream_sha256": "289e4b1690dce2f494e6e94a356535b88f005d41206d954c42efe405b6879af4",
+      "integrated_sha256": "6ed830c1c52b8448567c8bd6d2e47cfda082b3a040e270e1b51cc66475ffc3c7",
+      "prior_sha256": "dcd730c0e8eea90cf405906e9e2bed9c3c9dcca6586708cc52af7f56e0718028",
+      "canonical_behavior_sha256": "0f8123efd5dfac765c76bcd5dfb3e709806e1b73154438b337d402f09cdf4fff",
+      "upstream_equal_except_schema_and_manifest_digest": true,
+      "prior_equal_except_rule_version": true
+    },
+    "summary.json": {
+      "upstream_sha256": "62c5ce9ebd8291b80efb990c8ec07cab88680340879518796347410e752974fa",
+      "integrated_sha256": "a16836328abd1136bfb21fa573d221a6227c88c237d8544ab0783a645af8395c",
+      "prior_sha256": "a16836328abd1136bfb21fa573d221a6227c88c237d8544ab0783a645af8395c",
+      "canonical_behavior_sha256": "bcca7b6d4dabe591136de213dfeab8cf440e7689d1d580a9529bab0495b947c8",
+      "upstream_equal_except_schema_and_manifest_digest": true,
+      "prior_equal_except_rule_version": true
+    }
+  },
+  "corpus": {
+    "S01": {
+      "sha256": "8d8fa43693a00e595a4b71694b009f506787b0ea288f6b2160ce15813e471167",
+      "equal_to_upstream": true
+    },
+    "S02": {
+      "sha256": "03992665764f6e98a32e511d9ec83fe387ecf5e9064b60881986afc2c2afdfe2",
+      "equal_to_upstream": true
+    },
+    "S03": {
+      "sha256": "525169a35d8bafb334871081d1ccc731fe659f804219cc0577c8d88ea3aa3474",
+      "equal_to_upstream": true
+    }
+  }
+}

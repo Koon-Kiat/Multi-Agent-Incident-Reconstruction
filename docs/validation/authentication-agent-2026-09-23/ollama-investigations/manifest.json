@@ -1,0 +1,535 @@
+{
+  "completed_at_utc": "2026-09-23T13:29:32.108233+00:00",
+  "python": "3.14.6",
+  "runtime": {
+    "runtime": "ollama",
+    "version": "0.34.3",
+    "model": "qwen3:8b",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "configuration": {
+      "model": "qwen3:8b",
+      "endpoint": "http://127.0.0.1:11434",
+      "temperature": 0.0,
+      "seed": 0,
+      "num_ctx": 8192,
+      "think": false
+    }
+  },
+  "source_sha256": {
+    "authentication_agent/__init__.py": "ae24098d5172af29d2de2f1caa2f15358c1e7115405c27bd56ba488926309903",
+    "authentication_agent/__main__.py": "de6682239fee585210a519c2f221eaeb2a873e631f7a55ac045feb50477c2de8",
+    "authentication_agent/agent.py": "d1bbf8fa0344ed2778dc6c2b06fd3646b0a05165027653f2952a6c146d901500",
+    "authentication_agent/config.py": "244db2fb38b60e95ed742417b75f4a639efd29dabb0769b61c08d728dad215aa",
+    "authentication_agent/errors.py": "6a60f69ca3aadd98b792ed221968c9621475c92d42cf7e99bb18e71b961c1f9c",
+    "authentication_agent/examples/__init__.py": "51de9688584d79e9b011b2c23d3d5c6fb9b42c99089c89c3e346a700a36fb5fe",
+    "authentication_agent/examples/investigate_required_corpus.py": "b6e5bf8ef73601057878c64e597336cf990b4b1924f9604d28de49cf8cd2ce8f",
+    "authentication_agent/examples/invoke_authentication.py": "0b6faef2c5f4353a746c4bbd357a4a0e388ca86043c44bfc7e955937046d50b4",
+    "authentication_agent/investigate_corpus.py": "2b571e3cf5918207e725aac563fb648e1bc2caf0a803dbb3732585f1c225ac87",
+    "authentication_agent/llm/__init__.py": "54b8b4042eb86c55ff0394bce4a1c1d873bb78ec563b5365c2b7dcca5f2a64f9",
+    "authentication_agent/llm/fake.py": "dddad2d7ba1041aff7405656ad157f6628ae63e0fd6fdea8cfe3ba8e3eb256b9",
+    "authentication_agent/llm/ollama_client.py": "bfb6984196b85f5a32f5ba2f8fe29af5e6cdf49c21cf692c6201c5cb3eb17cec",
+    "authentication_agent/models.py": "d176344e3510c2e809c9acaeea2ef2bfd97e530b2a35640f98e97f831d12b86a",
+    "authentication_agent/observations.py": "3da81923b12992cbe3157932d2db1f64442a4c78a2d7fa3a27261a46c574ce4d",
+    "authentication_agent/prompts.py": "e4fc34906a8c95a041f99fa28f4be44ad2a41c66aecc9e9d33184e7594624345",
+    "authentication_agent/queries/__init__.py": "3b3e74b63f5c35ab104dd24eb397158af9b9fcc896ad6c05329857cb3658316b",
+    "authentication_agent/queries/in_memory.py": "56914aac506b89ace5629dd8f5da377511eb951a6662c49d15258140b12ea5c5",
+    "authentication_agent/queries/interface.py": "410dce1dd1e51597cceb4eea85cf7e38bee2366f6e1e4bd94b17be94a4ce51e6",
+    "authentication_agent/queries/semantics.py": "b76b41a022265fa7adcf10d9bfbc223f75a6e5711e35482113ac9b5e2c6b441c",
+    "authentication_agent/queries/tools.py": "6d18fe285c175e0f0425fdd6e64186ba1c47f4f206e54273b9246dc86c39ac5d",
+    "authentication_agent/testing/__init__.py": "771bcb35bc226a15ca29fc963c05ae197cdc8b329edbec5e553d0dc0cffd1047",
+    "authentication_agent/testing/check_processing_contract.py": "2e59fb6c6c69de4c1158bdb18efeaf01c9ec992ab8bd7107aeef9f5b0d2c64bd",
+    "authentication_agent/testing/factual_checks.py": "20265956422bb10563c6fb75c2ecc597f70ba02fa550b33e844a960756da40e5",
+    "authentication_agent/testing/provider_contract.py": "149c12abdb34da88b82f1ac8b945c7dd8a9a9f70aaae522c32d2bdd950a54767",
+    "authentication_agent/validate_corpus.py": "bce7ea1535a353040f4c810e047bdcab5af8e800ff576aebd3d6a85c2da699e9",
+    "authentication_agent/validate_investigations.py": "098271573e6ae2cc3402ba65d6f18e5758e887c72dca360dc29473d5d2224300",
+    "authentication_agent/validate_synthetic.py": "20cab20e658df68ee062299d93480a6a193315a7e69fbfe1dc8f952a6a59e01f",
+    "event_processing/__init__.py": "335eb5e9f28547301650820fa6e29f99d398b049e57fac8268fc3e54f92a0a66",
+    "event_processing/__main__.py": "8edc50b76ead3643432b0fe48557d5daee6112eb6e7eecf3b3a7e93e7b042f61",
+    "event_processing/adapters/__init__.py": "2d2608c33799aaa1fdbcba6a0ea4cd5d3af55b3c212f2272643bf027bd48a617",
+    "event_processing/adapters/authentication_provider.py": "bb1acb04673a960d7808d048d8fd7cadc6a6785d7c195bacb1921c492a1336b8",
+    "event_processing/corpus.py": "a52f6a8576cb9b761cb2783e595969d9d79f11c25bf6ea7f0a6c5f14f37f904e",
+    "event_processing/detection/__init__.py": "80569396aff31a6812f543e9bcee93d9e4aae98e487f3cec896bf11af7446d3c",
+    "event_processing/detection/engine.py": "6a877adc4938a9979763fa99b3f53680b42392b7b9be6f46e9cb95a4d0238455",
+    "event_processing/detection/rules.py": "d70f5c7a11bfff91506c427067e70af570421ddfe44ed4e704e2eec8c5496d41",
+    "event_processing/detection/schema.py": "e2533046d3d40ecd1324196977796786e2d0ac9f0ddb006e27f7c2576e45aea4",
+    "event_processing/evtx_reader.py": "8d96b255f69686cee71a88d10e5c906c455955a4c4eb3ce237ef85cc88b49d1e",
+    "event_processing/ids.py": "95e541adcde8cb7ef355e683c0f502658734e5abfc944e1ac87b60e5895d33c8",
+    "event_processing/manifest.py": "1697dd5bd2e01a63e2819905b20f20b2c072933dbdf3a92b1eea2f5694fab5b7",
+    "event_processing/metrics.py": "44fd8883df7e7205f4fb42aeb58e5147b796392283782118888953ded53ef98b",
+    "event_processing/normalise.py": "557feade347c65adf7e6f28806c83d9c26e0c8480d2ce45bdc1837bbca10dc19",
+    "event_processing/protected_paths.py": "3f6e25994d80899b136fbed4ee803ca789e7ef3e79b1f9d7af83a83cd35cc638",
+    "event_processing/query.py": "b75435b9d778a3fd62c1332b6a3df47c52c3941c28657d432ecff1252d4f574d",
+    "event_processing/schema.py": "12987e39554e4431dfed5ad39d56ec6e206ff24281fa1f2c4cd5622d337dd171",
+    "event_processing/timeutil.py": "a51d3e6fe27bb79b0746f5607b8ec6cc9ed22f6acde4348eef7470fc4ef67e27"
+  },
+  "source_unchanged_during_run": true,
+  "corpus_manifest": {
+    "scenarios": [
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 893,
+          "Security": 1807
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 30,
+            "10": 447,
+            "11": 27,
+            "12": 41,
+            "13": 172,
+            "16": 1,
+            "17": 18,
+            "18": 18,
+            "22": 4,
+            "23": 17,
+            "24": 2,
+            "3": 43,
+            "5": 37,
+            "7": 5,
+            "8": 4,
+            "9": 27
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 6,
+            "4627": 6,
+            "4634": 6,
+            "4658": 572,
+            "4661": 572,
+            "4672": 6,
+            "4673": 3,
+            "4688": 89,
+            "4689": 85,
+            "4703": 204,
+            "4799": 174,
+            "4904": 1,
+            "4905": 1,
+            "5140": 1,
+            "5145": 2,
+            "5152": 2,
+            "5156": 42,
+            "5158": 33,
+            "8222": 1
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 1807,
+            "filename": "Security.evtx",
+            "sha256": "7389879ACB920ECB020DAC3E2D95AFF52EE01306036BF21472885CEA09A0E925",
+            "size": 3215360
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 893,
+            "filename": "Sysmon.evtx",
+            "sha256": "DEDCC67463C7F0579A1425427DC132B14E4346F2520F36652973C6A7C0040BEF",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S01.jsonl",
+          "line_count": 2700,
+          "sha256": "8d8fa43693a00e595a4b71694b009f506787b0ea288f6b2160ce15813e471167"
+        },
+        "scenario_id": "S01"
+      },
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 1581,
+          "Security": 349
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 220,
+            "11": 846,
+            "3": 300,
+            "5": 215
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 15,
+            "4625": 5,
+            "4634": 6,
+            "4647": 2,
+            "4648": 6,
+            "4672": 11,
+            "4688": 212,
+            "4776": 7,
+            "4797": 40,
+            "4798": 19,
+            "4799": 2,
+            "5058": 3,
+            "5059": 2,
+            "5061": 3,
+            "5379": 15
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 349,
+            "filename": "Security.evtx",
+            "sha256": "D396CE599723189331D440EDD55CC055C28EB4B6AD45A421D07A8E83A2F0EBA7",
+            "size": 1118208
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 1581,
+            "filename": "Sysmon.evtx",
+            "sha256": "9EFA2E10CDBBE44893804C7E7225DAC31A876FB188D1C52542F2F461FF4A70D1",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S02.jsonl",
+          "line_count": 1930,
+          "sha256": "03992665764f6e98a32e511d9ec83fe387ecf5e9064b60881986afc2c2afdfe2"
+        },
+        "scenario_id": "S02"
+      },
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 1679,
+          "Security": 352
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 221,
+            "11": 910,
+            "3": 330,
+            "5": 218
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 15,
+            "4625": 2,
+            "4634": 6,
+            "4647": 2,
+            "4648": 6,
+            "4672": 11,
+            "4688": 223,
+            "4776": 4,
+            "4797": 40,
+            "4798": 19,
+            "4799": 2,
+            "5058": 4,
+            "5059": 2,
+            "5061": 4,
+            "5379": 11
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 352,
+            "filename": "Security.evtx",
+            "sha256": "FA7267610D7F875E45B5E7799B845B7D9E47E6F5F6274428C892BE7087BEC160",
+            "size": 1118208
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 1679,
+            "filename": "Sysmon.evtx",
+            "sha256": "DABEE2AF8A90CEC5EB2F1693597916EAA88E91B24227AB1F6FC90440B8F4F188",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S03.jsonl",
+          "line_count": 2031,
+          "sha256": "525169a35d8bafb334871081d1ccc731fe659f804219cc0577c8d88ea3aa3474"
+        },
+        "scenario_id": "S03"
+      }
+    ],
+    "schema_version": "security-corpus-v1"
+  },
+  "corpus_manifest_sha256": "34c5d0ac01e5a6028cbc2a6deb39197a179007be549971119f83e6000f9069c7",
+  "repetitions": 2,
+  "cases": [
+    {
+      "case": "S01-1",
+      "category": "ordinary",
+      "file": "ordinary-S01-1.json",
+      "sha256": "9d8bb4b55a799612e1b06b0f292f00ac3dd92ac5c7fde7618ef8069bd7226dd1",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 9.205
+    },
+    {
+      "case": "S02-1",
+      "category": "ordinary",
+      "file": "ordinary-S02-1.json",
+      "sha256": "a170078488971360f18d68c9f0e43fa896f153230b6168f3be064c5215458d59",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 3.911
+    },
+    {
+      "case": "S03-1",
+      "category": "ordinary",
+      "file": "ordinary-S03-1.json",
+      "sha256": "eb80ee58519d98be574c3da45dd200338917ac79bf643dfa3be5361e522fc32d",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 3.517
+    },
+    {
+      "case": "empty-1",
+      "category": "ordinary",
+      "file": "ordinary-empty-1.json",
+      "sha256": "18a9376895ea4be6c988f46f81d6e3fbb7b1dda8e6e08f92e52e85d786f18864",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 0.574
+    },
+    {
+      "case": "bounded-1",
+      "category": "ordinary",
+      "file": "ordinary-bounded-1.json",
+      "sha256": "8283ca04dccf15d72bd35d21d70ebc883cb064fd8ffcf997f8ad63a568454a32",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 2.472
+    },
+    {
+      "case": "synthetic_sufficient-1",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_sufficient-1.json",
+      "sha256": "10d161b5319bc5827bcb2f0205aa3d263e12b3fb5bc11137339987fd33ab0ccc",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 1.635
+    },
+    {
+      "case": "synthetic_missing_context-1",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_missing_context-1.json",
+      "sha256": "9c02e23242d9cbab48f3b9670ccfc1aa36aea7baabd7b81d57a610f64e1a7848",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 2.411
+    },
+    {
+      "case": "synthetic_bounded-1",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_bounded-1.json",
+      "sha256": "9d60998662766b9fa92c326eb0705c0b3cd85de1fd564d4ffe511a885ab5b1ce",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 1.688
+    },
+    {
+      "case": "S01-2",
+      "category": "ordinary",
+      "file": "ordinary-S01-2.json",
+      "sha256": "2fadcc5c6470f2baaf587563d3fbb62494db9dd4b639207f4a51c720d474ac5c",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 4.871
+    },
+    {
+      "case": "S02-2",
+      "category": "ordinary",
+      "file": "ordinary-S02-2.json",
+      "sha256": "d20fe357a7792e07e3e1c5d31787d0aa594c3e3f607f363fa8eb843376c8bdf3",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 5.932
+    },
+    {
+      "case": "S03-2",
+      "category": "ordinary",
+      "file": "ordinary-S03-2.json",
+      "sha256": "942fb304c283f70d338e560fea260ca1135b580bce0b8c5a2913e959837f8000",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 2.604
+    },
+    {
+      "case": "empty-2",
+      "category": "ordinary",
+      "file": "ordinary-empty-2.json",
+      "sha256": "8bff7891c3c4a2e5f46318f968d0e655b17a371c66a7e3bc11be6feb1bf4f6a0",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 0.439
+    },
+    {
+      "case": "bounded-2",
+      "category": "ordinary",
+      "file": "ordinary-bounded-2.json",
+      "sha256": "fe38104ccce5ad4fa5c57965a50f0916681a472aad4593df2b030a09037e4602",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 2.123
+    },
+    {
+      "case": "synthetic_sufficient-2",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_sufficient-2.json",
+      "sha256": "e7fdfcbcea10b102eadd228a26681089d2d577a98b4058e8845d35fa047151ad",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 1.917
+    },
+    {
+      "case": "synthetic_missing_context-2",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_missing_context-2.json",
+      "sha256": "0f355da3c6d35b359f282aec6927213c7acf6bb425645dda869f6018192d0909",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 1.943
+    },
+    {
+      "case": "synthetic_bounded-2",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_bounded-2.json",
+      "sha256": "6a950ac971cf89c09e77a1ec2b28987cb2304a37aad40c5f2bc5e2da1be2f746",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 1.639
+    },
+    {
+      "case": "exact_existing",
+      "category": "required",
+      "file": "required-exact_existing.json",
+      "sha256": "a673374593ffd6236a9746238a7293a31133913177eff9514764c3492e035e15",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 3.74
+    },
+    {
+      "case": "exact_missing",
+      "category": "required",
+      "file": "required-exact_missing.json",
+      "sha256": "6c1016d434bd87670a620ab8d8fa95d4d1c3f76b25ff8baabdeeb10f4677e0e4",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 3.898
+    },
+    {
+      "case": "filtered",
+      "category": "required",
+      "file": "required-filtered.json",
+      "sha256": "26c39a54f1107f61edcdfe870f72531616ed101fc8973dad7724c8832f5df26b",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 9.796
+    },
+    {
+      "case": "history",
+      "category": "required",
+      "file": "required-history.json",
+      "sha256": "4fd8ae99e56cf96c6d47135ccc771f0fbf75c47018dbbb2298cd6080aa7338bb",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 4.047
+    },
+    {
+      "case": "combined",
+      "category": "required",
+      "file": "required-combined.json",
+      "sha256": "6f0df2d3a93faedd28c4a216e8a0d9399c15ba772ad491570084c450f0d3c412",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 10.427
+    },
+    {
+      "case": "duplicates",
+      "category": "required",
+      "file": "required-duplicates.json",
+      "sha256": "af8cbe69cf6c1bd40720b53fc79856ee16d6b494e340f21189268cdb806cd867",
+      "status": "failed",
+      "error_code": "invalid_evidence_reference",
+      "check_errors": [
+        "investigation did not complete"
+      ],
+      "optional_actions": [],
+      "elapsed_seconds": 10.726
+    },
+    {
+      "case": "budget",
+      "category": "required",
+      "file": "required-budget.json",
+      "sha256": "4c0d7cd6b8a4f5323cc9466cbbd9fcb80ca5969845793e55d6f4c5a7dc2ce61e",
+      "status": "failed",
+      "error_code": "tool_budget_exhausted",
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 0.016
+    }
+  ],
+  "scope": "Authentication retrieval and factual checks; not attack accuracy, independent verification or orchestrator integration"
+}

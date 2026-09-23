@@ -28,17 +28,17 @@ ground_truth/*_private.csv
 build/
 dist/
 .test-tmp*/
-.m3-runtime/
+.authentication-runtime/
 
-# Local agent workflow (M2 implementer/reviewer scaffolding, not shared)
+# Local agent workflow (Event Processing & Detection Engine implementer/reviewer scaffolding, not shared)
 AGENTS.md
 task_plan.md
 .agent/
-.claude/agents/m2-reviewer.md
+.claude/agents/event-processing-reviewer.md
 opencode.json
 .opencode/
 
-# Generated M2 corpus / detection output (regenerate with `python -m m2`)
+# Generated Event Processing & Detection Engine corpus / detection output (regenerate with `python -m event_processing`)
 out/
 
 # Team role agreement PDF (local reference copy)

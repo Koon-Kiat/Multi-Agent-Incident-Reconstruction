@@ -1,0 +1,407 @@
+{
+  "case": "get_missing",
+  "elapsed_seconds": 3.153,
+  "check_errors": [
+    "model did not emit the directed approved tool call",
+    "unknown lookup was not explicitly reported"
+  ],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "AUTH-c7ed785dafc87fa56e099841",
+        "agent_type": "authentication",
+        "scenario_id": "S02",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-09-21T02:04:45.8562788Z",
+          "last_utc": "2026-09-21T02:04:45.8562788Z"
+        },
+        "entities": {
+          "account": "SYSTEM",
+          "reported_account": "SYSTEM",
+          "domain": "NT AUTHORITY",
+          "host": "MAIR-WIN11-LAB",
+          "source_address": "-",
+          "workstation": "-",
+          "logon_type": "5"
+        },
+        "evidence_ids": [
+          "S02-SEC-43503"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable source_address in S02-SEC-43503.",
+          "Missing or unavailable workstation in S02-SEC-43503."
+        ]
+      },
+      {
+        "finding_id": "AUTH-7d89d1e7693505a812a8574a",
+        "agent_type": "authentication",
+        "scenario_id": "S02",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-09-21T02:05:04.8404455Z",
+          "last_utc": "2026-09-21T02:05:04.8404455Z"
+        },
+        "entities": {
+          "account": "SYSTEM",
+          "reported_account": "SYSTEM",
+          "domain": "NT AUTHORITY",
+          "host": "MAIR-WIN11-LAB",
+          "source_address": "-",
+          "workstation": "-",
+          "logon_type": "5"
+        },
+        "evidence_ids": [
+          "S02-SEC-43547"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable source_address in S02-SEC-43547.",
+          "Missing or unavailable workstation in S02-SEC-43547."
+        ]
+      },
+      {
+        "finding_id": "AUTH-00cb4eee831483bcbdd9088f",
+        "agent_type": "authentication",
+        "scenario_id": "S02",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-09-21T02:05:05.2258052Z",
+          "last_utc": "2026-09-21T02:05:05.2258052Z"
+        },
+        "entities": {
+          "account": "UMFD-2",
+          "reported_account": "UMFD-2",
+          "domain": "Font Driver Host",
+          "host": "MAIR-WIN11-LAB",
+          "source_address": "-",
+          "workstation": "-",
+          "logon_type": "2"
+        },
+        "evidence_ids": [
+          "S02-SEC-43554"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable source_address in S02-SEC-43554.",
+          "Missing or unavailable workstation in S02-SEC-43554."
+        ]
+      },
+      {
+        "finding_id": "AUTH-6c819f2f11f2307e39930c0e",
+        "agent_type": "authentication",
+        "scenario_id": "S02",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-09-21T02:05:05.3066986Z",
+          "last_utc": "2026-09-21T02:05:05.3066986Z"
+        },
+        "entities": {
+          "account": "DWM-2",
+          "reported_account": "DWM-2",
+          "domain": "Window Manager",
+          "host": "MAIR-WIN11-LAB",
+          "source_address": "-",
+          "workstation": "-",
+          "logon_type": "2"
+        },
+        "evidence_ids": [
+          "S02-SEC-43558"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable source_address in S02-SEC-43558.",
+          "Missing or unavailable workstation in S02-SEC-43558."
+        ]
+      },
+      {
+        "finding_id": "AUTH-2fba14bdc8f9f943948fd85f",
+        "agent_type": "authentication",
+        "scenario_id": "S02",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-09-21T02:05:05.3067169Z",
+          "last_utc": "2026-09-21T02:05:05.3067169Z"
+        },
+        "entities": {
+          "account": "DWM-2",
+          "reported_account": "DWM-2",
+          "domain": "Window Manager",
+          "host": "MAIR-WIN11-LAB",
+          "source_address": "-",
+          "workstation": "-",
+          "logon_type": "2"
+        },
+        "evidence_ids": [
+          "S02-SEC-43559"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable source_address in S02-SEC-43559.",
+          "Missing or unavailable workstation in S02-SEC-43559."
+        ]
+      },
+      {
+        "finding_id": "AUTH-b639e5e8bb7ec69813438dcd",
+        "agent_type": "authentication",
+        "scenario_id": "S02",
+        "observed_events": {
+          "description": "Retrieved 5 failed logon(s) and 1 successful logon(s) with these recorded entity values. At least two failures precede a success.",
+          "failed_logons": 5,
+          "successful_logons": 1,
+          "failures_before_first_success": 5,
+          "repeated_failures_followed_by_success": true
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-09-21T02:05:11.0102219Z",
+          "last_utc": "2026-09-21T02:05:30.0430374Z"
+        },
+        "entities": {
+          "account": "mair_user",
+          "reported_account": "mair_user",
+          "domain": "MAIR-WIN11-LAB",
+          "host": "MAIR-WIN11-LAB",
+          "source_address": "127.0.0.1",
+          "workstation": "MAIR-WIN11-LAB",
+          "logon_type": "2"
+        },
+        "evidence_ids": [
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      },
+      {
+        "finding_id": "AUTH-9b87f0a3ab9a83cd9af15632",
+        "agent_type": "authentication",
+        "scenario_id": "S02",
+        "observed_events": {
+          "description": "Retrieved 0 failed logon(s) and 1 successful logon(s) with these recorded entity values.",
+          "failed_logons": 0,
+          "successful_logons": 1,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-09-21T02:05:30.5859137Z",
+          "last_utc": "2026-09-21T02:05:30.5859137Z"
+        },
+        "entities": {
+          "account": "SYSTEM",
+          "reported_account": "SYSTEM",
+          "domain": "NT AUTHORITY",
+          "host": "MAIR-WIN11-LAB",
+          "source_address": "-",
+          "workstation": "-",
+          "logon_type": "5"
+        },
+        "evidence_ids": [
+          "S02-SEC-43591"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "Missing or unavailable source_address in S02-SEC-43591.",
+          "Missing or unavailable workstation in S02-SEC-43591."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "corpus_validation_trace": true,
+        "directed_first_tool": "get_authentication_event",
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 2,
+      "model_calls": 2
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "fb22fb5e52274a7e57dad38fd21bff488af1c1a58be7deab7f2d486867b9b9d6",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"get_authentication_event\",\n    \"arguments\": {\n      \"evidence_id\": \"S02-SEC-43503\"\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 1.861
+    },
+    {
+      "request_sha256": "f39783edd99ab16b38e9452014b2bd5107ca65140ed52271b9ea83d47faf7d27",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
+      "elapsed_seconds": 1.27
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T02:04:30Z",
+        "end_utc": "2026-09-21T02:06:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "S02-SEC-43503",
+        "S02-SEC-43547",
+        "S02-SEC-43554",
+        "S02-SEC-43558",
+        "S02-SEC-43559",
+        "S02-SEC-43571",
+        "S02-SEC-43573",
+        "S02-SEC-43575",
+        "S02-SEC-43578",
+        "S02-SEC-43580",
+        "S02-SEC-43584",
+        "S02-SEC-43591"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43503",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43503",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43547",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43554",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43558",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43559",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43571",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43573",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43575",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43578",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43580",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43584",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "S02-SEC-43591",
+      "found": true
+    }
+  ]
+}

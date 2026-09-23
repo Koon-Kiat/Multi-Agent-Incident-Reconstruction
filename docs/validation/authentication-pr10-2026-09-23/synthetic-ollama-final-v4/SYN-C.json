@@ -1,0 +1,127 @@
+{
+  "case": "SYN-C",
+  "elapsed_seconds": 1.499,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-C",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "AUTH-ec1b70b7c212feb76769ff10",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-C",
+        "observed_events": {
+          "description": "Retrieved 3 failed logon(s) and 0 successful logon(s) with these recorded entity values.",
+          "failed_logons": 3,
+          "successful_logons": 0,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000000Z",
+          "last_utc": "2026-01-10T00:00:03.0000000Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-C-SEC-1",
+          "SYN-C-SEC-2",
+          "SYN-C-SEC-3"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v4",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "31e21910bf842f2892c0e8a8749384208b12faf3dd3b597d15cd079818278b3c",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
+      "elapsed_seconds": 1.491
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-C",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-C-SEC-1",
+        "SYN-C-SEC-2",
+        "SYN-C-SEC-3"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-C-SEC-3",
+      "found": true
+    }
+  ]
+}

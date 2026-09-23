@@ -1,0 +1,74 @@
+{
+  "case": "SYN-E",
+  "elapsed_seconds": 0.8,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-E",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [],
+    "error_code": null,
+    "uncertainty": [
+      "No authentication evidence was returned for this window; this does not establish absence of activity."
+    ],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v4",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "84aff7807dc871d3ad19f8b59fe3e72a2bdfc5d60d60c2fcd9effd81909d907d",
+      "reply": "{\"action\":\"finish\",\"tool\":null,\"annotations\":[]}",
+      "elapsed_seconds": 0.794
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-E",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    }
+  ]
+}

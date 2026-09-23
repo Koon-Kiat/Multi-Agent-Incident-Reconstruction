@@ -1,0 +1,156 @@
+{
+  "case": "account_history",
+  "elapsed_seconds": 0.006,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "AUTH-5e53c21298bc2ea6a60ee799",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-A",
+        "observed_events": {
+          "description": "Retrieved 3 failed logon(s) and 1 successful logon(s) with these recorded entity values. At least two failures precede a success.",
+          "failed_logons": 3,
+          "successful_logons": 1,
+          "failures_before_first_success": 3,
+          "repeated_failures_followed_by_success": true
+        },
+        "interpretation": "The observed authentication sequence may warrant further investigation; it does not establish compromise.",
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000001Z",
+          "last_utc": "2026-01-10T00:00:04.0000001Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v2",
+      "configuration_version": "authentication-config-v2",
+      "llm": {
+        "runtime": "fake",
+        "model": "deterministic-fake-v1",
+        "synthetic_validation_trace": true,
+        "directed_first_tool": "get_account_authentication_history",
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 2,
+      "model_calls": 2
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "521b52d05b6112fa931dfaa24bf884dc033813a2044295d198b73471530b2ea1",
+      "reply": "{\"action\": \"tool\", \"tool\": {\"name\": \"get_account_authentication_history\", \"arguments\": {\"scenario_id\": \"SYN-A\", \"start_utc\": \"2026-01-10T00:00:00Z\", \"end_utc\": \"2026-01-10T00:01:00Z\", \"limit\": 100, \"account\": \"demo.user\"}}, \"annotations\": []}",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "request_sha256": "62eee55c6af099507d0553587aba27e804d5f194ac4adb87bf6593346fd33c95",
+      "reply": "{\"action\": \"finish\", \"tool\": null, \"annotations\": [{\"observation_id\": \"AUTH-5e53c21298bc2ea6a60ee799\", \"evidence_ids\": [\"SYN-A-SEC-1\", \"SYN-A-SEC-2\", \"SYN-A-SEC-3\", \"SYN-A-SEC-4\"], \"interpretation\": \"may_warrant_review\"}]}",
+      "elapsed_seconds": 0.0
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-A",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-A-SEC-1",
+        "SYN-A-SEC-2",
+        "SYN-A-SEC-3",
+        "SYN-A-SEC-4"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-A",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": "demo.user",
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-A-SEC-1",
+        "SYN-A-SEC-2",
+        "SYN-A-SEC-3",
+        "SYN-A-SEC-4"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-3",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-4",
+      "found": true
+    }
+  ]
+}
