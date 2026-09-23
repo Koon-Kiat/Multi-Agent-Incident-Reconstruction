@@ -1,0 +1,119 @@
+[
+  {
+    "name": "ordinary-required-v16",
+    "command": [
+      "python",
+      "-m",
+      "authentication_agent.validate_investigations",
+      "--corpus",
+      "out/corpus",
+      "--mode",
+      "ollama",
+      "--output-dir",
+      "docs\\validation\\authentication-autonomy-2026-09-24\\final-v16-investigations"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "directed-corpus-v16",
+    "command": [
+      "python",
+      "-m",
+      "authentication_agent.validate_corpus",
+      "--corpus",
+      "out/corpus",
+      "--mode",
+      "ollama",
+      "--model",
+      "qwen3:8b",
+      "--output-dir",
+      "docs\\validation\\authentication-autonomy-2026-09-24\\final-v16-directed-corpus"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "directed-synthetic-v16",
+    "command": [
+      "python",
+      "-m",
+      "authentication_agent.validate_synthetic",
+      "--mode",
+      "ollama",
+      "--model",
+      "qwen3:8b",
+      "--num-ctx",
+      "8192",
+      "--think",
+      "off",
+      "--output-dir",
+      "docs\\validation\\authentication-autonomy-2026-09-24\\final-v16-directed-synthetic"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "thinking-autonomy-v16",
+    "command": [
+      "python",
+      "-m",
+      "authentication_agent.validate_autonomy",
+      "--corpus",
+      "out/corpus",
+      "--mode",
+      "ollama",
+      "--think",
+      "on",
+      "--max-output-tokens",
+      "4096",
+      "--timeout",
+      "120",
+      "--repetitions",
+      "1",
+      "--output-dir",
+      "docs\\validation\\authentication-autonomy-2026-09-24\\final-v16-thinking-autonomy"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "fake-corpus-v16",
+    "command": [
+      "python",
+      "-m",
+      "authentication_agent.validate_corpus",
+      "--corpus",
+      "out/corpus",
+      "--mode",
+      "fake",
+      "--output-dir",
+      "docs\\validation\\authentication-autonomy-2026-09-24\\final-v16-fake-corpus"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "fake-synthetic-v16",
+    "command": [
+      "python",
+      "-m",
+      "authentication_agent.validate_synthetic",
+      "--mode",
+      "fake",
+      "--output-dir",
+      "docs\\validation\\authentication-autonomy-2026-09-24\\final-v16-fake-synthetic"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "fake-investigations-v16",
+    "command": [
+      "python",
+      "-m",
+      "authentication_agent.validate_investigations",
+      "--corpus",
+      "out/corpus",
+      "--mode",
+      "fake",
+      "--output-dir",
+      "docs\\validation\\authentication-autonomy-2026-09-24\\final-v16-fake-investigations"
+    ],
+    "exit_code": 0
+  }
+]

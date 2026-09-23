@@ -1,0 +1,419 @@
+{
+  "completed_at_utc": "2026-09-23T18:22:04.972355+00:00",
+  "python": "3.14.6",
+  "runtime": {
+    "runtime": "ollama",
+    "version": "0.34.3",
+    "model": "qwen3:8b",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "configuration": {
+      "model": "qwen3:8b",
+      "endpoint": "http://127.0.0.1:11434",
+      "temperature": 0.0,
+      "seed": 0,
+      "num_ctx": 8192,
+      "think": false
+    }
+  },
+  "source_sha256": {
+    "authentication_agent/__init__.py": "ded889fb564782e175bce5f71ace3ae534239783fee732b4c7755fcc989501b3",
+    "authentication_agent/__main__.py": "4b5cbc4ca65b8884cde7bd7444bac734ad5593d899c0742f58da5578fa8aa0f2",
+    "authentication_agent/agent.py": "5da5e62c549dc3ff9049b865ca9875075e1bc0b3631a9e4c75fc47485a9f1990",
+    "authentication_agent/config.py": "75823cb9b5d61773e17425a1387cfa64fd21d0d91363376d09bd297dde26d57b",
+    "authentication_agent/errors.py": "704a76815be86e48a149ee5452da35f52c8bda4f09a101f9581cbe1b8884199a",
+    "authentication_agent/examples/__init__.py": "afd30f02ed6728e31affa8349c4de3c7c6e47c6de13ffbf5cf175c6a814023b6",
+    "authentication_agent/examples/investigate_required_corpus.py": "eb3fd3d0e73c185c5c7d19a93fe7392e175e015562466282ee5728e54d11f617",
+    "authentication_agent/examples/invoke_authentication.py": "5a74bcf82b9f1c4a568f58e64471b119b319a6b55bea4ead5926fd29e2e4b78e",
+    "authentication_agent/investigate_corpus.py": "c0421474d85106426744f961548227b2f4e6865a4007e9bd271ece4fc8e09b61",
+    "authentication_agent/llm/__init__.py": "163ffe81afc63d75efbd60f3d3d19a64f0f6b9b72aa4cfb2ea0bcd40ab7194ca",
+    "authentication_agent/llm/fake.py": "769929ef06c963a9d720ebd97a426a455c2cbf83bcaf3d788e50cbdc4ec59eb0",
+    "authentication_agent/llm/ollama_client.py": "fa64c64761f6152ad0ef9207f02813215535950cde3382b2626ea0038599770a",
+    "authentication_agent/models.py": "7d7abb9ec70d35a15fa023c614ec5e709ff8007f87dbde96e2dee1e9ec23980e",
+    "authentication_agent/observations.py": "f68082768aee71300c49b6fa0923851b90787a76a1ecea1e7d537873ea05e9c6",
+    "authentication_agent/prompts.py": "7c9cea7a63ad7ac357888aae26af571b37158fe0f738754e114c8c8194eda66f",
+    "authentication_agent/queries/__init__.py": "c3b16499f273576af6ca682a952cf8619198d2debf5aa5089538d9c476100a21",
+    "authentication_agent/queries/in_memory.py": "1610e2682457c0e4fd19e9dd2fde3b600b3107687e30e4e79fcedd62b42ce36c",
+    "authentication_agent/queries/interface.py": "9da03a1a5185e4db5ce9cc7651a061e275b3c2dcc83f5afeb6dd9f277f26ba1d",
+    "authentication_agent/queries/semantics.py": "15b72401a039f03caa21f25d45b4b960dcb036be4f14930a7b06bf4e881115b3",
+    "authentication_agent/queries/tools.py": "9f5e9202d70fc9f96961431340a293f3b30d1b1606e1dce2cf7cedb8039580f7",
+    "authentication_agent/testing/__init__.py": "983dd0bb4539cbc8e2bef5cb40e25aa3058bceb4dd284d3842809ceabf9bf000",
+    "authentication_agent/testing/check_processing_contract.py": "0a9ec5116b63975d1be030839b91b992183e0205b7cd8b04f8424717ce7d763b",
+    "authentication_agent/testing/factual_checks.py": "ff6fc2e4a9e58dc109e82f2a7ab15896b5d6c6b0963cf49de92c43a5262cb04f",
+    "authentication_agent/testing/provider_contract.py": "499b6287a86b27b36dd1eabb64d0091c4db7a290235426cfd727841b111f5ef2",
+    "authentication_agent/validate_corpus.py": "1261ce27635e69183b98a3648d456a9978e41b270fa4b5eb4d72a6de3bb49380",
+    "authentication_agent/validate_investigations.py": "2f0a21d8e14bad62111cd07ccc5ab0bb98f6d9dcd4458be0b59fb53d8bab6b09",
+    "authentication_agent/validate_synthetic.py": "933b29dbfe1dda3162b5a9496bc5af5fb33d83d179866adf7d632717d9a413c0",
+    "event_processing/__init__.py": "ad90ed571f00b9ad119b73cfb3cb550a2eebdf28fac1557b0f88867a16bcc4f0",
+    "event_processing/__main__.py": "e260d96d4366d809593e7bdc9a1b8ab8a866db0b17582e0192e0d468205ff2c7",
+    "event_processing/adapters/__init__.py": "0324224e3e5f5e415fb0fabe6d8f7d940a9b0203c0c9b5c792dd72c72f509a89",
+    "event_processing/adapters/authentication_provider.py": "ee6c1e3a441874696aebf8aa8680588693f4ea57e06cf5a5e0b14ec2986295e7",
+    "event_processing/corpus.py": "0235dd1828f9435f48e43e86edbfa47c350999b63d53c2cd101df4b8cf20f488",
+    "event_processing/detection/__init__.py": "0010f9f997bd4439497d55921278b8f426e59614955c7bd82907dff055b46503",
+    "event_processing/detection/engine.py": "466f13c0fad0cfd140d05f6ce6a035a07dcc8d68ec539048e43c840befd95936",
+    "event_processing/detection/rules.py": "4ca75f2d210b36dc96d3d173d4e3dd934f45cca6a70a8ee518eb0e0accf8332b",
+    "event_processing/detection/schema.py": "00799b287450effa7fcbfbe106e7c92f99ce771606cd9bef0edcbb11dd48f065",
+    "event_processing/evtx_reader.py": "f8e439a53ad03fa2755c3dab4c40f7d1fe7f3a33a24b13e2b1cf7478fe96a4d9",
+    "event_processing/ids.py": "da147a948fc6e957651564afc03f628eca9d17bb86b4fbd7568e7701fdbfb1cd",
+    "event_processing/manifest.py": "bff418b9c9a1808d6cd21a52be5bf78e4877fc2d88e1d2ea257bc95544aad50f",
+    "event_processing/metrics.py": "b7f56406c1ba716b35e6711e2e198eda1eda79dba9cb9c1b1dca002fe508a2be",
+    "event_processing/normalise.py": "384bf5091bcb96739162dfdf1084e7631d036e983f5a1748c3e51fd4bc9e2160",
+    "event_processing/protected_paths.py": "beb44dc945bf7ae936b43f2bde7282c50deeccbdd7be9ee42070c7c5efbfd9cd",
+    "event_processing/query.py": "fe773f880c68f5221cdce97591a7f1816a239e5e7a6e7e9b5245f7f334fc4922",
+    "event_processing/schema.py": "32e7df8a4be98cd34c34ea47a583a0b47275c611e7948f1ea85bdf4ffe4208e7",
+    "event_processing/timeutil.py": "8c00300ce78e7c5d5a61e0286ffa4c08c8690e5175989bc7f9e56ac0052a1762"
+  },
+  "source_unchanged_during_run": true,
+  "corpus_manifest": {
+    "scenarios": [
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 893,
+          "Security": 1807
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 30,
+            "10": 447,
+            "11": 27,
+            "12": 41,
+            "13": 172,
+            "16": 1,
+            "17": 18,
+            "18": 18,
+            "22": 4,
+            "23": 17,
+            "24": 2,
+            "3": 43,
+            "5": 37,
+            "7": 5,
+            "8": 4,
+            "9": 27
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 6,
+            "4627": 6,
+            "4634": 6,
+            "4658": 572,
+            "4661": 572,
+            "4672": 6,
+            "4673": 3,
+            "4688": 89,
+            "4689": 85,
+            "4703": 204,
+            "4799": 174,
+            "4904": 1,
+            "4905": 1,
+            "5140": 1,
+            "5145": 2,
+            "5152": 2,
+            "5156": 42,
+            "5158": 33,
+            "8222": 1
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 1807,
+            "filename": "Security.evtx",
+            "sha256": "7389879ACB920ECB020DAC3E2D95AFF52EE01306036BF21472885CEA09A0E925",
+            "size": 3215360
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 893,
+            "filename": "Sysmon.evtx",
+            "sha256": "DEDCC67463C7F0579A1425427DC132B14E4346F2520F36652973C6A7C0040BEF",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S01.jsonl",
+          "line_count": 2700,
+          "sha256": "8d8fa43693a00e595a4b71694b009f506787b0ea288f6b2160ce15813e471167"
+        },
+        "scenario_id": "S01"
+      },
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 1581,
+          "Security": 349
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 220,
+            "11": 846,
+            "3": 300,
+            "5": 215
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 15,
+            "4625": 5,
+            "4634": 6,
+            "4647": 2,
+            "4648": 6,
+            "4672": 11,
+            "4688": 212,
+            "4776": 7,
+            "4797": 40,
+            "4798": 19,
+            "4799": 2,
+            "5058": 3,
+            "5059": 2,
+            "5061": 3,
+            "5379": 15
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 349,
+            "filename": "Security.evtx",
+            "sha256": "D396CE599723189331D440EDD55CC055C28EB4B6AD45A421D07A8E83A2F0EBA7",
+            "size": 1118208
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 1581,
+            "filename": "Sysmon.evtx",
+            "sha256": "9EFA2E10CDBBE44893804C7E7225DAC31A876FB188D1C52542F2F461FF4A70D1",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S02.jsonl",
+          "line_count": 1930,
+          "sha256": "03992665764f6e98a32e511d9ec83fe387ecf5e9064b60881986afc2c2afdfe2"
+        },
+        "scenario_id": "S02"
+      },
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 1679,
+          "Security": 352
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 221,
+            "11": 910,
+            "3": 330,
+            "5": 218
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 15,
+            "4625": 2,
+            "4634": 6,
+            "4647": 2,
+            "4648": 6,
+            "4672": 11,
+            "4688": 223,
+            "4776": 4,
+            "4797": 40,
+            "4798": 19,
+            "4799": 2,
+            "5058": 4,
+            "5059": 2,
+            "5061": 4,
+            "5379": 11
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 352,
+            "filename": "Security.evtx",
+            "sha256": "FA7267610D7F875E45B5E7799B845B7D9E47E6F5F6274428C892BE7087BEC160",
+            "size": 1118208
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 1679,
+            "filename": "Sysmon.evtx",
+            "sha256": "DABEE2AF8A90CEC5EB2F1693597916EAA88E91B24227AB1F6FC90440B8F4F188",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S03.jsonl",
+          "line_count": 2031,
+          "sha256": "525169a35d8bafb334871081d1ccc731fe659f804219cc0577c8d88ea3aa3474"
+        },
+        "scenario_id": "S03"
+      }
+    ],
+    "schema_version": "security-corpus-v1"
+  },
+  "corpus_manifest_sha256": "34c5d0ac01e5a6028cbc2a6deb39197a179007be549971119f83e6000f9069c7",
+  "repetitions": 1,
+  "cases": [
+    {
+      "case": "S01-1",
+      "category": "ordinary",
+      "file": "ordinary-S01-1.json",
+      "sha256": "2d5ecfc95f9ab907da7a9bc48c5b380b3dc372395afb4b42812727f83945a1a5",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 7.995
+    },
+    {
+      "case": "S02-1",
+      "category": "ordinary",
+      "file": "ordinary-S02-1.json",
+      "sha256": "240c7fe2f690c86264d1679c63e9719a628b980a89ddcab73af6fabb609fdae2",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 9.692
+    },
+    {
+      "case": "S03-1",
+      "category": "ordinary",
+      "file": "ordinary-S03-1.json",
+      "sha256": "56127329823a38cfb5e3f03fa1d18a37204274f4d3aebee87fe10d9159d70256",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 3.144
+    },
+    {
+      "case": "empty-1",
+      "category": "ordinary",
+      "file": "ordinary-empty-1.json",
+      "sha256": "337b6fcfb52883bd353d593912458d9bb6d3057180595f61eb14c53de59f738c",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 0.692
+    },
+    {
+      "case": "bounded-1",
+      "category": "ordinary",
+      "file": "ordinary-bounded-1.json",
+      "sha256": "cf4bfb1c5a79dad226957c7a6eb008c03688c605d65308b6059ac429dac00e1b",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 2.559
+    },
+    {
+      "case": "synthetic_sufficient-1",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_sufficient-1.json",
+      "sha256": "f8015c1318bc8bb3944981faff3818720750dd2b45aa352a5cdcbfb9f9226e49",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 2.124
+    },
+    {
+      "case": "synthetic_missing_context-1",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_missing_context-1.json",
+      "sha256": "debbfc5ec6d42010b83c4a89413bbda5dc12caa21412aeb68c15fa643dcb83f4",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 2.759
+    },
+    {
+      "case": "synthetic_bounded-1",
+      "category": "ordinary",
+      "file": "ordinary-synthetic_bounded-1.json",
+      "sha256": "777bc44f2c62eb67a7aa81539d82be6316d27baa7942ef67e4a974ab25774eeb",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 1.882
+    },
+    {
+      "case": "exact_existing",
+      "category": "required",
+      "file": "required-exact_existing.json",
+      "sha256": "d219a3bd70473c175a74cf59d4211c4953b446f25a44b2dcd485254c2c83c108",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 9.408
+    },
+    {
+      "case": "exact_missing",
+      "category": "required",
+      "file": "required-exact_missing.json",
+      "sha256": "d0b4636454c045873b7fbe293d27ae4a9378887a593090fd9c87e57c2293a147",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 9.697
+    },
+    {
+      "case": "filtered",
+      "category": "required",
+      "file": "required-filtered.json",
+      "sha256": "84b6159aab16e33df1fab78032fb06951f4979f60fab301920c1c9792658ffcb",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 9.74
+    },
+    {
+      "case": "history",
+      "category": "required",
+      "file": "required-history.json",
+      "sha256": "c8905b7353ba64c382c7c16322594b0e1bbc01137644567c0169d4ed5d40dccd",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 9.791
+    },
+    {
+      "case": "combined",
+      "category": "required",
+      "file": "required-combined.json",
+      "sha256": "3c9a0662adc501314639f4f4a2db149673e93062903da78563db7fc35f4fae4e",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 9.966
+    },
+    {
+      "case": "duplicates",
+      "category": "required",
+      "file": "required-duplicates.json",
+      "sha256": "711d3af893a93c6af981b88cfc94de497101b4378aac6964ea9401fd3c6ba1dc",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 10.103
+    },
+    {
+      "case": "budget",
+      "category": "required",
+      "file": "required-budget.json",
+      "sha256": "6d6efd888048a108f89b16f6c2d4f466bcc385a44fb4b0c594e350ce3e489dcf",
+      "status": "failed",
+      "error_code": "tool_budget_exhausted",
+      "check_errors": [],
+      "optional_actions": [],
+      "elapsed_seconds": 0.016
+    }
+  ],
+  "scope": "Authentication retrieval and factual checks; not attack accuracy, independent verification or orchestrator integration"
+}

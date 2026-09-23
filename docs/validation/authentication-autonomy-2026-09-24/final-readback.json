@@ -1,0 +1,151 @@
+{
+  "runs": {
+    "assessment-v10-investigations": {
+      "artifact_hashes_verified": 15,
+      "completed_factual_readbacks": 14,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 15,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "baseline-investigations": {
+      "artifact_hashes_verified": 23,
+      "completed_factual_readbacks": 22,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 23,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "concise-v13-autonomy": {
+      "artifact_hashes_verified": 6,
+      "completed_factual_readbacks": 6,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 6,
+      "behavior_checks_total": 6,
+      "behavior_checks_passed": 1
+    },
+    "context-v12-autonomy": {
+      "artifact_hashes_verified": 6,
+      "completed_factual_readbacks": 6,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 6,
+      "behavior_checks_total": 6,
+      "behavior_checks_passed": 4
+    },
+    "decision-v11-autonomy": {
+      "artifact_hashes_verified": 6,
+      "completed_factual_readbacks": 6,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 6,
+      "behavior_checks_total": 6,
+      "behavior_checks_passed": 3
+    },
+    "final-v15-autonomy": {
+      "artifact_hashes_verified": 18,
+      "completed_factual_readbacks": 17,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 17,
+      "behavior_checks_total": 18,
+      "behavior_checks_passed": 11
+    },
+    "final-v16-autonomy": {
+      "artifact_hashes_verified": 18,
+      "completed_factual_readbacks": 18,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 18,
+      "behavior_checks_total": 18,
+      "behavior_checks_passed": 12
+    },
+    "final-v16-directed-corpus": {
+      "artifact_hashes_verified": 11,
+      "completed_factual_readbacks": 11,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 6,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "final-v16-directed-synthetic": {
+      "artifact_hashes_verified": 16,
+      "completed_factual_readbacks": 16,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 11,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "final-v16-fake-corpus": {
+      "artifact_hashes_verified": 11,
+      "completed_factual_readbacks": 10,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 11,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "final-v16-fake-investigations": {
+      "artifact_hashes_verified": 23,
+      "completed_factual_readbacks": 22,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 23,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "final-v16-fake-synthetic": {
+      "artifact_hashes_verified": 16,
+      "completed_factual_readbacks": 15,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 16,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "final-v16-investigations": {
+      "artifact_hashes_verified": 23,
+      "completed_factual_readbacks": 22,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 23,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "final-v16-thinking-autonomy": {
+      "artifact_hashes_verified": 6,
+      "completed_factual_readbacks": 6,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 6,
+      "behavior_checks_total": 6,
+      "behavior_checks_passed": 4
+    },
+    "prompt-v9-investigations": {
+      "artifact_hashes_verified": 15,
+      "completed_factual_readbacks": 14,
+      "failed_empty_envelopes": 1,
+      "recorded_checks_passed": 15,
+      "behavior_checks_total": 0,
+      "behavior_checks_passed": null
+    },
+    "thinking-v13-autonomy": {
+      "artifact_hashes_verified": 6,
+      "completed_factual_readbacks": 6,
+      "failed_empty_envelopes": 0,
+      "recorded_checks_passed": 6,
+      "behavior_checks_total": 6,
+      "behavior_checks_passed": 5
+    },
+    "thinking-v14-autonomy": {
+      "artifact_hashes_verified": 18,
+      "completed_factual_readbacks": 16,
+      "failed_empty_envelopes": 2,
+      "recorded_checks_passed": 16,
+      "behavior_checks_total": 18,
+      "behavior_checks_passed": 14
+    }
+  },
+  "original_evtx": {
+    "datasets/S01/raw/Security.evtx": "7389879acb920ecb020dac3e2d95aff52ee01306036bf21472885cea09a0e925",
+    "datasets/S01/raw/Sysmon.evtx": "dedcc67463c7f0579a1425427dc132b14e4346f2520f36652973c6a7c0040bef",
+    "datasets/S02/raw/Security.evtx": "d396ce599723189331d440edd55cc055c28eb4b6ad45a421d07a8e83a2f0eba7",
+    "datasets/S02/raw/Sysmon.evtx": "9efa2e10cdbbe44893804c7e7225dac31a876fb188d1c52542f2f461ff4a70d1",
+    "datasets/S03/raw/Security.evtx": "fa7267610d7f875e45b5e7799b845b7d9e47e6f5f6274428c892be7087bec160",
+    "datasets/S03/raw/Sysmon.evtx": "dabee2af8a90cec5eb2f1693597916eaa88e91b24227ab1f6fc90440b8f4f188"
+  },
+  "final_source_readback": true,
+  "naming_metadata_only_corrections_verified": 8,
+  "provider_processing_and_datasets_unchanged": true
+}

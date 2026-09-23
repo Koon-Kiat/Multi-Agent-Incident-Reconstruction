@@ -1,0 +1,341 @@
+{
+  "completed_at_utc": "2026-09-23T18:50:12.495803+00:00",
+  "python": "3.14.6",
+  "runtime": {
+    "runtime": "fake"
+  },
+  "cases": [
+    {
+      "case": "S01",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.024,
+      "file": "S01.json",
+      "sha256": "f3577d6119b2e93e6ab3dfd3fd7d320c9859d2a1deb81331d308ffd727233bf5"
+    },
+    {
+      "case": "S02",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.018,
+      "file": "S02.json",
+      "sha256": "ac23bb11bee1a2f94daccf0d860699697d6a5f8efcedd95954cc7383353ade02"
+    },
+    {
+      "case": "S03",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.017,
+      "file": "S03.json",
+      "sha256": "674f74b4e29aa0b159a6f9f5d114625f5ccc90fa347dc24d1c051072a2c64b89"
+    },
+    {
+      "case": "empty",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.015,
+      "file": "empty.json",
+      "sha256": "4f823e27ff2c517e289b94260fadf96cd4585449a0faa4c4a9908180a434e333"
+    },
+    {
+      "case": "get_existing",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.02,
+      "file": "get_existing.json",
+      "sha256": "f29962d8d6d17d0371740ec3d46ea6c07ed067005c6423173697d9f131d5a1e4"
+    },
+    {
+      "case": "get_missing",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.021,
+      "file": "get_missing.json",
+      "sha256": "3d18bef0b64ef99e3871dfc31255f49abad07e026dd25cc9e7c8153a64ec6a4c"
+    },
+    {
+      "case": "query_tool",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.036,
+      "file": "query_tool.json",
+      "sha256": "e58a49b64788c16ba5d9697180072bfe7af6175f8693b5af89f554d7dad103c2"
+    },
+    {
+      "case": "account_history",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.035,
+      "file": "account_history.json",
+      "sha256": "e3921f5650dfe190e8852d70d67bd1103edd5ec87f489755e599f06d7859373e"
+    },
+    {
+      "case": "tool_budget",
+      "status": "failed",
+      "error_code": "tool_budget_exhausted",
+      "check_errors": [],
+      "elapsed_seconds": 0.017,
+      "file": "tool_budget.json",
+      "sha256": "64c6cfb685f15326a99e604dc2a7b4717fb501462a8bc1603ec66f9f46b65c0c"
+    },
+    {
+      "case": "bounded_query",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.016,
+      "file": "bounded_query.json",
+      "sha256": "dece864b5f8455ee348cf941d547ef2219ea92e0b858e3843317f38de2a66a7d"
+    },
+    {
+      "case": "interpretation",
+      "status": "completed",
+      "error_code": null,
+      "check_errors": [],
+      "elapsed_seconds": 0.023,
+      "file": "interpretation.json",
+      "sha256": "49d5689bc8f669cd473b2c923ccdf1a589ac90cf01956e656dc66d4a6a42cef5"
+    }
+  ],
+  "source_sha256": {
+    "authentication_agent/__init__.py": "ded889fb564782e175bce5f71ace3ae534239783fee732b4c7755fcc989501b3",
+    "authentication_agent/__main__.py": "4b5cbc4ca65b8884cde7bd7444bac734ad5593d899c0742f58da5578fa8aa0f2",
+    "authentication_agent/agent.py": "d0e6713c44415348a62e0288dd5245d189d037d271760cdb9abf7ff17dc90ef8",
+    "authentication_agent/config.py": "75823cb9b5d61773e17425a1387cfa64fd21d0d91363376d09bd297dde26d57b",
+    "authentication_agent/errors.py": "704a76815be86e48a149ee5452da35f52c8bda4f09a101f9581cbe1b8884199a",
+    "authentication_agent/examples/__init__.py": "afd30f02ed6728e31affa8349c4de3c7c6e47c6de13ffbf5cf175c6a814023b6",
+    "authentication_agent/examples/investigate_required_corpus.py": "eb3fd3d0e73c185c5c7d19a93fe7392e175e015562466282ee5728e54d11f617",
+    "authentication_agent/examples/invoke_authentication.py": "5a74bcf82b9f1c4a568f58e64471b119b319a6b55bea4ead5926fd29e2e4b78e",
+    "authentication_agent/investigate_corpus.py": "c0421474d85106426744f961548227b2f4e6865a4007e9bd271ece4fc8e09b61",
+    "authentication_agent/llm/__init__.py": "163ffe81afc63d75efbd60f3d3d19a64f0f6b9b72aa4cfb2ea0bcd40ab7194ca",
+    "authentication_agent/llm/fake.py": "769929ef06c963a9d720ebd97a426a455c2cbf83bcaf3d788e50cbdc4ec59eb0",
+    "authentication_agent/llm/ollama_client.py": "dec04c3d1e8cf4b468b982f55bb93d204fa052df50be0720e10e16b8aa77ed46",
+    "authentication_agent/models.py": "a3a9cb5d722eeaaf10122ab3e7f9b125501401fae4b43146d6ff83994274d957",
+    "authentication_agent/observations.py": "f68082768aee71300c49b6fa0923851b90787a76a1ecea1e7d537873ea05e9c6",
+    "authentication_agent/prompts.py": "f8dd4373549b5090948923d684701bfde9a594dfd35f23db41011a68ae14e8d4",
+    "authentication_agent/queries/__init__.py": "c3b16499f273576af6ca682a952cf8619198d2debf5aa5089538d9c476100a21",
+    "authentication_agent/queries/in_memory.py": "1610e2682457c0e4fd19e9dd2fde3b600b3107687e30e4e79fcedd62b42ce36c",
+    "authentication_agent/queries/interface.py": "9da03a1a5185e4db5ce9cc7651a061e275b3c2dcc83f5afeb6dd9f277f26ba1d",
+    "authentication_agent/queries/semantics.py": "15b72401a039f03caa21f25d45b4b960dcb036be4f14930a7b06bf4e881115b3",
+    "authentication_agent/queries/tools.py": "9f5e9202d70fc9f96961431340a293f3b30d1b1606e1dce2cf7cedb8039580f7",
+    "authentication_agent/testing/__init__.py": "983dd0bb4539cbc8e2bef5cb40e25aa3058bceb4dd284d3842809ceabf9bf000",
+    "authentication_agent/testing/check_processing_contract.py": "0a9ec5116b63975d1be030839b91b992183e0205b7cd8b04f8424717ce7d763b",
+    "authentication_agent/testing/factual_checks.py": "ff6fc2e4a9e58dc109e82f2a7ab15896b5d6c6b0963cf49de92c43a5262cb04f",
+    "authentication_agent/testing/provider_contract.py": "499b6287a86b27b36dd1eabb64d0091c4db7a290235426cfd727841b111f5ef2",
+    "authentication_agent/validate_autonomy.py": "66e1e9ba3b3acc2944e7d6c23591f15620aefcd9e9670b3a20af5017a09ee70a",
+    "authentication_agent/validate_corpus.py": "1261ce27635e69183b98a3648d456a9978e41b270fa4b5eb4d72a6de3bb49380",
+    "authentication_agent/validate_investigations.py": "09dd2504ecfe15861a5d68c3b2e01c726a5d17060459121a067e5fb125a2096a",
+    "authentication_agent/validate_synthetic.py": "ea2a8b82b2dda599192e3ba10ff914b1a98dd8349540958e65c9f2befa3d943a",
+    "event_processing/__init__.py": "ad90ed571f00b9ad119b73cfb3cb550a2eebdf28fac1557b0f88867a16bcc4f0",
+    "event_processing/__main__.py": "e260d96d4366d809593e7bdc9a1b8ab8a866db0b17582e0192e0d468205ff2c7",
+    "event_processing/adapters/__init__.py": "0324224e3e5f5e415fb0fabe6d8f7d940a9b0203c0c9b5c792dd72c72f509a89",
+    "event_processing/adapters/authentication_provider.py": "ee6c1e3a441874696aebf8aa8680588693f4ea57e06cf5a5e0b14ec2986295e7",
+    "event_processing/corpus.py": "0235dd1828f9435f48e43e86edbfa47c350999b63d53c2cd101df4b8cf20f488",
+    "event_processing/detection/__init__.py": "0010f9f997bd4439497d55921278b8f426e59614955c7bd82907dff055b46503",
+    "event_processing/detection/engine.py": "466f13c0fad0cfd140d05f6ce6a035a07dcc8d68ec539048e43c840befd95936",
+    "event_processing/detection/rules.py": "4ca75f2d210b36dc96d3d173d4e3dd934f45cca6a70a8ee518eb0e0accf8332b",
+    "event_processing/detection/schema.py": "00799b287450effa7fcbfbe106e7c92f99ce771606cd9bef0edcbb11dd48f065",
+    "event_processing/evtx_reader.py": "f8e439a53ad03fa2755c3dab4c40f7d1fe7f3a33a24b13e2b1cf7478fe96a4d9",
+    "event_processing/ids.py": "da147a948fc6e957651564afc03f628eca9d17bb86b4fbd7568e7701fdbfb1cd",
+    "event_processing/manifest.py": "bff418b9c9a1808d6cd21a52be5bf78e4877fc2d88e1d2ea257bc95544aad50f",
+    "event_processing/metrics.py": "b7f56406c1ba716b35e6711e2e198eda1eda79dba9cb9c1b1dca002fe508a2be",
+    "event_processing/normalise.py": "384bf5091bcb96739162dfdf1084e7631d036e983f5a1748c3e51fd4bc9e2160",
+    "event_processing/protected_paths.py": "beb44dc945bf7ae936b43f2bde7282c50deeccbdd7be9ee42070c7c5efbfd9cd",
+    "event_processing/query.py": "fe773f880c68f5221cdce97591a7f1816a239e5e7a6e7e9b5245f7f334fc4922",
+    "event_processing/schema.py": "32e7df8a4be98cd34c34ea47a583a0b47275c611e7948f1ea85bdf4ffe4208e7",
+    "event_processing/timeutil.py": "8c00300ce78e7c5d5a61e0286ffa4c08c8690e5175989bc7f9e56ac0052a1762"
+  },
+  "corpus_manifest": {
+    "scenarios": [
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 893,
+          "Security": 1807
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 30,
+            "10": 447,
+            "11": 27,
+            "12": 41,
+            "13": 172,
+            "16": 1,
+            "17": 18,
+            "18": 18,
+            "22": 4,
+            "23": 17,
+            "24": 2,
+            "3": 43,
+            "5": 37,
+            "7": 5,
+            "8": 4,
+            "9": 27
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 6,
+            "4627": 6,
+            "4634": 6,
+            "4658": 572,
+            "4661": 572,
+            "4672": 6,
+            "4673": 3,
+            "4688": 89,
+            "4689": 85,
+            "4703": 204,
+            "4799": 174,
+            "4904": 1,
+            "4905": 1,
+            "5140": 1,
+            "5145": 2,
+            "5152": 2,
+            "5156": 42,
+            "5158": 33,
+            "8222": 1
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 1807,
+            "filename": "Security.evtx",
+            "sha256": "7389879ACB920ECB020DAC3E2D95AFF52EE01306036BF21472885CEA09A0E925",
+            "size": 3215360
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 893,
+            "filename": "Sysmon.evtx",
+            "sha256": "DEDCC67463C7F0579A1425427DC132B14E4346F2520F36652973C6A7C0040BEF",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S01.jsonl",
+          "line_count": 2700,
+          "sha256": "8d8fa43693a00e595a4b71694b009f506787b0ea288f6b2160ce15813e471167"
+        },
+        "scenario_id": "S01"
+      },
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 1581,
+          "Security": 349
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 220,
+            "11": 846,
+            "3": 300,
+            "5": 215
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 15,
+            "4625": 5,
+            "4634": 6,
+            "4647": 2,
+            "4648": 6,
+            "4672": 11,
+            "4688": 212,
+            "4776": 7,
+            "4797": 40,
+            "4798": 19,
+            "4799": 2,
+            "5058": 3,
+            "5059": 2,
+            "5061": 3,
+            "5379": 15
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 349,
+            "filename": "Security.evtx",
+            "sha256": "D396CE599723189331D440EDD55CC055C28EB4B6AD45A421D07A8E83A2F0EBA7",
+            "size": 1118208
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 1581,
+            "filename": "Sysmon.evtx",
+            "sha256": "9EFA2E10CDBBE44893804C7E7225DAC31A876FB188D1C52542F2F461FF4A70D1",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S02.jsonl",
+          "line_count": 1930,
+          "sha256": "03992665764f6e98a32e511d9ec83fe387ecf5e9064b60881986afc2c2afdfe2"
+        },
+        "scenario_id": "S02"
+      },
+      {
+        "counts_by_channel": {
+          "Microsoft-Windows-Sysmon/Operational": 1679,
+          "Security": 352
+        },
+        "counts_by_event_id": {
+          "Microsoft-Windows-Sysmon/Operational": {
+            "1": 221,
+            "11": 910,
+            "3": 330,
+            "5": 218
+          },
+          "Security": {
+            "1102": 1,
+            "4624": 15,
+            "4625": 2,
+            "4634": 6,
+            "4647": 2,
+            "4648": 6,
+            "4672": 11,
+            "4688": 223,
+            "4776": 4,
+            "4797": 40,
+            "4798": 19,
+            "4799": 2,
+            "5058": 4,
+            "5059": 2,
+            "5061": 4,
+            "5379": 11
+          }
+        },
+        "files": [
+          {
+            "channel": "Security",
+            "event_count": 352,
+            "filename": "Security.evtx",
+            "sha256": "FA7267610D7F875E45B5E7799B845B7D9E47E6F5F6274428C892BE7087BEC160",
+            "size": 1118208
+          },
+          {
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_count": 1679,
+            "filename": "Sysmon.evtx",
+            "sha256": "DABEE2AF8A90CEC5EB2F1693597916EAA88E91B24227AB1F6FC90440B8F4F188",
+            "size": 2166784
+          }
+        ],
+        "jsonl": {
+          "filename": "S03.jsonl",
+          "line_count": 2031,
+          "sha256": "525169a35d8bafb334871081d1ccc731fe659f804219cc0577c8d88ea3aa3474"
+        },
+        "scenario_id": "S03"
+      }
+    ],
+    "schema_version": "security-corpus-v1"
+  },
+  "corpus_manifest_sha256": "34c5d0ac01e5a6028cbc2a6deb39197a179007be549971119f83e6000f9069c7",
+  "scope": "Authentication Investigation Agent corpus integration; not detection accuracy, independent verification or orchestrator integration"
+}

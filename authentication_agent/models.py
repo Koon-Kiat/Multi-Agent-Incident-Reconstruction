@@ -192,13 +192,20 @@ class OperationReceipt(Model):
     error_code: str | None = None
 
 
-class _ToolReply(Model):
+class _Decision(Model):
+    # Require a concise decision summary during structured decoding, while
+    # preserving replies from existing adapters/recordings that omit it.
+    model_config = ConfigDict(json_schema_extra={"required": ["assessment", "action", "tool", "annotations"]})
+    assessment: Annotated[str, Field(max_length=512)] = ""
+
+
+class _ToolReply(_Decision):
     action: Literal["tool"]
     tool: _QueryTool | _GetTool | _HistoryTool
     annotations: Annotated[tuple[Annotation, ...], Field(max_length=0)]
 
 
-class _FinishReply(Model):
+class _FinishReply(_Decision):
     action: Literal["finish"]
     tool: None
     annotations: tuple[Annotation, ...]
@@ -213,13 +220,22 @@ class ModelReply(RootModel[_ToolReply | _FinishReply]):
     """
 
     @classmethod
-    def grounded_schema(cls, observations: tuple[Finding, ...]) -> dict:
+    def grounded_schema(cls, observations: tuple[Finding, ...], *, max_events_per_query: int | None = None) -> dict:
         """Restrict annotation references, leaving every tool and interpretation optional.
 
         This decoder aid cannot replace the independent host reference checks.
         Lookup arguments remain open to well-formed, possibly absent IDs.
         """
         schema = cls.model_json_schema()
+        if max_events_per_query is not None:
+            for name in ("QueryRequest", "HistoryArguments"):
+                arguments = schema["$defs"][name]
+                # The typed API default remains 100 for compatibility. Require an
+                # explicit bounded value from the decoder so omission cannot pick
+                # that default when the active per-query cap is smaller.
+                arguments["properties"]["limit"].update(maximum=max_events_per_query)
+                arguments["properties"]["limit"].pop("default", None)
+                arguments["required"].append("limit")
         if not observations:
             schema["$defs"]["_FinishReply"]["properties"]["annotations"]["maxItems"] = 0
             return schema

@@ -1,0 +1,15 @@
+{
+  "baseline_commit": "4ad96da752c8752d89994b06d6db31662aa64574",
+  "identical_json_schemas": [
+    "InvestigationRequest",
+    "InvestigationResult",
+    "RequiredOperations",
+    "OperationReceipt",
+    "QueryRequest",
+    "QueryResult",
+    "AuthenticationEvent"
+  ],
+  "investigate_signature_unchanged": true,
+  "result_version": "authentication-result-v2",
+  "internal_model_reply_change": "Bounded assessment string requested by decoder; old replies still parse. No assessment is exported in results."
+}
