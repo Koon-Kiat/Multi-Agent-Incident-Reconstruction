@@ -29,6 +29,12 @@ the SHA-256 the manifest declares *before* parsing a line. A missing file, an al
 event of the wrong scenario or a duplicate `evidence_id` raises `QueryError`; a stale `*.jsonl`
 left in the directory by an earlier run is never opened, because the manifest does not name it.
 
+A manifest `filename` must be a **plain direct-child name**: an absolute path, a separator, `.` or
+`..` is a malformed manifest, and a symlink that resolves outside the corpus directory is refused
+rather than read. A line whose digest matched but whose JSON is malformed or invalid becomes a
+`QueryError` naming the file and the line number, never a bare parse error. The manifest's
+`schema_version` is pinned to `m2-corpus-v1`.
+
 ```python
 from m2.query import EventStore
 
@@ -38,7 +44,8 @@ store.limits                  # QueryLimits(max_window_seconds=3600, max_limit=1
 ```
 
 `EventStore(events)` builds a store straight from events (used by unit tests); it applies the
-same duplicate check and the same ordering.
+same duplicate check and the same ordering, and **deep-copies every event before indexing it**, so
+a caller that keeps its own list cannot change a later answer by mutating an event it handed in.
 
 ## `lookup` and `lookup_many`
 
@@ -156,10 +163,14 @@ provider = M2AuthenticationProvider(store, limits)
 result = investigate(request, provider, FakeLLM())
 ```
 
-* `get_event(evidence_id)` returns `m3.models.AuthenticationEvent | None`. `None` covers a
-  malformed ID, a well-formed ID the corpus does not hold, Sysmon events and every Security
-  event other than `4624`/`4625` — M3's provider contract has one representation for "there is
-  no such authentication event".
+* `get_event(evidence_id)` returns `m3.models.AuthenticationEvent | None`. Exact lookup
+  preserves **any** `Security` record, whatever its Event ID, because M3's provider contract
+  fixture looks up a Security 4634 and requires it back unchanged; `None` covers a malformed ID,
+  a well-formed ID the corpus does not hold, and a Sysmon event (M3's model admits the Security
+  channel only).
+* `query(QueryRequest)` is the narrower door: it offers only the `Security` events whose Event ID
+  the request admits, which for `QueryRequest` is `4624`/`4625` by construction. Agent tools see
+  authentication evidence only; exact lookup is the retrieval path that retains everything.
 * `query(QueryRequest)` returns `m3.models.QueryResult`, ordered by M3's `event_order`, with
   `truncated` set when more events matched than `request.limit` allowed.
 * The adapter calls M3's own `check_bounds`, `matches` and `event_order`; it does not restate

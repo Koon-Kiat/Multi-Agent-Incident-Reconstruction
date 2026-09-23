@@ -53,6 +53,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from m2.detection.engine import SUMMARY_FILENAME
 from m2.detection.schema import DetectionRun
 from m2.ids import parse_evidence_id
+from m2.protected_paths import refuse_protected_output
 
 SCORE_REPORT_SCHEMA_VERSION = "m2-score-v1"
 SCORE_REPORT_FILENAME = "score_report.json"
@@ -160,7 +161,8 @@ class ScoreReport(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
-    schema_version: str = SCORE_REPORT_SCHEMA_VERSION
+    # Pinned to the exact constant, like every other M2 artefact version (B9).
+    schema_version: Literal[SCORE_REPORT_SCHEMA_VERSION] = SCORE_REPORT_SCHEMA_VERSION
     unit: str
     overall: ScoreCounts
     scenarios: tuple[ScenarioScore, ...]
@@ -185,6 +187,7 @@ def score(
     *,
     unit: str = "evidence_id",
     known_evidence_ids: Collection[str] | None = None,
+    corpus_manifest_sha256: str | None = None,
 ) -> ScoreReport:
     """Score detection runs against labels, overall, per scenario and per rule.
 
@@ -194,10 +197,16 @@ def score(
     label file omits it, and the well-formedness, duplicate, run-set and scenario checks still
     apply — a label naming a scenario with no detection run is always rejected, because there is
     no way to score it honestly.
+
+    ``corpus_manifest_sha256`` is the digest of the corpus the labels name. Give it (the CLI
+    always does) and every run must have been computed from that same revision; otherwise
+    :func:`validate_corpus_manifest` rejects the set rather than scoring two revisions together.
     """
     if unit not in SCORE_UNITS:
         raise ScoreError(f"unit {unit!r} is not supported; the only unit is 'evidence_id'")
     runs = validate_runs(detection_runs)
+    if corpus_manifest_sha256 is not None:
+        validate_corpus_manifest(runs, corpus_manifest_sha256)
     rows = validate_labels(labels, known_evidence_ids=known_evidence_ids)
 
     by_scenario_positives, by_scenario_negatives, by_scenario_excluded = _label_sets_by_scenario(rows)
@@ -286,6 +295,26 @@ def validate_runs(detection_runs: Sequence[DetectionRun]) -> tuple[DetectionRun,
     return runs
 
 
+def validate_corpus_manifest(
+    detection_runs: Sequence[DetectionRun], corpus_manifest_sha256: str
+) -> tuple[DetectionRun, ...]:
+    """Return ``detection_runs``, rejecting any that names another corpus revision than scored.
+
+    The run set alone already rejects a run that disagrees with *another run*
+    (:func:`validate_runs`). This is the complementary check against the corpus the labels
+    describe: scoring a run from one revision against the labels of another would attribute
+    flagged events to a corpus that may not even hold them.
+    """
+    runs = tuple(detection_runs)
+    mismatched = sorted({run.scenario_id for run in runs if run.corpus_manifest_sha256 != corpus_manifest_sha256})
+    if mismatched:
+        raise ScoreError(
+            f"detection run(s) for {', '.join(mismatched)} do not describe the corpus being scored "
+            f"(corpus manifest sha256 {corpus_manifest_sha256})"
+        )
+    return runs
+
+
 def validate_labels(
     labels: Sequence[LabelRow], *, known_evidence_ids: Collection[str] | None = None
 ) -> tuple[LabelRow, ...]:
@@ -315,6 +344,8 @@ def load_labels(
     ``reason=None``; every other deviation is a :class:`ScoreError` naming the row.
     """
     source = Path(path)
+    if source.is_dir():
+        raise ScoreError(f"label file {source} is a directory, not a label file")
     if not source.is_file():
         raise ScoreError(f"label file {source} does not exist")
     if source.suffix.lower() == ".csv":
@@ -329,11 +360,14 @@ def load_labels(
 def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
     """Read every ``<scenario>.json`` run written by ``python -m m2 detect``, sorted by file name.
 
-    ``summary.json`` is not a run and is skipped. A file that is not a valid ``DetectionRun`` or
-    whose name does not match the scenario inside it fails the whole read rather than being
-    ignored, because scoring a partial or mislabelled directory silently would understate or
-    misattribute the flagged set. A directory holding runs from more than one corpus manifest is
-    rejected for the same reason (see :func:`validate_runs`).
+    ``summary.json`` is not a run and is skipped. ``glob("*.json")`` matches a **directory** whose
+    name ends in ``.json`` as well as a file, so every candidate that is not a regular file is
+    rejected rather than read. A file that is not a valid ``DetectionRun`` or whose name does not
+    match the scenario inside it fails the whole read rather than being ignored, because scoring a
+    partial or mislabelled directory silently would understate or misattribute the flagged set. A
+    directory holding runs from more than one corpus manifest is rejected for the same reason (see
+    :func:`validate_runs`). Every read failure — an unreadable file, an undoable directory, a lock
+    or a race — becomes a :class:`ScoreError`, never a bare :class:`OSError`.
     """
     source = Path(directory)
     if not source.is_dir():
@@ -343,8 +377,16 @@ def load_detection_runs(directory: Path | str) -> tuple[DetectionRun, ...]:
         raise ScoreError(f"detections directory {source} holds no run files")
     runs = []
     for path in paths:
+        if not path.is_file():
+            raise ScoreError(f"{path} is not a regular file; a detection run must be a file")
         try:
-            run = DetectionRun.model_validate_json(path.read_text(encoding="utf-8"))
+            payload = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as error:
+            raise ScoreError(f"{path} is not valid UTF-8: {error}") from error
+        except OSError as error:
+            raise ScoreError(f"{path} could not be read as a detection run: {error}") from error
+        try:
+            run = DetectionRun.model_validate_json(payload)
         except ValidationError as error:
             raise ScoreError(f"{path} is not a valid detection run: {error}") from error
         if path.stem != run.scenario_id:
@@ -362,34 +404,56 @@ def report_to_json(report: ScoreReport) -> str:
 
 
 def write_report(report: ScoreReport, out_dir: Path | str) -> Path:
-    """Write ``<out>/score_report.json`` with ``\\n`` line endings and return its path."""
+    """Write ``<out>/score_report.json`` with ``\\n`` line endings and return its path.
+
+    ``out_dir`` may not resolve inside a ``datasets/`` or ``ground_truth/`` tree (the same check
+    ``detect`` applies to its ``--out``), and the refusal happens before the directory is created.
+    """
     destination = Path(out_dir)
+    refuse_protected_output(destination)
     destination.mkdir(parents=True, exist_ok=True)
     path = destination / SCORE_REPORT_FILENAME
     path.write_text(f"{report_to_json(report)}\n", encoding="utf-8", newline="\n")
     return path
 
 
+def _read_utf8(path: Path) -> str:
+    """Read a text input, reporting a decode or read failure as a :class:`ScoreError` (B10/B11).
+
+    An unreadable path (a directory, a permission error, a lock) is input the caller cannot use,
+    so it is reported the same way as a decode failure rather than escaping as an ``OSError``.
+    """
+    try:
+        return path.read_text(encoding="utf-8-sig")
+    except UnicodeDecodeError as error:
+        raise ScoreError(f"{path} is not valid UTF-8: {error}") from error
+    except OSError as error:
+        raise ScoreError(f"{path} could not be read: {error}") from error
+
+
 def _read_csv_labels(path: Path) -> list[LabelRow]:
-    text = path.read_text(encoding="utf-8-sig")
+    text = _read_utf8(path)
     reader = csv.DictReader(io.StringIO(text))
-    header = tuple(reader.fieldnames or ())
-    if not set(("evidence_id", "label")).issubset(header):
-        raise ScoreError(f"{path} needs an 'evidence_id' and a 'label' column, found {header!r}")
-    extra = sorted(set(header) - set(LABEL_COLUMNS))
-    if extra:
-        raise ScoreError(f"{path} has unsupported column(s) {extra!r}; allowed: {list(LABEL_COLUMNS)}")
-    rows: list[LabelRow] = []
-    for number, raw in enumerate(reader, start=2):
-        if all(not value for value in raw.values()):
-            continue
-        rows.append(_label_row(path, f"line {number}", raw))
+    try:
+        header = tuple(reader.fieldnames or ())
+        if not set(("evidence_id", "label")).issubset(header):
+            raise ScoreError(f"{path} needs an 'evidence_id' and a 'label' column, found {header!r}")
+        extra = sorted(set(header) - set(LABEL_COLUMNS))
+        if extra:
+            raise ScoreError(f"{path} has unsupported column(s) {extra!r}; allowed: {list(LABEL_COLUMNS)}")
+        rows: list[LabelRow] = []
+        for number, raw in enumerate(reader, start=2):
+            if all(not value for value in raw.values()):
+                continue
+            rows.append(_label_row(path, f"line {number}", raw))
+    except csv.Error as error:
+        raise ScoreError(f"{path} could not be parsed as CSV: {error}") from error
     return rows
 
 
 def _read_json_labels(path: Path) -> list[LabelRow]:
     try:
-        document: Any = json.loads(path.read_text(encoding="utf-8"))
+        document: Any = json.loads(_read_utf8(path))
     except json.JSONDecodeError as error:
         raise ScoreError(f"{path} is not valid JSON: {error}") from error
     if isinstance(document, dict) and set(document) == {"labels"}:
@@ -452,8 +516,16 @@ def _flagged_by_scenario(
 
 
 def _flagged_by_rule(detection_runs: Sequence[DetectionRun]) -> dict[str, frozenset[str]]:
+    """Every rule that ran, with the evidence IDs it flagged (empty for a zero-hit rule).
+
+    The catalogue comes from ``DetectionRun.rules``, not from the detections: a rule that fired
+    nothing is still part of the scored run, and dropping it would hide its false negatives and
+    make a rule's absence from the report indistinguishable from it not being run (B14).
+    """
     flagged: dict[str, set[str]] = {}
     for run in detection_runs:
+        for rule in run.rules:
+            flagged.setdefault(rule.rule_id, set())
         for detection in run.detections:
             flagged.setdefault(detection.rule_id, set()).update(detection.trigger_evidence_ids)
     return {rule_id: frozenset(ids) for rule_id, ids in flagged.items()}
