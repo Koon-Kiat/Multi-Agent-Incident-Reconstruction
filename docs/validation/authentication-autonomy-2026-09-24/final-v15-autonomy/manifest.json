@@ -407,5 +407,5 @@
       "interpretation_limit": "An exact qualified annotation demonstrates use; it does not expose the model's reasoning or establish compromise."
     }
   ],
-  "scope": "M3 development behavior checks; fake mode cannot demonstrate local-model autonomy"
+  "scope": "Authentication Investigation Agent development behavior checks; fake mode cannot demonstrate local-model autonomy"
 }

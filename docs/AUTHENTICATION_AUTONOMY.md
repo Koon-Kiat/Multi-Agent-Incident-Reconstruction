@@ -1,8 +1,8 @@
 # Authentication follow-up investigation
 
-This M3 follow-up starts from merged PR #9 (`4ad96da`) on
-`codex/m3-autonomous-followup`. It preserves the v2 result, provider contracts,
-required operations, positional callers, and the M4/M5/M6 boundaries. It uses only
+This Authentication Investigation Agent follow-up starts from merged PR #9 (`4ad96da`) on
+the dedicated follow-up branch. It preserves the v2 result, provider contracts,
+required operations, positional callers, and the endpoint investigation, reconstruction and independent verification boundaries. It uses only
 public authentication telemetry and the existing neutral synthetic fixtures.
 
 **Useful autonomous retrieval is demonstrated, but reliable selection remains
@@ -153,7 +153,7 @@ exhaustive coverage, reliable autonomy, a common actor, or confirmed compromise.
 
 ## Final validation results
 
-All final `final-v16-*` runs use the same final production source. The standard
+All final `final-v16-*` runs use the same final investigation source. The standard
 profile uses Ollama 0.34.3 and `qwen3:8b`, digest
 `500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41`.
 
@@ -239,6 +239,15 @@ All files are in [the separate follow-up directory](validation/authentication-au
 Earlier failed experiments remain intact. Raw source hashes describe each run's
 actual file bytes; the final normalized source readback also supports Windows and
 Linux line endings. Artifact hashes always cover exact bytes.
+
+CI caught retired role abbreviations in report/evaluator labels after the first
+commit. Descriptive labels were corrected without changing any model case file,
+reply, tool arguments, expectation, count, or per-case hash. The original
+manifest/snapshot bytes remain at commit `3f134a4`; the
+[metadata correction record](validation/authentication-autonomy-2026-09-24/naming-metadata-readback.json)
+records before/after hashes. Recorded source hashes retain their original values;
+only the evaluator's docstring and report scope label changed after inference.
+The naming assertion was not weakened or excluded.
 
 Re-run the readbacks from the repository root:
 

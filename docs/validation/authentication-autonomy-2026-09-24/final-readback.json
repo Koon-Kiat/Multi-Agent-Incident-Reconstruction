@@ -146,5 +146,6 @@
     "datasets/S03/raw/Sysmon.evtx": "dabee2af8a90cec5eb2f1693597916eaa88e91b24227ab1f6fc90440b8f4f188"
   },
   "final_source_readback": true,
+  "naming_metadata_only_corrections_verified": 8,
   "provider_processing_and_datasets_unchanged": true
 }

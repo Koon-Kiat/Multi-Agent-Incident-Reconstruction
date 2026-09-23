@@ -1,7 +1,7 @@
-"""M3 development evaluation of optional retrieval, separate from factual completion.
+"""Authentication Investigation Agent development evaluation of optional retrieval, separate from factual completion.
 
 Expectations and availability probes never enter the model request. This is not
-incident classification, private ground-truth scoring, or M6 verification.
+incident classification, private ground-truth scoring, or independent verification.
 """
 
 import argparse
@@ -160,7 +160,7 @@ def main():
         "source_sha256": before, "source_unchanged_during_run": stable,
         "corpus_manifest_sha256": hashlib.sha256((args.corpus / CORPUS_MANIFEST_FILENAME).read_bytes()).hexdigest(),
         "repetitions": args.repetitions, "cases": summary,
-        "scope": "M3 development behavior checks; fake mode cannot demonstrate local-model autonomy"})
+        "scope": "Authentication Investigation Agent development behavior checks; fake mode cannot demonstrate local-model autonomy"})
     return int(not stable or any(item["check_errors"] or item["behavior_errors"] for item in summary))
 
 

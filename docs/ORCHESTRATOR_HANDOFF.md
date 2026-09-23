@@ -125,7 +125,7 @@ which default to an empty trace and zero readbacks. No provider signature change
 are needed. Export the current schema with
 `python -m authentication_agent.investigate_corpus --schema`.
 
-The M3 follow-up leaves this v2 handoff unchanged. A short internal model
+The Authentication Investigation Agent follow-up leaves this v2 handoff unchanged. A short internal model
 assessment and decoder query-limit constraints do not add result fields or
 change caller requirements. See the [follow-up report](AUTHENTICATION_AUTONOMY.md)
 for measured optional retrieval and the remaining model-selection limitations.

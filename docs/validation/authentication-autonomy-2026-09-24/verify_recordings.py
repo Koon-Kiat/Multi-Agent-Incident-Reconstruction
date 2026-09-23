@@ -1,4 +1,4 @@
-"""Read back M3 development recordings; no private answers or model verdicts.
+"""Read back Authentication Investigation Agent development recordings; no private answers or model verdicts.
 
 Run from the repository root. Old failed experiments remain failed. Source byte
 hashes describe the recorded checkout; final source comparisons normalize EOLs
@@ -99,6 +99,14 @@ def main():
             data = (ROOT / relative).read_bytes().replace(b"\r\n", b"\n")
             assert hashlib.sha256(data).hexdigest() == digest, relative
         report["final_source_readback"] = True
+    corrections = json.loads((base / "naming-metadata-readback.json").read_bytes())
+    for entry in corrections["metadata_files"]:
+        old = subprocess.check_output(["git", "show", corrections["original_commit"] + ":" + entry["path"]], cwd=ROOT)
+        assert hashlib.sha256(old).hexdigest() == entry["original_sha256"]
+        assert sha(ROOT / entry["path"]) == entry["corrected_sha256"]
+        if entry["path"].endswith("manifest.json"):
+            assert json.loads(old)["cases"] == json.loads((ROOT / entry["path"]).read_bytes())["cases"]
+    report["naming_metadata_only_corrections_verified"] = len(corrections["metadata_files"])
     report["provider_processing_and_datasets_unchanged"] = True
     write_json_artifact(base / "final-readback.json", report)
     print(json.dumps(report, indent=2))

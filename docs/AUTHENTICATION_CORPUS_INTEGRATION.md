@@ -1,7 +1,7 @@
 # Authentication corpus integration and validation
 
 This is the historical PR #9 integration report. PR #9 was merged on 2026-09-23.
-The subsequent M3 investigation is documented in the
+The subsequent Authentication Investigation Agent investigation is documented in the
 [autonomous follow-up report](AUTHENTICATION_AUTONOMY.md).
 
 Updated 2026-09-23 on `codex/authentication-corpus-integration`, continuing PR #9.

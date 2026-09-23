@@ -1,4 +1,4 @@
-"""Compare the M3 handoff to merged PR #9, without changing the checkout."""
+"""Compare the Authentication Investigation Agent handoff to merged PR #9, without changing the checkout."""
 
 import ast
 import json

@@ -25,7 +25,7 @@
     "authentication_agent/testing/check_processing_contract.py": "2e59fb6c6c69de4c1158bdb18efeaf01c9ec992ab8bd7107aeef9f5b0d2c64bd",
     "authentication_agent/testing/factual_checks.py": "20265956422bb10563c6fb75c2ecc597f70ba02fa550b33e844a960756da40e5",
     "authentication_agent/testing/provider_contract.py": "149c12abdb34da88b82f1ac8b945c7dd8a9a9f70aaae522c32d2bdd950a54767",
-    "authentication_agent/validate_autonomy.py": "66e1e9ba3b3acc2944e7d6c23591f15620aefcd9e9670b3a20af5017a09ee70a",
+    "authentication_agent/validate_autonomy.py": "32d81b8fb0a8c3c82f4d61a11efc995033ada3e0d385a4e35f87e6f20b4d4dc9",
     "authentication_agent/validate_corpus.py": "bce7ea1535a353040f4c810e047bdcab5af8e800ff576aebd3d6a85c2da699e9",
     "authentication_agent/validate_investigations.py": "58a0c34c34f95426bf1ca7143e1833e69782f8dd1be543e2b1dab4fe4d0d72e8",
     "authentication_agent/validate_synthetic.py": "a094debe595671926f9be820039ad6c670eb27aef0b4a95efc55212a82e9e984",
