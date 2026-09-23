@@ -1,0 +1,32 @@
+{
+  "corpus_events": 6661,
+  "runs": {
+    "fake": {
+      "artifacts_verified": 11,
+      "source_hashes_verified": 42,
+      "factual_readback_verified": true,
+      "passed": 11,
+      "failed": 0
+    },
+    "ollama": {
+      "artifacts_verified": 11,
+      "source_hashes_verified": 42,
+      "factual_readback_verified": true,
+      "passed": 6,
+      "failed": 5
+    }
+  },
+  "raw_lfs_objects": {
+    "datasets/S01/raw/Security.evtx": "7389879acb920ecb020dac3e2d95aff52ee01306036bf21472885cea09a0e925",
+    "datasets/S01/raw/Sysmon.evtx": "dedcc67463c7f0579a1425427dc132b14e4346f2520f36652973c6a7c0040bef",
+    "datasets/S02/raw/Security.evtx": "d396ce599723189331d440edd55cc055c28eb4b6ad45a421d07a8e83a2f0eba7",
+    "datasets/S02/raw/Sysmon.evtx": "9efa2e10cdbbe44893804c7e7225dac31a876fb188d1c52542f2f461ff4a70d1",
+    "datasets/S03/raw/Security.evtx": "fa7267610d7f875e45b5e7799b845b7d9e47e6f5f6274428c892be7087bec160",
+    "datasets/S03/raw/Sysmon.evtx": "dabee2af8a90cec5eb2f1693597916eaa88e91b24227ab1f6fc90440b8f4f188"
+  },
+  "synthetic_fake": {
+    "artifacts_verified": 16,
+    "source_hashes_verified": 8,
+    "passed": 16
+  }
+}

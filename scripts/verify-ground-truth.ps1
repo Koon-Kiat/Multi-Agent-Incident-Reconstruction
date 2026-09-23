@@ -1,9 +1,9 @@
-﻿<#
+<#
 .SYNOPSIS
-    M6 deterministic ground-truth evidence validator.
+    Evidence Verification & Evaluation deterministic ground-truth evidence validator.
 
 .DESCRIPTION
-    Independently checks that every Event Record ID cited by M1's private
+    Independently checks that every Event Record ID cited by Dataset & Ground Truth Management's private
     ground-truth tables resolves to a real event in the public MAIR telemetry,
     and that the recorded timestamp, host and event type are consistent with
     the corpus.
@@ -12,8 +12,8 @@
     It only establishes that the answer key is mechanically usable as an
     evaluation key: stage -> Event Record ID -> original EVTX evidence.
 
-    Ownership: M6 (Evidence Verification & Evaluation).
-    Input   : M1 private ground-truth package (withheld from M2/M3/M4/M5).
+    Ownership: Evidence Verification & Evaluation.
+    Input   : Dataset & Ground Truth Management private ground-truth package (withheld from Event Processing & Detection Engine/Authentication Investigation Agent/Endpoint Investigation Agent/Incident Reconstruction Orchestrator).
     Output  : console report + optional machine-readable JSON.
 
 .PARAMETER RepoRoot
@@ -137,7 +137,7 @@ function Split-RecordIds {
 # ---------------------------------------------------------------------------
 
 Write-Host ''
-Write-Host '=== MAIR M6 Ground-Truth Evidence Validator ===' -ForegroundColor Cyan
+Write-Host '=== MAIR Evidence Verification & Evaluation Ground-Truth Evidence Validator ===' -ForegroundColor Cyan
 Write-Host ''
 Write-Host '[1/7] Dataset integrity' -ForegroundColor Yellow
 

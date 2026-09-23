@@ -1,0 +1,123 @@
+{
+  "case": "bounded_query",
+  "elapsed_seconds": 0.913,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "AUTH-9b1e7bd4de6cb95956d043e8",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-A",
+        "observed_events": {
+          "description": "Retrieved 2 failed logon(s) and 0 successful logon(s) with these recorded entity values.",
+          "failed_logons": 2,
+          "successful_logons": 0,
+          "failures_before_first_success": 0,
+          "repeated_failures_followed_by_success": false
+        },
+        "interpretation": null,
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000001Z",
+          "last_utc": "2026-01-10T00:00:02.0000001Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window.",
+          "At least one query was truncated; counts and sequences may be incomplete."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v4",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 2,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "8b7dc577dbf35dfa3a1e44621b3c2118d099aa34656fa35309adf19e5307740a",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": []\n}",
+      "elapsed_seconds": 0.905
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-A",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 2
+      },
+      "evidence_ids": [
+        "SYN-A-SEC-1",
+        "SYN-A-SEC-2"
+      ],
+      "truncated": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-2",
+      "found": true
+    }
+  ]
+}

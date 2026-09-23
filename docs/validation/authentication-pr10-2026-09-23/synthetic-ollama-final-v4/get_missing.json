@@ -1,0 +1,146 @@
+{
+  "case": "get_missing",
+  "elapsed_seconds": 5.416,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "findings": [
+      {
+        "finding_id": "AUTH-5e53c21298bc2ea6a60ee799",
+        "agent_type": "authentication",
+        "scenario_id": "SYN-A",
+        "observed_events": {
+          "description": "Retrieved 3 failed logon(s) and 1 successful logon(s) with these recorded entity values. At least two failures precede a success.",
+          "failed_logons": 3,
+          "successful_logons": 1,
+          "failures_before_first_success": 3,
+          "repeated_failures_followed_by_success": true
+        },
+        "interpretation": "Additional context is needed to interpret this authentication activity; no attack classification is made.",
+        "timestamps": {
+          "first_utc": "2026-01-10T00:00:01.0000001Z",
+          "last_utc": "2026-01-10T00:00:04.0000001Z"
+        },
+        "entities": {
+          "account": "demo.user",
+          "reported_account": "demo.user",
+          "domain": "SYNTHETIC",
+          "host": "LAB-A",
+          "source_address": "192.0.2.10",
+          "workstation": "SYN-CLIENT",
+          "logon_type": "3"
+        },
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "uncertainty": [
+          "Authentication telemetry alone does not establish account compromise or a common actor.",
+          "Observations cover only retrieved evidence within the requested window."
+        ]
+      }
+    ],
+    "error_code": null,
+    "uncertainty": [
+      "An exact evidence lookup returned not found; no replacement was used."
+    ],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v4",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "synthetic_validation_trace": true,
+        "directed_first_tool": "get_authentication_event",
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 2,
+      "model_calls": 2
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "3c0d387320bbfd344182365a562d959af714385356e0bd83ffe8bb85bc924af1",
+      "reply": "{\"action\":\"tool\",\"tool\":{\"name\":\"get_authentication_event\",\"arguments\":{\"evidence_id\":\"SYN-A-SEC-999\"}},\"annotations\":[]}",
+      "elapsed_seconds": 1.783
+    },
+    {
+      "request_sha256": "11c5c151a8b982e5f98bf6fa24ddd4061679efa1583fc9f8261ed05a80028f12",
+      "reply": "{\n  \"action\": \"finish\",\n  \"tool\": null,\n  \"annotations\": [\n    {\n      \"observation_id\": \"AUTH-5e53c21298bc2ea6a60ee799\",\n      \"evidence_ids\": [\"SYN-A-SEC-1\", \"SYN-A-SEC-2\", \"SYN-A-SEC-3\", \"SYN-A-SEC-4\"],\n      \"interpretation\": \"context_required\"\n    }\n  ]\n}",
+      "elapsed_seconds": 3.622
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "SYN-A",
+        "start_utc": "2026-01-10T00:00:00Z",
+        "end_utc": "2026-01-10T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [
+        "SYN-A-SEC-1",
+        "SYN-A-SEC-2",
+        "SYN-A-SEC-3",
+        "SYN-A-SEC-4"
+      ],
+      "truncated": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-999",
+      "found": false
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-1",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-2",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-3",
+      "found": true
+    },
+    {
+      "operation": "get_event",
+      "evidence_id": "SYN-A-SEC-4",
+      "found": true
+    }
+  ]
+}

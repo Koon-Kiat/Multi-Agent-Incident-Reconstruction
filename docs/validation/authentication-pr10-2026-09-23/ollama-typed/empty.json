@@ -1,0 +1,228 @@
+{
+  "case": "empty",
+  "elapsed_seconds": 30.142,
+  "check_errors": [],
+  "expected_error": null,
+  "result": {
+    "status": "completed",
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T00:00:00Z",
+      "end_utc": "2026-09-21T00:01:00Z"
+    },
+    "findings": [],
+    "error_code": null,
+    "uncertainty": [
+      "No authentication evidence was returned for this window; this does not establish absence of activity."
+    ],
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v3",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "ollama",
+        "model": "qwen3:8b",
+        "endpoint": "http://127.0.0.1:11434",
+        "temperature": 0.0,
+        "seed": 0,
+        "num_ctx": 8192,
+        "think": false,
+        "corpus_validation_trace": true,
+        "directed_first_tool": null,
+        "directed_annotation": false
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 8,
+      "model_calls": 8
+    }
+  },
+  "model_calls": [
+    {
+      "request_sha256": "4914845bb686e5d87ff0ffb7a14ae3f561334216ee44d8a4258806c35b27fe06",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 5.978
+    },
+    {
+      "request_sha256": "60a61d5cd3580fa80ec4b25b6d92ff3e3fff5d347df6e575323388653d3de62c",
+      "reply": "{\"action\":\"tool\",\"tool\":{\"name\":\"query_authentication_events\",\"arguments\":{\"scenario_id\":\"S02\",\"start_utc\":\"2026-09-21T00:00:00Z\",\"end_utc\":\"2026-09-21T00:01:00Z\",\"event_ids\":[4624,4625],\"account\":null,\"host\":null,\"limit\":100}},\"annotations\":[]}",
+      "elapsed_seconds": 3.133
+    },
+    {
+      "request_sha256": "acae825bf34b53369bfbc54afcbdcd61a48ecd0cc5ae715d6c25342e8943edf6",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 4.237
+    },
+    {
+      "request_sha256": "52b0e5cbb43547c428f5ba7ea74d093dd862efc67bcc949bcaa836a5a9c1d53a",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 4.106
+    },
+    {
+      "request_sha256": "f74d71b2e618aa7ad79b127085c9ea22a6e57cf3cba056e57ce2a4439e47815e",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 3.938
+    },
+    {
+      "request_sha256": "dc713f4a758400f4b58347742ef0ca11535e1f99d3f0e92b52dfa5d6b0e16719",
+      "reply": "{\"action\":\"tool\",\"tool\":{\"name\":\"query_authentication_events\",\"arguments\":{\"scenario_id\":\"S02\",\"start_utc\":\"2026-09-21T00:00:00Z\",\"end_utc\":\"2026-09-21T00:01:00Z\",\"event_ids\":[4624,4625],\"account\":null,\"host\":null,\"limit\":100}},\"annotations\":[]}",
+      "elapsed_seconds": 3.192
+    },
+    {
+      "request_sha256": "0c4d26aeae284ffa04b59087d47dc6ef646deb5db654776281a236c236d8f3b2",
+      "reply": "{\n  \"action\": \"tool\",\n  \"tool\": {\n    \"name\": \"query_authentication_events\",\n    \"arguments\": {\n      \"scenario_id\": \"S02\",\n      \"start_utc\": \"2026-09-21T00:00:00Z\",\n      \"end_utc\": \"2026-09-21T00:01:00Z\",\n      \"event_ids\": [4624, 4625],\n      \"account\": null,\n      \"host\": null,\n      \"limit\": 100\n    }\n  },\n  \"annotations\": []\n}",
+      "elapsed_seconds": 4.273
+    },
+    {
+      "request_sha256": "1940ef0e9d7c13e4e481a713417035facf71632aa9487ff001053560d3699402",
+      "reply": "{\"action\":\"finish\",\"tool\":null,\"annotations\":[]}",
+      "elapsed_seconds": 1.087
+    }
+  ],
+  "provider_calls": [
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    },
+    {
+      "operation": "query",
+      "request": {
+        "scenario_id": "S02",
+        "start_utc": "2026-09-21T00:00:00Z",
+        "end_utc": "2026-09-21T00:01:00Z",
+        "event_ids": [
+          4624,
+          4625
+        ],
+        "account": null,
+        "host": null,
+        "limit": 100
+      },
+      "evidence_ids": [],
+      "truncated": false
+    }
+  ]
+}

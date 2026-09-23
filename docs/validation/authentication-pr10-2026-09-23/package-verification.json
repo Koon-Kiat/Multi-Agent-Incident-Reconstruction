@@ -1,0 +1,31 @@
+{
+  "wheel": "mair_incident_reconstruction-0.2.0-py3-none-any.whl",
+  "sha256": "055976f529008a860e6a259ec9fb22beca5edd64acd30d81ed4bfb7a1b2741a3",
+  "retired_package_paths": [],
+  "entry_points": "[console_scripts]\nmair-authentication = authentication_agent.__main__:main\nmair-events = event_processing.__main__:main\nmair-investigate-authentication = authentication_agent.investigate_corpus:main\n",
+  "isolated_wheel_result": {
+    "status": "completed",
+    "findings": 6,
+    "metadata": {
+      "contract_version": "authentication-result-v1",
+      "prompt_version": "authentication-prompt-v3",
+      "configuration_version": "authentication-config-v3",
+      "llm": {
+        "runtime": "fake",
+        "model": "deterministic-fake-v1"
+      },
+      "limits": {
+        "max_tool_calls": 8,
+        "max_events_per_query": 100,
+        "max_window_seconds": 3600,
+        "max_model_output_bytes": 32768,
+        "max_event_bytes": 16384,
+        "max_context_bytes": 262144,
+        "model_timeout_seconds": 60,
+        "max_output_tokens": 2048
+      },
+      "tool_calls": 1,
+      "model_calls": 1
+    }
+  }
+}

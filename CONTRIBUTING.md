@@ -18,7 +18,7 @@ Examples:
 ```text
 Add bounded authentication queries
 fix: reject unknown evidence references
-Document local M3 setup (#5)
+Document local authentication setup (#5)
 ```
 
 `.github/workflows/contribution-checks.yml` runs on normal `pull_request` events:
@@ -54,16 +54,23 @@ under the team's normal branch policy. The validator never changes any commit,
 author/committer identity or Git history. Do not change old repository commits
 unrelated to the PR. A transient API failure can be rerun.
 
-For M3 changes, mention the temporary mock M2 adapter, exactly which fake/local
-Ollama tests ran, and pending M2/M5 integration. A starting description is in
-`docs/M3_PR_DESCRIPTION.md`; refresh its validation evidence before opening a PR.
+For authentication changes, state which corpus/provider, fake and local Ollama
+checks actually ran. Keep provider compatibility diagnostics and model-selection
+failures visible, and distinguish the tested call boundary from pending Incident
+Reconstruction Orchestrator integration. Use the current validation report rather
+than copying historical PR descriptions.
 
-`.github/workflows/python-tests.yml` separately runs **M3 and contribution tests**
-on pull requests and pushes to main, using Python 3.11. This is the application
-test check; the metadata checks cannot replace it.
+`.github/workflows/python-tests.yml` runs **Python and contribution tests** on
+pull requests and pushes to main using Python 3.11. CI uses `lfs: false`; tests
+requiring original EVTX files skip explicitly. Run those tests locally after
+fetching Git LFS evidence. This application test check does not replace the
+metadata checks. The reusable provider contract runs against the real adapter in default discovery.
+The original explicitly invoked diagnostic also remains available; PR #10 resolved
+its lookup and constructor-ownership failures. Current results are documented in
+`docs/AUTHENTICATION_CORPUS_INTEGRATION.md`.
 
 Maintainers must separately enable branch protection or a ruleset requiring
-**PR description**, **Commit messages**, and (recommended) **M3 and contribution
+**PR description**, **Commit messages**, and (recommended) **Python and contribution
 tests** before merge. Confirm the exact displayed check contexts after their
 first GitHub run. No repository settings are changed by these files. Like other
 repository-owned CI, validators/workflow changes themselves require review.
