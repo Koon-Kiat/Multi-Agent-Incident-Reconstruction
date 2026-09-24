@@ -2,7 +2,7 @@
 
 ## Role alignment
 
-Source references: `MAIR_Six_Member_Roles_and_Boundaries.pdf`, the M4
+Source references: `MAIR_Six_Member_Roles_and_Boundaries.pdf`, the
 Endpoint Investigation Agent section (p. 6), joint workflow and completion rule
 (p. 2), shared finding fields (p. 9), and change control (p. 13); and
 `SecurityAnalytics_Proposal.docx`, sections 3.1 and 3.2. These are the user's
@@ -25,20 +25,20 @@ verification are outside this component's ownership.
 ## Pre-PR audit and acceptance status
 
 Reviewed against base commit `7c43011` on 2026-09-24. The component is ready
-for code and interface review, not an assertion that the whole M4 assignment
+for code and interface review, not an assertion that the whole endpoint assignment
 has received team acceptance. The PDF explicitly calls itself a proposed team
 agreement (p. 1); its cross-component acknowledgement cannot be supplied by
 automated tests or by this implementation alone.
 
 | Source requirement | Implementation evidence | Status |
 | --- | --- | --- |
-| PDF p. 6: same local model family and Python environment as M3 | Shared `OllamaClient`, `OllamaConfig`, `Limits`; Qwen3:8b live tests; additive package in the same Python environment | Implemented |
-| PDF p. 6: consume M2 Sysmon data, preserve process/host/user/time relationships | `CorpusEndpointProvider`, unchanged `NormalisedEvent`, GUID/host/scenario corroboration in `observations.py` | Implemented and tested |
+| PDF p. 6: same local model family and Python environment as the Authentication Investigation Agent | Shared `OllamaClient`, `OllamaConfig`, `Limits`; Qwen3:8b live tests; additive package in the same Python environment | Implemented |
+| PDF p. 6: consume the shared normalized Sysmon data, preserve process/host/user/time relationships | `CorpusEndpointProvider`, unchanged `NormalisedEvent`, GUID/host/scenario corroboration in `observations.py` | Implemented and tested |
 | PDF pp. 6, 9: evidence IDs, observed facts, optional interpretations, entities, timestamps and uncertainty | Typed `Finding` keeps the common outer fields; exact readbacks and fail-closed reference checks | Implemented; endpoint payload requires consumer review |
 | PDF p. 6: process-chain, benign-administration, missing-parent, absent-ID and schema tests | `endpoint_agent/tests/` plus `tests/test_endpoint_corpus.py` | Implemented and locally passing |
 | Proposal section 3.1: separate investigators, read-only tools, local model and independent downstream reconstruction/verification | Separate endpoint prompt/tools; no authentication analysis, final timeline, ATT&CK mapping or support verdicts | Boundaries preserved |
-| PDF pp. 2, 13: usable downstream contract and affected-member acknowledgement | Callable interface and handoff documentation; no M5/M6 implementation exists here to certify acceptance | Pending team integration/sign-off |
-| Proposal section 3.2: malicious/benign comparison and quantitative reconstruction/support evaluation | Source-consistency and smoke tests only; no answer-key access during inference | M5/M6 integration/evaluation remains pending |
+| PDF pp. 2, 13: usable downstream contract and affected-member acknowledgement | Callable interface and handoff documentation; downstream reconstruction/verification are not connected here to certify acceptance | Pending team integration/sign-off |
+| Proposal section 3.2: malicious/benign comparison and quantitative reconstruction/support evaluation | Source-consistency and smoke tests only; no answer-key access during inference | Orchestration and independent evaluation remain pending |
 
 ### Preservation and intentional limitations
 
@@ -68,8 +68,9 @@ The following are new component constraints, not removals from the original:
 - Failures return no partial findings. Cold model loading can exceed the default
   timeout. Runtime/model binaries and generated results remain under ignored `out/`.
 
-Before merge, M2 should acknowledge the additive provider; M5/M6 should review
-the endpoint payload, shared-envelope consumption and preservation of uncertainty.
+Before merge, the Event Processing & Detection Engine owner should acknowledge
+the additive provider; reconstruction and verification owners should review the
+endpoint payload, shared-envelope consumption and preservation of uncertainty.
 No shared schema has been silently replaced, and no team acknowledgement is claimed.
 
 ## Corrections to the initial plan
