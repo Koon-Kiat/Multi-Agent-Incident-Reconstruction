@@ -84,10 +84,24 @@ a missing parent as proof that a parent did not exist.
 
 `event_processing.adapters.endpoint_provider.CorpusEndpointProvider` implements
 the protocol through public `EventStore` methods. It adds no parser, storage or
-event-ID format. It applies the endpoint query predicates before the result cap
-and respects both provider and store bounds. This is needed because the existing
+event-ID format. Queries use `EventStore.query(event_data_filters=...)`, not
+`scenario_events()`. The adapter translates process-field names into declarative
+per-event-type equality filters; it has no private store access or custom index.
+All endpoint predicates apply inside the store before the result cap **and before
+deep-copying records**, respecting both provider and store bounds. Only returned
+records are detached, retaining their full fields including `raw_xml`; caller
+mutation cannot change the corpus. This is needed because the existing
 `process_by_guid` and `children_of` helpers search a whole scenario, and filtering
 their already-truncated output can lose matching in-window records.
+
+The existing sorted snapshot provides deterministic timestamp/evidence-ID order.
+The store bisects the authorized half-open time window, counts every matching
+record for exact `total_matched`, retains at most `limit` records, and reports
+`truncated` exactly when the total exceeds the returned count. Empty or unknown
+scenarios yield no records, zero matches and no truncation. Counting still scans
+the window, but neither all scenario events nor all matches are materialized or
+deep-copied for each follow-up query. The agent's separate `matches()` boundary
+check remains in place to validate returned records independently.
 
 `QueryRequest` contains `scenario_id`, `start_utc`, `end_utc`, `event_ids`,
 `account`, `host`, `process_guid`, `parent_process_guid` and `limit`. Filters

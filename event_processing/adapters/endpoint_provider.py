@@ -2,10 +2,9 @@
 
 from event_processing.query import EventStore
 from event_processing.schema import NormalisedEvent
-from event_processing.timeutil import TICKS_PER_SECOND, iso_to_ticks
 from endpoint_agent.config import Limits
 from endpoint_agent.models import SYSMON_CHANNEL, QueryRequest, QueryResult
-from endpoint_agent.queries.semantics import check_bounds, event_order, matches
+from endpoint_agent.queries.semantics import check_bounds
 
 
 class CorpusEndpointProvider:
@@ -22,13 +21,21 @@ class CorpusEndpointProvider:
     def query(self, request: QueryRequest) -> QueryResult:
         request = QueryRequest.model_validate_json(request.model_dump_json())
         check_bounds(request, self._limits)
-        if request.limit > self._store.limits.max_limit:
-            raise ValueError("query exceeds corpus limits")
-        if iso_to_ticks(request.end_utc) - iso_to_ticks(request.start_utc) > self._store.limits.max_window_seconds * TICKS_PER_SECOND:
-            raise ValueError("query exceeds corpus window")
-        # Use the public snapshot API, as the authentication adapter does. Filtering
-        # precedes limiting: applying GUID filters to a capped prefix loses evidence.
-        events = sorted((event for event in self._store.scenario_events(request.scenario_id)
-                         if matches(event, request)), key=event_order)
-        return QueryResult(events=tuple(events[:request.limit]),
-                           truncated=len(events) > request.limit, total_matched=len(events))
+        # Compile endpoint field conventions into declarative shared query filters.
+        # The store applies all predicates before limiting/detaching records.
+        filters = None
+        if request.process_guid is not None or request.parent_process_guid is not None:
+            filters = {}
+            for event_id in request.event_ids:
+                if request.parent_process_guid is not None and event_id != 1:
+                    continue
+                fields = {}
+                if request.process_guid is not None:
+                    fields["SourceProcessGUID" if event_id == 10 else "ProcessGuid"] = request.process_guid
+                if request.parent_process_guid is not None:
+                    fields["ParentProcessGuid"] = request.parent_process_guid
+                filters[event_id] = fields
+        result = self._store.query(request.scenario_id, request.start_utc, request.end_utc,
+            channels=(SYSMON_CHANNEL,), event_ids=request.event_ids, host=request.host,
+            user=request.account, limit=request.limit, event_data_filters=filters)
+        return QueryResult(events=result.events, truncated=result.truncated, total_matched=result.total_matched)

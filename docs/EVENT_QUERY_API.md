@@ -95,6 +95,7 @@ store.query(
     host: str | None = None,
     user: str | None = None,
     limit: int = 100,
+    event_data_filters: Mapping[int, Mapping[str, str]] | None = None,
 ) -> QueryResult
 ```
 
@@ -112,6 +113,40 @@ store.query(
   1) raises `QueryError` — nothing is silently clamped or expanded.
 * **Truncation**: `QueryResult.truncated` is true exactly when more events matched than were
   returned, and `total_matched` always reports the true number of matches.
+
+`event_data_filters` is an optional declarative mapping from **source Event ID**
+(not unique evidence ID) to required `event_data` field/value pairs. An event
+must have a listed type and match **every** field for that type, as well as all
+other query filters. Field names/values are exact case-sensitive strings. `None`
+disables this filter; `{}` matches nothing; `{1: {}}` admits type 1 without
+additional field requirements. An empty string matches a present empty value,
+not a missing field. Invalid types and callbacks raise `QueryError`.
+
+For example, the endpoint adapter can express different source-field names
+without adding endpoint-specific logic or a callback to the store:
+
+```python
+result = store.query(
+    "S02", "2026-09-21T02:05:10Z", "2026-09-21T02:05:20Z",
+    channels=("Microsoft-Windows-Sysmon/Operational",), limit=2,
+    event_data_filters={1: {"ProcessGuid": "{ABC}"},
+                        10: {"SourceProcessGUID": "{ABC}"}},
+)
+```
+
+Filtering happens **before limiting and before detachment**. The store uses
+binary search over its already ordered internal snapshot to find the half-open
+time window, counts all matches in that window, and retains at most `limit`
+record references before deep-copying only the returned records. No full-scenario
+copy, window slice, new index or all-matches list is built. Ordering remains
+`(timestamp_ticks, evidence_id)`, and returned records retain `raw_xml` and all
+other source fields. Mutating returned event data cannot mutate the store.
+Caller-supplied predicates never receive internal records: the API accepts data,
+not callbacks. Query working memory is bounded by the filters and return limit;
+CPU work still depends on the window's event count because `total_matched` is an
+exact count, not a `limit + 1` lower bound. Existing callers that omit the new
+keyword retain their semantics. `scenario_events()` still returns a detached
+whole-scenario snapshot for callers that explicitly request one.
 
 ```python
 result = store.query(
@@ -191,8 +226,8 @@ investigation completes and every cited ID resolves through `store.lookup`.
 
 The separate endpoint adapter is
 `event_processing.adapters.endpoint_provider.CorpusEndpointProvider`. It uses
-the public immutable snapshot API with scope/GUID predicates applied before the
-result limit, preserving this API's exact identities and timestamps. See
+the public `query()` API with declarative scope/GUID predicates applied before
+the result limit and detachment, preserving exact identities and timestamps. See
 [endpoint query and handoff semantics](ENDPOINT_PROVIDER_HANDOFF.md). The generic
 store methods and authentication adapter contract are unchanged.
 

@@ -6,6 +6,7 @@ from endpoint_agent.models import InvestigationRequest, QueryRequest
 from endpoint_agent.tests.conftest import BASE, CHILD, HOST, ROOT, USER, endpoint_event
 from event_processing.adapters.endpoint_provider import CorpusEndpointProvider
 from event_processing.query import EventStore, QueryLimits
+from event_processing.schema import NormalisedEvent
 from event_processing.tests.synthetic import make_event
 from event_processing.timeutil import ticks_to_iso
 
@@ -95,3 +96,69 @@ def test_invalid_query_contracts_fail(investigation, changes):
 def test_seed_contract(investigation, ids):
     with pytest.raises(ValidationError):
         InvestigationRequest(**investigation.window(), seed_evidence_ids=ids)
+
+
+def test_large_scenario_filters_before_limit_without_snapshot_copies(monkeypatch, investigation):
+    events = [endpoint_event(i, second=i, ProcessGuid=CHILD if i >= 1996 else ROOT,
+                            ParentProcessGuid=ROOT) for i in range(1, 2001)]
+    store = EventStore(reversed(events))
+    provider = CorpusEndpointProvider(store)
+    request = QueryRequest(**{**investigation.window(), "end_utc": "2026-09-21T03:05:00Z"},
+                           process_guid=CHILD, parent_process_guid=ROOT, limit=2)
+    copies = []
+    original = NormalisedEvent.model_copy
+
+    def counted(event, **kwargs):
+        if kwargs.get("deep"):
+            copies.append(event.evidence_id)
+        return original(event, **kwargs)
+
+    def forbidden_snapshot(*args):
+        pytest.fail("Endpoint queries must not detach a full scenario")
+
+    monkeypatch.setattr(NormalisedEvent, "model_copy", counted)
+    monkeypatch.setattr(store, "scenario_events", forbidden_snapshot)
+    result = provider.query(request)
+    assert [e.record_id for e in result.events] == [1996, 1997]
+    assert (result.total_matched, result.truncated) == (5, True)
+    assert copies == [e.evidence_id for e in result.events]  # 2 copies, not 2000
+    assert result.events[0].raw_xml == events[1995].raw_xml
+    result.events[0].event_data["ProcessGuid"] = "caller mutation"
+    copies.clear()
+    repeated = provider.query(request)
+    assert repeated.events[0].event_data["ProcessGuid"] == CHILD
+    assert len(copies) == 2
+    assert store.lookup(repeated.events[0].evidence_id).event == events[1995]
+    copies.clear()
+    empty = provider.query(request.model_copy(update={"process_guid": "absent"}))
+    assert (empty.events, empty.total_matched, empty.truncated) == ((), 0, False)
+    assert copies == []
+
+
+@pytest.mark.parametrize("filters", [
+    {}, {"process_guid": CHILD}, {"parent_process_guid": ROOT},
+    {"process_guid": CHILD, "parent_process_guid": ROOT},
+    {"process_guid": ""}, {"parent_process_guid": ""},
+    {"process_guid": CHILD, "event_ids": (10,)},
+    {"parent_process_guid": ROOT, "event_ids": (10, 11, 13)},
+    {"process_guid": CHILD, "host": HOST, "account": USER},
+    {"process_guid": CHILD, "host": HOST.lower()},
+    {"account": ""}, {"account": None},
+])
+def test_shared_filter_translation_matches_endpoint_semantics(events, investigation, filters):
+    from endpoint_agent.queries.semantics import event_order, matches
+
+    records = [*events,
+        endpoint_event(11, event_id=10, SourceProcessGUID=ROOT, ProcessGuid=CHILD, ParentProcessGuid=ROOT),
+        endpoint_event(12, event_id=11, ProcessGuid=ROOT, SourceProcessGUID=CHILD, ParentProcessGuid=ROOT),
+        endpoint_event(13, ProcessGuid="", ParentProcessGuid="", user=""),
+        endpoint_event(14, ProcessGuid=CHILD, ParentProcessGuid=ROOT, scenario="OTHER"),
+        endpoint_event(15, second=60, ProcessGuid=CHILD, ParentProcessGuid=ROOT),
+        endpoint_event(16, second=-1, ProcessGuid=CHILD, ParentProcessGuid=ROOT),
+    ]
+    request = QueryRequest(**investigation.window(), **filters, limit=2)
+    expected = sorted((e for e in records if matches(e, request)), key=event_order)
+    result = CorpusEndpointProvider(EventStore(reversed(records))).query(request)
+    assert result.events == tuple(expected[:2])
+    assert result.total_matched == len(expected)
+    assert result.truncated == (len(expected) > 2)
