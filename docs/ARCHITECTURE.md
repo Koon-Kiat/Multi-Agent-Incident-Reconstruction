@@ -9,7 +9,7 @@ remain unchanged.
 | Dataset & Ground Truth Management | `datasets/`, dataset scripts |
 | Event Processing & Detection Engine | `event_processing/` |
 | Authentication Investigation Agent | `authentication_agent/` |
-| Endpoint Investigation Agent | Separate delivery |
+| Endpoint Investigation Agent | `endpoint_agent/`, through `CorpusEndpointProvider` |
 | Incident Reconstruction Orchestrator | Separate delivery |
 | Evidence Verification & Evaluation | Separate evaluation workflow |
 
@@ -22,7 +22,11 @@ flowchart TD
   L[Local Ollama adapter] --> I
   I --> F[Structured findings with exact evidence references]
   F -. pending connection .-> O[Incident Reconstruction Orchestrator]
-  E[Endpoint Investigation Agent] -. separate delivery .-> O
+  C --> EP[Read-only Sysmon provider]
+  EP --> E[Endpoint Investigation Agent]
+  L --> E
+  E --> EF[Endpoint findings and cited process relationships]
+  EF -. pending connection .-> O
   O -. separate delivery .-> V[Evidence Verification & Evaluation]
 ```
 
@@ -30,6 +34,17 @@ Solid edges through authentication findings are implemented and exercised on
 S01–S03. Dashed edges are dependencies, not claims of full pipeline integration.
 No evaluation answer keys or scenario runbooks enter model context. Processing
 baseline scoring is separate from authentication integration testing.
+
+Endpoint retrieval and deterministic findings are also exercised on the public
+corpus using the fake model. Its local Ollama adapter reuses the existing transport;
+Qwen3:8b smoke tests also completed on small public S01-S03 windows. These
+validate integration, not autonomous investigation quality (see
+[validation scope](ENDPOINT_IMPLEMENTATION.md#validation-scope)). The callable
+boundary is `endpoint_agent.investigate`, backed by
+`event_processing.adapters.endpoint_provider.CorpusEndpointProvider`.
+Its installed command is `mair-investigate-endpoint`, result schema is
+`endpoint-result-v1`, and finding IDs begin `ENDPOINT-`. See the
+[endpoint handoff](ENDPOINT_PROVIDER_HANDOFF.md).
 
 The public entry point is `authentication_agent.investigate`. The read-only
 provider is `event_processing.adapters.authentication_provider.CorpusAuthenticationProvider`.

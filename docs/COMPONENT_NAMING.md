@@ -10,6 +10,10 @@ package or command aliases are retained.
 | Event corpus loading and querying | `event_processing.query.EventStore` |
 | Authentication corpus adapter | `event_processing.adapters.authentication_provider.CorpusAuthenticationProvider` |
 | Authentication investigation | `authentication_agent.investigate` |
+| Endpoint corpus adapter | `event_processing.adapters.endpoint_provider.CorpusEndpointProvider` |
+| Endpoint investigation | `endpoint_agent.investigate` |
+| Endpoint request/result models | `endpoint_agent.models` |
+| Endpoint corpus CLI | `python -m endpoint_agent` or `mair-investigate-endpoint` |
 | Authentication request/result models | `authentication_agent.models` |
 | Local model transport | `authentication_agent.llm.ollama_client.OllamaClient` |
 | Event-processing CLI | `python -m event_processing` or `mair-events` |
@@ -32,6 +36,7 @@ Active version identifiers:
 - `detection-score-v1`: scoring output.
 - `authentication-result-v2`: investigation result envelope, adding operation receipts and readback counts to the v1 fields.
 - `authentication-config-v3` and `authentication-prompt-v16`: agent configuration and prompt revisions.
+- `endpoint-result-v1`, `endpoint-config-v1` and `endpoint-prompt-v1`: additive endpoint result, configuration and prompt contracts.
 
 Finding IDs use `AUTH-` plus the existing deterministic digest; their identity
 namespace changed while supporting evidence IDs did not. Historical results and
