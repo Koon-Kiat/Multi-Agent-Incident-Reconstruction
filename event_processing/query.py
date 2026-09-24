@@ -25,7 +25,8 @@ Contract
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Iterable
+from bisect import bisect_left
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from typing import Literal
 
@@ -203,12 +204,20 @@ class EventStore:
         host: str | None = None,
         user: str | None = None,
         limit: int = 100,
+        event_data_filters: Mapping[int, Mapping[str, str]] | None = None,
     ) -> QueryResult:
         """Return the events of one scenario inside UTC ``[start_utc, end_utc)``.
 
         ``None`` for a filter means "no filter"; an empty collection matches nothing. An
         unknown scenario yields an empty result rather than an error, exactly like a scenario
         that holds no event in the window.
+
+        ``event_data_filters`` maps source Event IDs (not evidence IDs) to exact
+        event-data field/value requirements. Only listed types match; every field
+        for that type must match. None disables this filter, {} matches nothing,
+        and an empty inner mapping admits that type without field requirements.
+        These declarative filters run before limiting or detaching any event;
+        no caller callback receives an internal record.
 
         A filter that cannot be answered raises instead of matching nothing: a bare ``str``
         where a collection is expected would otherwise be read as a set of characters, and an
@@ -233,6 +242,7 @@ class EventStore:
             host=host,
             user=user,
             limit=_checked_limit(limit, self._limits),
+            event_data_filters=_event_data_filter(event_data_filters),
         )
 
     def process_by_guid(self, scenario_id: str, guid: str) -> QueryResult:
@@ -293,17 +303,33 @@ class EventStore:
         host: str | None,
         user: str | None,
         limit: int,
+        event_data_filters: dict[int, tuple[tuple[str, str], ...]] | None = None,
     ) -> QueryResult:
-        matched = [
-            event
-            for event in self._scenario_events(scenario_id)
-            if start <= event.timestamp_ticks < end
-            and (channels is None or event.channel in channels)
-            and (event_ids is None or event.source_event_id in event_ids)
-            and (host is None or event.host == host)
-            and (user is None or event.user == user)
-        ]
-        return self._result(matched, limit)
+        events = self._scenario_events(scenario_id)
+        # The snapshot already has canonical (ticks, evidence_id) ordering.
+        # Bisect without a slice or a second timestamp index/corpus copy.
+        first = bisect_left(events, start, key=lambda event: event.timestamp_ticks)
+        stop = bisect_left(events, end, key=lambda event: event.timestamp_ticks)
+        selected = []
+        total = 0
+        for index in range(first, stop):
+            event = events[index]
+            if ((channels is not None and event.channel not in channels)
+                    or (event_ids is not None and event.source_event_id not in event_ids)
+                    or (host is not None and event.host != host)
+                    or (user is not None and event.user != user)):
+                continue
+            if event_data_filters is not None:
+                fields = event_data_filters.get(event.source_event_id)
+                if fields is None or any(event.event_data.get(name) != value for name, value in fields):
+                    continue
+            total += 1
+            if len(selected) < limit:
+                selected.append(event)
+        # Exact total_matched requires counting every in-window match, but only
+        # the bounded return prefix is retained and deep-copied.
+        return QueryResult(events=tuple(_detached(event) for event in selected),
+                           truncated=total > len(selected), total_matched=total)
 
     def _matching(self, scenario_id: str, predicate: Callable[[NormalisedEvent], bool]) -> QueryResult:
         matched = [event for event in self._scenario_events(scenario_id) if predicate(event)]
@@ -383,6 +409,23 @@ def _event_id_filter(event_ids: Iterable[int] | None) -> frozenset[int] | None:
         if isinstance(value, bool) or not isinstance(value, int):
             raise QueryError(f"event_ids member {value!r} is not an int")
     return ids
+
+
+def _event_data_filter(filters: Mapping[int, Mapping[str, str]] | None) -> dict[int, tuple[tuple[str, str], ...]] | None:
+    """Validate/snapshot declarative values; never expose events to caller code."""
+    if filters is None:
+        return None
+    if not isinstance(filters, Mapping):
+        raise QueryError("event_data_filters must be a mapping of Event IDs to field mappings")
+    result = {}
+    for event_id, fields in filters.items():
+        if type(event_id) is not int or not isinstance(fields, Mapping):
+            raise QueryError("event_data_filters requires integer Event IDs and field mappings")
+        pairs = tuple(fields.items())
+        if any(type(name) is not str or type(value) is not str for name, value in pairs):
+            raise QueryError("event_data_filters field names and values must be strings")
+        result[event_id] = pairs
+    return result
 
 
 def _ticks(value: str) -> int:

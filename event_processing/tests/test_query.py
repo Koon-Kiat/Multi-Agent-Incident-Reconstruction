@@ -94,6 +94,66 @@ def store(corpus_dir: Path) -> EventStore:
 # --- T2.1 lookup ------------------------------------------------------------------
 
 
+def test_declarative_event_data_filters_apply_before_limit(store):
+    # Type-specific branches are alternatives; fields within a branch are ANDed.
+    filters = {4625: {"TargetUserName": "bob"},
+               1: {"ProcessGuid": "{B}", "ParentProcessGuid": "{A}"}}
+    result = store.query("SYN-B", at(0), at(20), event_data_filters=filters, limit=1)
+    assert [e.evidence_id for e in result.events] == ["SYN-B-SEC-2"]
+    assert (result.total_matched, result.truncated) == (2, True)
+    later = store.query("SYN-B", at(0), at(20), channels=(SYSMON,),
+                        host="LAB-A", user="alice", event_data_filters=filters, limit=1)
+    assert [e.evidence_id for e in later.events] == ["SYN-B-SYS-5"]
+    assert (later.total_matched, later.truncated) == (1, False)
+    later.events[0].event_data["ProcessGuid"] = "mutated"
+    assert store.lookup("SYN-B-SYS-5").event.event_data["ProcessGuid"] == "{B}"
+    assert store.query("SYN-B", at(0), at(20), event_data_filters=filters).total_matched == 2
+
+
+@pytest.mark.parametrize("filters,count", [
+    (None, 5), ({}, 0), ({1: {}}, 2), ({4688: {"SubjectUserName": ""}}, 1),
+    ({4688: {"Missing": ""}}, 0), ({4624: {"TargetUserName": "ALICE"}}, 0),
+    ({999: {}}, 0),
+])
+def test_event_data_filter_empty_missing_and_exact_semantics(store, filters, count):
+    result = store.query("SYN-B", at(0), at(20), event_data_filters=filters)
+    assert result.total_matched == count and not result.truncated
+
+
+@pytest.mark.parametrize("filters", [
+    [], "ProcessGuid", lambda event: True, {True: {}}, {1.0: {}}, {"1": {}},
+    {1: []}, {1: {"ProcessGuid": None}}, {1: {"ProcessGuid": ["{A}"]}}, {1: {2: "{A}"}},
+])
+def test_event_data_filter_rejects_malformed_values_and_callbacks(store, filters):
+    with pytest.raises(QueryError):
+        store.query("SYN-B", at(0), at(20), event_data_filters=filters)
+
+
+def test_bounded_query_detaches_only_returned_records_in_canonical_order(monkeypatch):
+    # Reverse insertion and equal timestamps exercise the existing canonical order.
+    events = [make_event(record_id=i, timestamp_ticks=BASE, event_id=4624,
+                         event_data={"TargetUserName": "alice"}) for i in range(1, 501)]
+    store = EventStore(reversed(events))
+    copies = []
+    original = NormalisedEvent.model_copy
+
+    def counted(event, **kwargs):
+        if kwargs.get("deep"):
+            copies.append(event.evidence_id)
+        return original(event, **kwargs)
+
+    monkeypatch.setattr(NormalisedEvent, "model_copy", counted)
+    result = store.query("SYN-B", at(0), at(1), limit=2,
+                         event_data_filters={4624: {"TargetUserName": "alice"}})
+    expected = sorted(e.evidence_id for e in events)[:2]
+    assert [e.evidence_id for e in result.events] == expected == copies
+    assert (result.total_matched, result.truncated) == (500, True)
+    copies.clear()
+    assert not store.query("SYN-B", at(-1), at(0)).events
+    assert not store.query("ABSENT", at(0), at(1)).events
+    assert copies == []
+
+
 def test_load_reads_the_written_events_with_full_precision(store: EventStore):
     result = store.lookup("SYN-B-SEC-1")
     assert result.status == "found"

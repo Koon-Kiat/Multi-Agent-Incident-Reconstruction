@@ -5,6 +5,12 @@ uses the Event Processing & Detection Engine's verified S01–S03 normalised
 corpus through the existing read-only provider. Synthetic development remains
 available. Incident Reconstruction Orchestrator integration is pending.
 
+The Endpoint Investigation Agent now consumes the same verified corpus through
+a separate Sysmon provider and returns typed process/evidence findings. Its fake
+mode and corpus tests run without a model. Local Qwen3:8b integration smoke tests
+also passed on small S01-S03 windows; see the
+[validation scope and limitations](docs/ENDPOINT_IMPLEMENTATION.md#validation-scope).
+
 ## Components
 
 | Component | Location / boundary |
@@ -12,7 +18,7 @@ available. Incident Reconstruction Orchestrator integration is pending.
 | Dataset & Ground Truth Management | `datasets/`, dataset scripts; evaluation answers remain separate |
 | Event Processing & Detection Engine | `event_processing/`: corpus, query API and conventional detection baseline |
 | Authentication Investigation Agent | `authentication_agent/`: bounded authentication observations and local model interpretation |
-| Endpoint Investigation Agent | Separate component; not implemented by this integration |
+| Endpoint Investigation Agent | `endpoint_agent/`: bounded Sysmon observations, process relationships and local model interpretation |
 | Incident Reconstruction Orchestrator | Pending connection to the supplied investigation interface |
 | Evidence Verification & Evaluation | Separate responsibility; integration checks do not establish accuracy |
 
@@ -53,3 +59,19 @@ See [contribution guidance](CONTRIBUTING.md). Default CI requires no model;
 real EVTX tests skip explicitly when LFS content is absent. Generated corpora
 belong under ignored `out/`. Original datasets and private evaluation material
 are not modified by this integration.
+
+## Endpoint investigation
+
+After installing dependencies and normalising the corpus above:
+
+```powershell
+python -m endpoint_agent --corpus out/corpus --scenario S02 --start 2026-09-21T02:04:30Z --end 2026-09-21T02:06:30Z --mode fake
+python -m pytest -q endpoint_agent/tests tests/test_endpoint_corpus.py --basetemp .test-tmp-endpoint
+```
+
+Use `--mode ollama --model qwen3:8b` for the shared installed local model.
+Exit 3 signals truncated evidence; it is not a complete inventory. The endpoint
+result shares the finding envelope but has endpoint-specific payload types.
+See the [endpoint manual](endpoint_agent/README.md),
+[provider/orchestrator handoff](docs/ENDPOINT_PROVIDER_HANDOFF.md), and
+[role alignment and implementation review](docs/ENDPOINT_IMPLEMENTATION.md).
