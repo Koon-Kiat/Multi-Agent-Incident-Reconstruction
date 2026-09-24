@@ -189,6 +189,13 @@ investigation completes and every cited ID resolves through `store.lookup`.
 
 ## Command line
 
+The separate endpoint adapter is
+`event_processing.adapters.endpoint_provider.CorpusEndpointProvider`. It uses
+the public immutable snapshot API with scope/GUID predicates applied before the
+result limit, preserving this API's exact identities and timestamps. See
+[endpoint query and handoff semantics](ENDPOINT_PROVIDER_HANDOFF.md). The generic
+store methods and authentication adapter contract are unchanged.
+
 ```powershell
 .\.venv\Scripts\python.exe -m event_processing normalise --datasets datasets --out out/corpus
 .\.venv\Scripts\python.exe -m event_processing lookup S02-SEC-43584 --corpus out/corpus
