@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mair-incident-reconstruction"
 version = "0.2.0"
-description = "Local security event processing and evidence-based authentication and endpoint investigation"
+description = "Local security event processing, evidence-based authentication and endpoint investigation, and incident reconstruction orchestration"
 requires-python = ">=3.11"
 dependencies = ["pydantic>=2.10,<3", "httpx>=0.28,<1", "python-evtx>=0.8.1,<1"]
 
@@ -17,14 +17,16 @@ mair-authentication = "authentication_agent.__main__:main"
 mair-events = "event_processing.__main__:main"
 mair-investigate-authentication = "authentication_agent.investigate_corpus:main"
 mair-investigate-endpoint = "endpoint_agent.investigate_corpus:main"
+mair-orchestrate = "incident_reconstruction.__main__:main"
+mair-report = "incident_reconstruction.report:main"
 
 [tool.setuptools.packages.find]
-include = ["authentication_agent*", "endpoint_agent*", "event_processing*"]
-exclude = ["authentication_agent.tests*", "endpoint_agent.tests*", "event_processing.tests*"]
+include = ["authentication_agent*", "endpoint_agent*", "event_processing*", "incident_reconstruction*"]
+exclude = ["authentication_agent.tests*", "endpoint_agent.tests*", "event_processing.tests*", "incident_reconstruction.tests*"]
 
 [tool.setuptools.package-data]
 authentication_agent = ["fixtures/*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["authentication_agent/tests", "endpoint_agent/tests", "event_processing/tests", "tests"]
+testpaths = ["authentication_agent/tests", "endpoint_agent/tests", "event_processing/tests", "incident_reconstruction/tests", "tests"]
 markers = ["ollama: optional test requiring explicitly configured local Ollama"]

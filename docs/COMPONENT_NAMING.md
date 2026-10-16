@@ -19,6 +19,12 @@ package or command aliases are retained.
 | Event-processing CLI | `python -m event_processing` or `mair-events` |
 | Synthetic authentication CLI | `python -m authentication_agent` or `mair-authentication` |
 | Real-corpus authentication CLI | `python -m authentication_agent.investigate_corpus` or `mair-investigate-authentication` |
+| Investigation dispatch | `incident_reconstruction.IncidentOrchestrator` |
+| Claim timeline | `incident_reconstruction.reconstruct`, models in `incident_reconstruction.claims` |
+| Run modes | `incident_reconstruction.pipeline.Pipeline` |
+| Verifier connection | `incident_reconstruction.verification` |
+| Pipeline CLI | `python -m incident_reconstruction` or `mair-orchestrate` |
+| Report CLI | `python -m incident_reconstruction.report` or `mair-report` |
 | Test dataset-root override | `MAIR_DATASETS_DIR` |
 | Local generated runtime directory | `.authentication-runtime/` |
 
@@ -44,5 +50,7 @@ commits remain unchanged in Git history. Current reports contain newly executed
 results, not renamed historical model replies.
 
 External component owners must adopt the imports and result identifiers before
-connecting the Incident Reconstruction Orchestrator. Its dispatch, retries,
-continuation and end-to-end reconstruction remain separate work.
+connecting the Incident Reconstruction Orchestrator. Its dispatch, window retries
+and end-to-end reconstruction are now in `incident_reconstruction/`, adding
+`orchestration-run-v1`, `reconstruction-v1`, `pipeline-run-v1` and
+`verification-report-v1`; claim IDs take the form `<scenario>-CLM-<nn>`.

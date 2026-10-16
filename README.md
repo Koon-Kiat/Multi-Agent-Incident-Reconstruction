@@ -3,7 +3,9 @@
 ICT3214 Security Analytics project. The Authentication Investigation Agent now
 uses the Event Processing & Detection Engine's verified S01–S03 normalised
 corpus through the existing read-only provider. Synthetic development remains
-available. Incident Reconstruction Orchestrator integration is pending.
+available. The Incident Reconstruction Orchestrator and Reconstruction Agent now
+connect detection, both investigation agents and an ordered claim timeline end to
+end, in three evaluation run modes; see [Run the full pipeline](#run-the-full-pipeline).
 
 The Endpoint Investigation Agent now consumes the same verified corpus through
 a separate Sysmon provider and returns typed process/evidence findings. Its fake
@@ -19,8 +21,8 @@ also passed on small S01-S03 windows; see the
 | Event Processing & Detection Engine | `event_processing/`: corpus, query API and conventional detection baseline |
 | Authentication Investigation Agent | `authentication_agent/`: bounded authentication observations and local model interpretation |
 | Endpoint Investigation Agent | `endpoint_agent/`: bounded Sysmon observations, process relationships and local model interpretation |
-| Incident Reconstruction Orchestrator | Pending connection to the supplied investigation interface |
-| Evidence Verification & Evaluation | Separate responsibility; integration checks do not establish accuracy |
+| Incident Reconstruction Orchestrator and Reconstruction Agent | `incident_reconstruction/`: dispatch, claim timeline, ATT&CK mapping, run modes and HTML report |
+| Evidence Verification & Evaluation | Separate responsibility; connects through the verifier interface. Integration checks do not establish accuracy |
 
 Packages, imports, commands and machine identifiers now use descriptive names.
 Original evidence and scenario IDs are unchanged. See [architecture](docs/ARCHITECTURE.md)
@@ -48,6 +50,42 @@ See the [integration report and reproduction commands](docs/AUTHENTICATION_CORPU
 [orchestrator handoff](docs/ORCHESTRATOR_HANDOFF.md). Local model tool-selection
 limitations remain explicit; PR #10 resolved the provider lookup and constructor
 ownership failures, and the actual adapter now passes all 12 reusable checks.
+
+## Run the full pipeline
+
+After installing dependencies and normalising the corpus above, run any evaluation
+configuration. `--llm fake` checks the plumbing without a model; `--llm ollama` uses the
+installed local model (Ollama on the same machine, `ollama pull qwen3:8b` first).
+
+```powershell
+python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode single-agent --out out/runs
+python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode multi-agent --out out/runs
+python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode full --out out/runs
+start out/runs/index.html
+```
+
+| `--mode` | Configuration | Output in `out/runs/<mode>/` |
+| --- | --- | --- |
+| `single-agent` | One generalist model with the same evidence access | claims, timing |
+| `multi-agent` | Specialist agents + Reconstruction Agent, no verifier | + agent dispatch record |
+| `full` | `multi-agent` + independent verification (`--verifier package.module:factory`) | + verification decisions |
+
+Each run ends by writing an HTML report per scenario and `out/runs/index.html`. Useful options:
+`--scenario S02` (repeatable), `--plan-only` (print the investigation windows), and
+`--reconstruct-only` (re-narrate and re-verify saved runs without re-running the agents).
+Exit `1` means the files were written but something stayed incomplete, such as an investigation
+window that exceeded the agent's context; it is listed in the report. Until the independent
+verifier is connected, `full` marks every claim unverified.
+
+To check a release from a clean checkout (fresh virtual environment, corpus, all modes, reports
+and tests):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\release-smoke-test.ps1 -WorkingTree
+```
+
+See the [package manual](incident_reconstruction/README.md) and the
+[verification and evaluation handoff](docs/RECONSTRUCTION_HANDOFF.md).
 
 ## Synthetic development
 
