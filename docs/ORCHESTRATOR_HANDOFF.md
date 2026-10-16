@@ -1,5 +1,10 @@
 # Incident Reconstruction Orchestrator handoff
 
+> **Status update:** the orchestrator now calls this boundary from
+> `incident_reconstruction.orchestrator.corpus_investigators`, passing trigger 4624/4625 IDs as
+> `required_operations`. The text below is the Authentication Investigation Agent's original
+> handoff and is unchanged.
+
 The Authentication Investigation Agent is callable with the verified corpus and
 local Ollama adapter. The actual Incident Reconstruction Orchestrator has not
 been connected. This delivery covers authentication retrieval, findings and the
