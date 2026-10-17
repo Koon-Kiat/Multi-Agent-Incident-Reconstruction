@@ -144,4 +144,13 @@ Verification & Evaluation. Every D1 figure is labelled provisional until that ag
 
 ## 10. Amendments
 
-None.
+Each amendment is dated and recorded before any scored run. None changes a definition or parameter above.
+
+**Amendment 1 (2026-10-17): detection triggers bound what any configuration can reconstruct.**
+Configurations B, C and D take their triggers and windows from the same detection rules as configuration A.
+The harness exercise with deterministic fake models (never scored) showed that, for at least one scenario, none
+of the records the key attributes to its stages is a detection trigger. Activity no rule flags is never put in
+front of the specialist agents or the reconstruction, so a low stage-match count there describes the rule
+baseline's coverage as much as the agents' quality. Results are interpreted with that in mind, and a stage the
+rules never flagged is reported as a coverage gap, not as an agent miss. The single-agent baseline may still find
+such activity, because it queries the window around its triggers. No definition, parameter or rule changed.
