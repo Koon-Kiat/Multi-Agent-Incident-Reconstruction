@@ -4,6 +4,7 @@
     Usage:
         powershell -ExecutionPolicy Bypass -File scripts/run-evaluation.ps1
         powershell -ExecutionPolicy Bypass -File scripts/run-evaluation.ps1 -Scenario S02 -Out out/trial
+        powershell -ExecutionPolicy Bypass -File scripts/run-evaluation.ps1 -Only prep,B,C     # then later: -Only D,score
 
     Requires an installed local Ollama with the model already pulled (this script never downloads anything).
     A project-local server is started when none is serving, using out/tools/ollama/ollama.exe and
@@ -22,6 +23,7 @@ param(
     [string]$OllamaExe = "out/tools/ollama/ollama.exe",
     [string]$VerifierTimeout = "180",
     [string]$HardwareNote = "",
+    [ValidateSet("prep", "B", "C", "D", "score")][string[]]$Only = @("prep", "B", "C", "D", "score"),
     [switch]$AllowDirty
 )
 
@@ -78,19 +80,23 @@ foreach ($s in $Scenario) { $scenarioArgs += @("--scenario", $s) }
 $common = @("--corpus", "out/corpus", "--llm", "ollama", "--model", $Model, "--out", "$Out/runs")
 
 try {
+    if ($Only -contains "prep") {
     Step "Normalise corpus" { & $py -m event_processing normalise --datasets datasets --out out/corpus *>&1 | Tee-Object -FilePath (Join-Path $logs "normalise.log") }
     Step "Configuration A: detect" { & $py -m event_processing detect --corpus out/corpus --out "$Out/detections" *>&1 | Tee-Object -FilePath (Join-Path $logs "detect.log") }
-    Step "Configuration B: single-agent" { & $py -m incident_reconstruction @common @scenarioArgs --mode single-agent *>&1 | Tee-Object -FilePath (Join-Path $logs "B.log") }
-    Step "Configuration C: multi-agent, no verifier" { & $py -m incident_reconstruction @common @scenarioArgs --mode multi-agent *>&1 | Tee-Object -FilePath (Join-Path $logs "C.log") }
+    }
+    if ($Only -contains "B") { Step "Configuration B: single-agent" { & $py -m incident_reconstruction @common @scenarioArgs --mode single-agent *>&1 | Tee-Object -FilePath (Join-Path $logs "B.log") } }
+    if ($Only -contains "C") { Step "Configuration C: multi-agent, no verifier" { & $py -m incident_reconstruction @common @scenarioArgs --mode multi-agent *>&1 | Tee-Object -FilePath (Join-Path $logs "C.log") } }
     $env:MAIR_VERIFIER_LLM = "ollama"
     $env:MAIR_VERIFIER_MODEL = $Model
     $env:MAIR_VERIFIER_TIMEOUT = $VerifierTimeout
-    Step "Configuration D: full MAIR" { & $py -m incident_reconstruction @common @scenarioArgs --mode full --verifier evidence_verification.agent:make_agent_verifier *>&1 | Tee-Object -FilePath (Join-Path $logs "D.log") }
-    Step "Score against the private key" {
-        & $py -m evidence_verification.evaluation --corpus out/corpus --runs "$Out/runs" --detections "$Out/detections" --out "$Out/evaluation" --hardware-note $HardwareNote *>&1 | Tee-Object -FilePath (Join-Path $logs "evaluate.log")
+    if ($Only -contains "D") { Step "Configuration D: full MAIR" { & $py -m incident_reconstruction @common @scenarioArgs --mode full --verifier evidence_verification.agent:make_agent_verifier *>&1 | Tee-Object -FilePath (Join-Path $logs "D.log") } }
+    if ($Only -contains "score") {
+        Step "Score against the private key" {
+            & $py -m evidence_verification.evaluation --corpus out/corpus --runs "$Out/runs" --detections "$Out/detections" --out "$Out/evaluation" --hardware-note $HardwareNote *>&1 | Tee-Object -FilePath (Join-Path $logs "evaluate.log")
+        }
+        Write-Host ""
+        Write-Host "Done. Results: $Out/evaluation/results.md (tables) and results.json (everything)." -ForegroundColor Green
     }
-    Write-Host ""
-    Write-Host "Done. Results: $Out/evaluation/results.md (tables) and results.json (everything)." -ForegroundColor Green
 }
 finally {
     if ($server -and -not $server.HasExited) { Stop-Process -Id $server.Id -Force }
