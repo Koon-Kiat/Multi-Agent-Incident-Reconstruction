@@ -21,12 +21,12 @@ mair-orchestrate = "incident_reconstruction.__main__:main"
 mair-report = "incident_reconstruction.report:main"
 
 [tool.setuptools.packages.find]
-include = ["authentication_agent*", "endpoint_agent*", "event_processing*", "incident_reconstruction*"]
-exclude = ["authentication_agent.tests*", "endpoint_agent.tests*", "event_processing.tests*", "incident_reconstruction.tests*"]
+include = ["authentication_agent*", "endpoint_agent*", "event_processing*", "evidence_verification*", "incident_reconstruction*"]
+exclude = ["authentication_agent.tests*", "endpoint_agent.tests*", "event_processing.tests*", "evidence_verification.tests*", "incident_reconstruction.tests*"]
 
 [tool.setuptools.package-data]
 authentication_agent = ["fixtures/*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["authentication_agent/tests", "endpoint_agent/tests", "event_processing/tests", "incident_reconstruction/tests", "tests"]
+testpaths = ["authentication_agent/tests", "endpoint_agent/tests", "event_processing/tests", "evidence_verification/tests", "incident_reconstruction/tests", "tests"]
 markers = ["ollama: optional test requiring explicitly configured local Ollama"]
