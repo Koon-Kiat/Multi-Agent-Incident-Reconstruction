@@ -42,10 +42,10 @@ the machine. One scored run per configuration per scenario.
 | Parameter | Value |
 |---|---|
 | Single-agent tool budget | 16 calls (the orchestrator's default); to be confirmed by the Incident Reconstruction Orchestrator owner before scored runs |
-| Verifier | `evidence-verifier` version 1, prompt `evidence-verifier-prompt-v1` |
+| Verifier | `evidence-verifier` version 1; model-layer prompt `evidence-verifier-prompt-v2` (v1 superseded by Amendment 2) |
 | Time tolerance for cited records outside a claim's stated span | 120 seconds |
 | Verifier agent consulted for | claims the deterministic checks confirmed, and no others |
-| Verifier agent authority | may lower a verdict; may never raise one or reject |
+| Verifier agent authority | may lower a verdict; may never raise one or reject; the verdict is decided by code from the assertions the model lists, never by the model |
 
 The tolerance was set from plumbing runs, never from the answer key, because the orchestrator spans a stage
 by its trigger events and legitimately cites related records slightly outside that span.
@@ -154,3 +154,22 @@ front of the specialist agents or the reconstruction, so a low stage-match count
 baseline's coverage as much as the agents' quality. Results are interpreted with that in mind, and a stage the
 rules never flagged is reported as a coverage gap, not as an agent miss. The single-agent baseline may still find
 such activity, because it queries the window around its triggers. No definition, parameter or rule changed.
+
+**Amendment 2 (2026-10-17, before any scored run): the verifier's model layer, prompt v1 to v2.**
+A smoke test of the model layer against the real local model showed it letting embellished claims through. It was
+measured on a 14-claim synthetic benchmark (`evidence_verification/tests/benchmark_cases.py`): 6 faithful claims
+and 8 embellished ones (a stated intent, cause, consequence, wrong account, wrong order or vague count the
+records do not state), every one of which passes the deterministic checks, so only the model layer can catch an
+embellishment. Prompt v1, which asked the model for an overall judgement, caught 4 of 8 with 0 of 6 false alarms.
+Prompt v2 asks the model to split the claim into assertions and, for each, cite a retrieved record and copy its
+words; code then decides: an assertion is shown only if the cited record was shown and the quote shares words with
+it, an assertion the model added that is not about the claim is ignored, and any not-shown assertion lowers
+`confirmed` to `partially_supported` (all not-shown: `unverified`). Prompt v2 caught 8 of 8 with 0 of 6 false
+alarms, no failed calls, at a mean of 23.2 s per consulted claim.
+
+Caveats, stated plainly: the benchmark is synthetic (no scenario data, no answer key, no scored run was
+involved) but it was also used to choose between prompts, over three iterations of the grounding rule, so these
+are development figures, not an independent validation, and 14 cases demonstrate that the layer can catch the
+failure, not how often. The first draft of v2 wrongly flagged correct assertions because the code's quote
+matching was too strict about formatting; that was a defect in the code, fixed before the figures above. The
+deterministic checks, tolerance, authority limits, definitions and all other parameters are unchanged.

@@ -58,14 +58,29 @@ and as described is confirmed.
 ## The model layer can only lower a verdict
 
 `agent.py` adds an independently prompted model, consulted only for claims the deterministic checks confirmed.
+The deterministic checks cannot read a sentence; the model does exactly one job: split the claim into its
+separate assertions and, for each, name the retrieved record that states it and copy the words. A claim's
+embellishments (an intent, a cause, a consequence, an extra detail) are precisely what records fail to state.
+
+**The model never decides the verdict; code does.** An assertion counts as shown only if the model cites a
+record it was actually shown and quotes words that appear in it. Naming no record, or quoting words the record
+does not contain, leaves it not shown. An assertion the model added that is not about the claim is ignored. Any
+not-shown assertion lowers `confirmed` to `partially_supported`; if none is shown, to `unverified`.
+
 Its prompt holds the claim's text, type, stated span, entities and technique IDs plus the records the verifier
 retrieved. It never holds the reconstruction's rationale, its own assessment, its uncertainty notes, detection
 or finding IDs, links, an orchestration trace, agent reasoning or any answer key.
 
-It may lower `confirmed` to `partially_supported` or `unverified`. It can never raise a verdict and can never
-reject, because rejection needs a failed reference or a contradiction that code has verified. An assertion it
-names must be about the claim, or it is ignored. If the model is unavailable or replies invalidly, the
-deterministic verdict stands and says so. A verifier's judgement is never accepted as its own ground truth.
+It can never raise a verdict and can never reject, because rejection needs a failed reference or a contradiction
+that code has verified. If the model is unavailable or replies invalidly, the deterministic verdict stands and
+says so. A verifier's judgement is never accepted as its own ground truth.
+
+An opt-in test measures the layer on 14 synthetic claims that all pass the deterministic checks (6 faithful, 8
+embellished), because only the model layer can catch an embellishment:
+
+```powershell
+$env:MAIR_TEST_VERIFIER_OLLAMA = "1"; python -m pytest evidence_verification/tests/test_agent_live.py -q
+```
 
 ## Tests
 
