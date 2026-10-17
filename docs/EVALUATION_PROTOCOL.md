@@ -201,3 +201,10 @@ verdict and produced demonstrable false alarms, its downgrades must be read agai
 counted as detected errors. The evaluation reports where each downgraded claim sits against the key so that
 reading is possible.
 
+**Note on one post-scoring edit.** After scoring, the repository's naming test showed that the first line of
+`evidence_verification/evaluation/detection.py` used a retired role label. The docstring was reworded to the
+component name. Its executable code is identical to the scored version (compared as a syntax tree with docstrings
+removed), so no behaviour changed, but the SHA-256 recorded for that file in the scored results no longer matches
+the file. The verifier modules that produced the verdicts (`checks.py`, `verifier.py`, `agent.py`, `facts.py`) are
+byte-identical to the scored versions.
+

@@ -1,4 +1,5 @@
-"""Configuration A (rules only): turns the key into an event-level label file and scores it with M2's scorer.
+"""Configuration A (rules only): turns the key into an event-level label file and scores it with the Event Processing &
+Detection Engine's scorer.
 
 The Event Processing & Detection Engine owns the scoring arithmetic and its metric definitions are a
 DRAFT awaiting a joint agreement (docs/DETECTION_METRICS_PROPOSAL.md). This module only produces the label
