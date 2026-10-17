@@ -23,11 +23,15 @@ param(
     [string]$OllamaExe = "out/tools/ollama/ollama.exe",
     [string]$VerifierTimeout = "180",
     [string]$HardwareNote = "",
-    [ValidateSet("prep", "B", "C", "D", "score")][string[]]$Only = @("prep", "B", "C", "D", "score"),
+    [string[]]$Only = @("prep", "B", "C", "D", "score"),
     [switch]$AllowDirty
 )
 
 $ErrorActionPreference = "Stop"
+# `powershell -File ... -Only prep,B,C` delivers one comma-joined string, so split before validating.
+$Only = @($Only | ForEach-Object { $_ -split "," } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$unknown = @($Only | Where-Object { @("prep", "B", "C", "D", "score") -notcontains $_ })
+if ($unknown) { throw "unknown stage(s): $($unknown -join ', '); choose from prep, B, C, D, score" }
 $repo = Split-Path -Parent $PSScriptRoot
 Set-Location $repo
 $py = Join-Path $repo ".venv\Scripts\python.exe"
