@@ -173,3 +173,31 @@ are development figures, not an independent validation, and 14 cases demonstrate
 failure, not how often. The first draft of v2 wrongly flagged correct assertions because the code's quote
 matching was too strict about formatting; that was a defect in the code, fixed before the figures above. The
 deterministic checks, tolerance, authority limits, definitions and all other parameters are unchanged.
+
+## 11. Post-scoring findings
+
+Recorded on 2026-10-17 after the first scored run. Findings describe how the verifier behaved; none changes a
+definition, a parameter, the verifier or a scored result. A correction to anything below could only be reported
+as a labelled post-hoc re-run beside the original, never in its place (section 7).
+
+**Finding 1: the single-agent baseline was downgraded only by the ATT&CK check.** Every claim the deterministic
+verifier lowered in configuration B was lowered because a technique the single-agent model attached is not
+indicated by that claim's own cited records. No claim failed on a reference, entity, time or stated event type.
+The multi-agent configurations pass the technique check largely by construction, since the orchestrator derives a
+claim's techniques from the detection rule that fired. The comparison on this check therefore measures a design
+difference (rule-derived versus freely chosen mappings) as much as model quality, and the technique check is
+stricter than anything a claim's text asserts.
+
+**Finding 2: the model layer produced false alarms on real claims.** Of the claims it lowered in configuration D,
+at least two were demonstrably supported: one asserted a duration that follows by arithmetic from the records'
+timestamps, and in another the model had been shown the supporting records and still found the claim not stated.
+The "0 of 6 false alarms" in Amendment 2 came from a small synthetic benchmark that was also used to choose the
+prompt and that contained no faithful claim resting on a derived fact (a duration, a count, an ordering), so it
+understated the false-alarm rate on real claims. The grounding rule asks for a quotable statement, which
+penalises assertions that are true only by inference. Prompt v2 was not changed after scoring.
+
+**Finding 3: a lowered verdict is a signal to audit, not a measured error.** Because the layer can only lower a
+verdict and produced demonstrable false alarms, its downgrades must be read against the records rather than
+counted as detected errors. The evaluation reports where each downgraded claim sits against the key so that
+reading is possible.
+
