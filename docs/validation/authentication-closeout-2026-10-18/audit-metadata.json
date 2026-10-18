@@ -1,0 +1,56 @@
+{
+  "python": "3.12.14",
+  "requirements_sources_sha256": {
+    "MAIR_Six_Member_Roles_and_Boundaries.pdf": "84b878d426fe09bece43f451ee5511fd358521a2031cf4772d6f631f9ac2d833",
+    "Coursework 1 AY2026.pdf": "5879c981904764adfeece48a6054020a7e5fb28f97045be4a497dc4d916e8221"
+  },
+  "production_source_hashes_verified": true,
+  "directed_factual_checks": {
+    "corpus/S01.json": [],
+    "corpus/S02.json": [],
+    "corpus/S03.json": [],
+    "corpus/empty.json": [],
+    "corpus/get_existing.json": [],
+    "corpus/get_missing.json": [],
+    "corpus/query_tool.json": [],
+    "corpus/account_history.json": [],
+    "corpus/tool_budget.json": [],
+    "corpus/bounded_query.json": [],
+    "corpus/interpretation.json": [],
+    "synthetic/SYN-A.json": [],
+    "synthetic/SYN-B.json": [],
+    "synthetic/SYN-C.json": [],
+    "synthetic/SYN-D.json": [],
+    "synthetic/SYN-E.json": [],
+    "synthetic/SYN-F.json": [],
+    "synthetic/SYN-H1.json": [],
+    "synthetic/SYN-H2.json": [],
+    "synthetic/SYN-I.json": [],
+    "synthetic/get_existing.json": [],
+    "synthetic/get_missing.json": [],
+    "synthetic/query_tool.json": [],
+    "synthetic/account_history.json": [],
+    "synthetic/tool_budget.json": [],
+    "synthetic/bounded_query.json": [],
+    "synthetic/interpretation.json": []
+  },
+  "notes": [
+    "All directed completed results independently checked against provider records, ignoring prescribed-action expectations.",
+    "Raw machine diagnostics remain in ignored local output.",
+    "The expected required-budget rejection is not a runtime failure."
+  ],
+  "baseline_commit": "7eb4e62e74d5b48edb004d7a234eac44c07a22c7",
+  "reviewed_main_commit": "b822a2e7de5e4c23898838ddc6be75322b615765",
+  "authentication_provider_orchestrator_diff": "",
+  "completion_scope": "Authentication component closeout against supplied role agreement; not whole-project sign-off or scored detection accuracy.",
+  "repeated_initial_contexts_verified_identical": [
+    "useful_synthetic",
+    "useful_corpus"
+  ],
+  "latest_main_regression": {
+    "passed": 1168,
+    "skipped": 7,
+    "seconds": 284.73,
+    "log": "full-tests-latest-main.txt"
+  }
+}

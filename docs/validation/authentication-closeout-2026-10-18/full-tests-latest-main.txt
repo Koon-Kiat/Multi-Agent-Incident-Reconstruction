@@ -1,0 +1,26 @@
+........................................................................ [  6%]
+...............................................s........................ [ 12%]
+........................................................................ [ 18%]
+.....................s.................................................. [ 24%]
+........................................................................ [ 30%]
+.......................................................s................ [ 36%]
+........................................................................ [ 42%]
+........................................................................ [ 49%]
+........................................................................ [ 55%]
+........................................................................ [ 61%]
+.....................................................s.................. [ 67%]
+........................................................................ [ 73%]
+...............................................sss...................... [ 79%]
+........................................................................ [ 85%]
+........................................................................ [ 91%]
+........................................................................ [ 98%]
+.......................                                                  [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] authentication_agent\tests\test_ollama_client.py:116: optional: set MAIR_RUN_OLLAMA_SMOKE=1 and MAIR_OLLAMA_MODEL
+SKIPPED [1] endpoint_agent\tests\test_cli.py:109: set MAIR_TEST_ENDPOINT_OLLAMA=1 with the shared model installed locally
+SKIPPED [1] event_processing\tests\test_detection_engine.py:399: symlinks are not available in this environment
+SKIPPED [1] event_processing\tests\test_query.py:444: symlinks are not available in this environment
+SKIPPED [1] evidence_verification\tests\test_agent_live.py:36: set MAIR_TEST_VERIFIER_OLLAMA=1 with the shared model installed locally
+SKIPPED [1] evidence_verification\tests\test_agent_live.py:41: set MAIR_TEST_VERIFIER_OLLAMA=1 with the shared model installed locally
+SKIPPED [1] evidence_verification\tests\test_agent_live.py:46: set MAIR_TEST_VERIFIER_OLLAMA=1 with the shared model installed locally
+1168 passed, 7 skipped in 284.73s (0:04:44)
