@@ -24,11 +24,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ground-truth", type=Path, default=Path("ground_truth/private"))
     parser.add_argument("--out", type=Path, default=Path("out/evaluation"))
     parser.add_argument("--allow-fake", action="store_true", help="inspect plumbing runs; results are labelled")
+    parser.add_argument("--label", help="e.g. 'POST-HOC re-run'; printed as a banner on every table")
     parser.add_argument("--hardware-note", default="", help="free text recorded with the results, e.g. GPU and RAM")
     args = parser.parse_args(argv)
     try:
         results = evaluate(corpus=args.corpus, runs=args.runs, ground_truth=args.ground_truth, out=args.out,
-                           detections=args.detections, allow_fake=args.allow_fake, hardware_note=args.hardware_note)
+                           detections=args.detections, allow_fake=args.allow_fake, hardware_note=args.hardware_note,
+                           label=args.label)
     except (EvaluationError, GroundTruthError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2

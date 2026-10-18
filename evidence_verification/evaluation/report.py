@@ -25,6 +25,9 @@ def _scored(results: dict, configuration: str) -> list[dict]:
 
 def render(results: dict) -> str:
     out: list[str] = ["# MAIR evaluation results", ""]
+    if results.get("label"):
+        out += [f"> **{results['label']}.** The original scored run is the primary result; this table must be reported "
+                "beside it, never in place of it.", ""]
     if results["plumbing_only"]:
         out += ["> **PLUMBING ONLY.** At least one run used a deterministic fake model. These figures check that the "
                 "harness works; they say nothing about investigation quality and must not be reported as results.", ""]

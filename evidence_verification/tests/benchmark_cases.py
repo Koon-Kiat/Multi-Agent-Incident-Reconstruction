@@ -43,3 +43,39 @@ EMBELLISHED = {
     "E8 invented meaning": _typed("explicit_credential_logon", [sec_id(13)], (3, 3),
                                   "A Security 4648 explicit-credential logon shows the analyst's password was changed."),
 }
+
+
+# ---------------------------------------------------------------------------------------------
+# Held-out set, written BEFORE the post-hoc prompt revision (prompt v3) so the revision is measured on cases it
+# was not tuned against. DERIVED_FAITHFUL claims are true but rest on facts that follow from the records (a
+# duration, an order, a parent process, a characterisation of a path, a compound sentence) rather than on one
+# quotable statement. HELD_OUT_EMBELLISHED claims add content the records do not state, including one whose
+# derived fact is wrong.
+# ---------------------------------------------------------------------------------------------
+
+DERIVED_FAITHFUL = {
+    "D1 duration derived": make_claim(
+        claim_text="Two failed logons for the analyst account occurred within 2 seconds, followed by a successful logon."),
+    "D2 compound sentence": make_claim(
+        claim_text="The analyst account failed to log on twice and then logged on successfully, all on host LAB-A."),
+    "D3 parent process": _typed("discovery_commands", [sys_id(20)], (5, 5),
+                                "whoami.exe was started by explorer.exe under the analyst account."),
+    "D4 office parent": _typed("unusual_parent_shell", [sys_id(23)], (8, 8),
+                               "cmd.exe was started by winword.exe under the account LAB-A\other."),
+    "D5 order derived": make_claim(
+        claim_text="Events 4625, 4625 and 4624 were recorded for the analyst account, in that order."),
+    "D6 path characterised": _typed("payload_written", [sys_id(21)], (6, 6),
+                                    "The script payload.ps1 was written to a folder under the analyst user's profile."),
+}
+HELD_OUT_EMBELLISHED = {
+    "H1 invented escalation": make_claim(
+        claim_text="Two failed logons for the analyst account occurred within 2 seconds, and the attacker then "
+                   "escalated privileges."),
+    "H2 invented cause": _typed("discovery_commands", [sys_id(20)], (5, 5),
+                                "whoami.exe was started by explorer.exe under the analyst account, after the user "
+                                "opened a phishing email."),
+    "H3 derived fact wrong": make_claim(
+        claim_text="The two failed logons for the analyst account were ten seconds apart, followed by a successful logon."),
+    "H4 wrong actor": _typed("audit_log_cleared", [sec_id(14)], (4, 4),
+                             "The Security audit log was cleared (Security 1102) by the SYSTEM account."),
+}

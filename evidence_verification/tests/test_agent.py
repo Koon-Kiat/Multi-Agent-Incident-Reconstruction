@@ -228,3 +228,30 @@ def test_the_fake_factory_loads_through_the_orchestrators_loader(monkeypatch, st
     verifier = load_verifier("evidence_verification.agent:make_agent_verifier")
     assert verifier.metadata()["model"]["runtime"] == "fake"
     assert [d.verdict for d in verifier.verify(make_reconstruction(make_claim()), store)] == ["confirmed"]
+
+
+# ---------------------------------------------------------------- prompt selection (post-hoc revision is opt-in)
+
+def test_v2_stays_the_default_and_is_the_scored_prompt(monkeypatch):
+    monkeypatch.setenv("MAIR_VERIFIER_LLM", "fake")
+    monkeypatch.delenv("MAIR_VERIFIER_PROMPT", raising=False)
+    verifier = A.make_agent_verifier()
+    assert verifier.metadata()["prompt_version"] == "evidence-verifier-prompt-v2"
+    assert verifier._system_prompt == A.SYSTEM_PROMPT_V2 == A.SYSTEM_PROMPT
+
+
+def test_v3_is_opt_in_and_differs_only_in_the_rules_block(monkeypatch):
+    monkeypatch.setenv("MAIR_VERIFIER_LLM", "fake")
+    monkeypatch.setenv("MAIR_VERIFIER_PROMPT", "v3")
+    verifier = A.make_agent_verifier()
+    assert verifier.metadata()["prompt_version"] == "evidence-verifier-prompt-v3"
+    assert "Split the claim into atomic assertions" in verifier._system_prompt
+    assert A.SYSTEM_PROMPT_V2.split("Rules:")[0] == A.SYSTEM_PROMPT_V3.split("Rules:")[0], "the framing is unchanged"
+    assert "Split the claim into atomic assertions" not in A.SYSTEM_PROMPT_V2
+
+
+def test_an_unknown_prompt_is_refused(monkeypatch):
+    monkeypatch.setenv("MAIR_VERIFIER_LLM", "fake")
+    monkeypatch.setenv("MAIR_VERIFIER_PROMPT", "v9")
+    with pytest.raises(ValueError, match="unknown prompt"):
+        A.make_agent_verifier()

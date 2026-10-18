@@ -82,7 +82,8 @@ def _runtimes(pipeline: dict) -> set[str]:
 
 
 def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detections: Path | None = None,
-             allow_fake: bool = False, hardware_note: str = "", repo: Path | None = None) -> dict:
+             allow_fake: bool = False, hardware_note: str = "", repo: Path | None = None,
+             label: str | None = None) -> dict:
     repo = repo or Path.cwd()
     store = EventStore.load(corpus)
     digest = corpus_manifest_digest(corpus)
@@ -152,7 +153,7 @@ def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detecti
 
     results = {
         "schema_version": RESULTS_SCHEMA, "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "scored": not fake, "plumbing_only": fake,
+        "scored": not fake, "plumbing_only": fake, "label": label,
         "inputs": {"corpus_manifest_sha256": digest, "runs": str(runs), "scenarios": list(store.scenario_ids)},
         "provenance": provenance(repo, hardware_note),
         "runs": per_run, "totals": _totals(per_run),
