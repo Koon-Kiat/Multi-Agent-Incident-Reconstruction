@@ -211,3 +211,64 @@ removed), so no behaviour changed, but the SHA-256 recorded for that file in the
 the file. The verifier modules that produced the verdicts (`checks.py`, `verifier.py`, `agent.py`, `facts.py`) are
 byte-identical to the scored versions.
 
+## 13. Amendment 3: post-hoc verifier revision (2026-10-18)
+
+Made after scoring, in response to the review in `VERIFIER_FALSE_ALARM_REVIEW.md`. It is a labelled post-hoc re-run
+beside the scored result. **The scored run is unchanged and remains the primary result.** Prompt v2 (the scored
+prompt) is still the default and is byte-identical to the one used.
+
+**What was done.** An opt-in prompt v3 (`MAIR_VERIFIER_PROMPT=v3`) tells the model that facts which follow from the
+records by arithmetic or comparison are shown, and to split compound sentences into atomic assertions. A held-out set
+(6 faithful claims resting on derived facts, 4 new embellishments) was written before v3 was run, and v3 was run on it
+once. The saved claims of the full-MAIR configuration were then re-verified with v3 into a separate directory
+(`reverify`); the claims, investigations and every other phase are exactly as scored, so any difference is the
+verifier's alone.
+
+**Results (stated plainly; v3 is not a clear improvement).**
+
+| Measure | v2 (scored) | v3 (post-hoc) |
+|---|---|---|
+| Real claims lowered by the model layer, of 17 | 5 | 3 |
+| Of those, supported by the records on audit (false alarms) | 5 | 3 |
+| Of those, genuinely unsupported (true catches) | 0 | 0 |
+| Original synthetic embellishments caught, of 8 | 8 | 6 |
+| Held-out synthetic embellishments caught, of 4 | 3 | 3 |
+| Synthetic faithful claims flagged, of 12 | 0 | 0 |
+| Verification time, seconds | 763 | 710 |
+
+v3 cleared four of the five original false alarms but introduced two new ones, and it lost two embellishments the
+scored prompt caught. All three claims it lowered were supported on audit. Neither prompt caught a real unsupported
+claim in this run, and neither caught a wrong derived fact ("ten seconds apart") in the held-out set.
+
+**A defect found during the audit, not fixed here.** The records the verifier shows the model come from a fixed list
+of fields that omits some a claim can legitimately rest on (for example the target server and target info of an
+explicit-credential logon). One v3 downgrade was caused by that omission: the model was never shown the field that
+states what the claim says. Fixing it would be a second post-hoc revision evaluated on the same 17 claims, which
+risks fitting the verifier to the evaluation set; it is recorded as a defect and left for a decision.
+
+**Limits of this evidence.** The 17 claims are the same set the false alarms were found on, so v3's improvement on
+them is in-sample. The synthetic held-out set did not reproduce the real false alarms under either prompt, so it
+cannot validate a fix for them. No conclusion about the model layer's real precision should be drawn from 17 claims.
+
+## 12. Outstanding scoring agreements
+
+Recorded 2026-10-18. This table lists every definition the evaluation depends on that is not yet agreed by the
+other owners it concerns. **Proposed** means Evidence Verification & Evaluation's position; it is not an agreement
+until the named owner confirms it here. Nothing below has been confirmed by anyone other than its proposer.
+
+| # | Item | Proposed position (Evidence Verification & Evaluation) | Needs | Status |
+|---|---|---|---|---|
+| 1 | Unit of detection scoring | The evidence ID. One action seen on two channels counts twice at event level; a once-per-action view is the stage-level reconstruction score, not this metric. | Event Processing & Detection Engine, Dataset & Ground Truth Management | Proposed |
+| 2 | Positive label | An event cited by a malicious ground-truth stage. An event cited only by a benign stage is explicitly negative; an event cited by both is positive. | Dataset & Ground Truth Management | Proposed; implemented as the label file the harness writes |
+| 3 | Benign-lookalike scenario | Scored in the same precision pool, and also reported per scenario. Its false positives are the reason it exists. | Event Processing & Detection Engine | Proposed |
+| 4 | First scenario | In scope with its own labels. Records Dataset & Ground Truth Management designated contextual are excluded, not negative. | Dataset & Ground Truth Management | Proposed; the exclusion list is private |
+| 5 | Scaffolding | Headline view excludes records outside the declared scenario window and the contextual records, tallying them separately; a strict view counts them as false positives. Both are always reported. | Event Processing & Detection Engine | Proposed; both views are implemented |
+| 6 | F1 when precision and recall are both defined but zero | 0.0, not undefined. Undefined only when precision or recall itself has a zero denominator. The engine currently reports undefined; this is a request to change that convention. | Event Processing & Detection Engine | **Disputed**: differs from the engine's current behaviour |
+| 7 | Per-rule recall | Measured against all positives, so per-rule figures are not additive and are not a partition. No per-rule expected population is invented. | Event Processing & Detection Engine | Proposed (matches the engine's current behaviour) |
+| 8 | Single-agent tool budget | 16 calls, the orchestrator default. The scored run used it; the baseline used 3 to 5 of the 16, so the budget did not bind. | Incident Reconstruction Orchestrator | **Awaiting confirmation**; evidence from the scored run supports it being adequate |
+| 9 | Non-person session records as neutral claims | Claims resting only on service and virtual-session logons are neutral in claim scoring. Not assumed for detection scoring. | Dataset & Ground Truth Management | Proposed |
+
+Until items 1 to 7 are confirmed, every detection figure is labelled provisional. Until item 8 is confirmed, the
+single-agent configuration is reported with its budget stated. A disagreement on any item is resolved by amending
+this section and, where a definition changes, by a labelled re-scoring beside the original (section 7).
+

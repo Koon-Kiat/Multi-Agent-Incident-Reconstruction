@@ -60,7 +60,7 @@ RECORD_FIELDS = (
     "ParentProcessGuid", "SourceProcessGUID", "ServiceName", "TaskName",
 )
 
-SYSTEM_PROMPT = """You are an independent evidence verifier for security incident reconstructions.
+SYSTEM_PROMPT_V2 = """You are an independent evidence verifier for security incident reconstructions.
 
 You are shown ONE claim and the recorded events retrieved for it. Your job is to find out which parts of the
 claim the records actually state.
@@ -80,6 +80,31 @@ Rules:
   unsupported. Do not list record metadata (host, time, account) as separate assertions unless the claim states it.
 - quote must be copied from a shown record, never from the claim. At most 6 assertions: merge small related ones."""
 
+
+SYSTEM_PROMPT = SYSTEM_PROMPT_V2  # the prompt the frozen scored run used; kept under this name for compatibility
+
+# Post-hoc revision (protocol Amendment 3). Opt-in with MAIR_VERIFIER_PROMPT=v3; v2 stays the default so the scored
+# configuration can be reproduced exactly. It targets the two causes of the false alarms found after scoring:
+# facts that follow from the records but are not quotable, and compound sentences marked not-shown as one lump.
+_V2_RULES = """- Absence of contradiction is NOT support. An assertion about intent, cause, purpose, consequence, an
+  account's status, or an action that no shown record records is NOT shown, however plausible.
+- An assertion about order or count is shown only if the records' own times and event IDs establish it.
+"""
+_V3_RULES = """- Absence of contradiction is NOT support. An assertion about intent, cause, purpose, motive, consequence,
+  attribution to an attacker, an account's status, or an action that no shown record records is NOT shown,
+  however plausible.
+- A fact that follows from the shown records by simple arithmetic or comparison IS shown: a count of records,
+  a duration or gap (subtract the records' time_utc values), an order (compare time_utc), a parent process
+  (ParentImage), a folder (read it from the path), or that a value is the same across records. Cite a record
+  that carries one of the values it is derived from and quote that value, and do the arithmetic correctly: if
+  the arithmetic does not hold, the assertion is NOT shown.
+- Split the claim into atomic assertions, one fact each. Never mark a whole compound sentence NONE: split it and
+  judge each part. A list such as 'accounts A, B and C' is one assertion per item.
+"""
+assert _V2_RULES in SYSTEM_PROMPT_V2
+SYSTEM_PROMPT_V3 = SYSTEM_PROMPT_V2.replace(_V2_RULES, _V3_RULES)
+
+PROMPTS = {"v2": ("evidence-verifier-prompt-v2", SYSTEM_PROMPT_V2), "v3": ("evidence-verifier-prompt-v3", SYSTEM_PROMPT_V3)}
 
 class Assertion(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
@@ -152,7 +177,7 @@ class Prompt:
     record_tokens: dict[str, set[str]]
 
 
-def build_prompt(assessment: ClaimAssessment) -> Prompt:
+def build_prompt(assessment: ClaimAssessment, system_prompt: str = SYSTEM_PROMPT_V2) -> Prompt:
     """The whole prompt. Built only from the claim's assertions and records the verifier retrieved itself."""
     claim, evidence = assessment.claim, assessment.evidence
     cited = evidence.cited_events()
@@ -173,13 +198,13 @@ def build_prompt(assessment: ClaimAssessment) -> Prompt:
         "records_shown": len(records),
         "records_available": len(cited) + len(extra),
     }
-    messages = [{"role": "system", "content": SYSTEM_PROMPT},
+    messages = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
     return Prompt(messages, tuple(r["evidence_id"] for r in records), {r["evidence_id"]: _record_tokens(r) for r in records})
 
 
-def build_messages(assessment: ClaimAssessment) -> list[dict[str, str]]:
-    return build_prompt(assessment).messages
+def build_messages(assessment: ClaimAssessment, system_prompt: str = SYSTEM_PROMPT_V2) -> list[dict[str, str]]:
+    return build_prompt(assessment, system_prompt).messages
 
 
 # ---------------------------------------------------------------------------------------------
@@ -243,7 +268,11 @@ def parse_reply(text: str) -> Reply:
 class AgentVerifier:
     """Deterministic checks, then a model second opinion on the claims those checks confirmed."""
 
-    def __init__(self, llm, *, limits: Limits | None = None, llm_metadata: dict | None = None) -> None:
+    def __init__(self, llm, *, limits: Limits | None = None, llm_metadata: dict | None = None,
+                 prompt: str = "v2") -> None:
+        if prompt not in PROMPTS:
+            raise ValueError(f"unknown prompt {prompt!r}; choose from {sorted(PROMPTS)}")
+        self._prompt_version, self._system_prompt = PROMPTS[prompt]
         self._llm = llm
         self._limits = limits or Limits()
         self._llm_metadata = llm_metadata or dict(llm.metadata())
@@ -252,7 +281,7 @@ class AgentVerifier:
 
     def metadata(self) -> dict:
         return {"verifier": "evidence-verifier", "version": VERIFIER_VERSION, "mode": "deterministic_and_agent",
-                "independent_lookup": True, "model": self._llm_metadata, "prompt_version": PROMPT_VERSION,
+                "independent_lookup": True, "model": self._llm_metadata, "prompt_version": self._prompt_version,
                 "agent_consulted": self._stats["consulted"], "agent_lowered": self._stats["lowered"],
                 "agent_failed": self._stats["failed"], "agent_seconds": round(self._seconds, 3)}
 
@@ -265,7 +294,7 @@ class AgentVerifier:
         self._stats["consulted"] += 1
         started = time.perf_counter()
         try:
-            prompt = build_prompt(assessment)
+            prompt = build_prompt(assessment, self._system_prompt)
             reading = read_reply(assessment, parse_reply(self._llm.complete(
                 prompt.messages, reply_schema(prompt.shown_ids), self._limits)), prompt)
         except Exception as error:  # An unavailable or invalid reply never becomes support or a downgrade.
@@ -302,12 +331,13 @@ def make_agent_verifier() -> AgentVerifier:
     """Factory for ``--verifier evidence_verification.agent:make_agent_verifier``.
 
     ``MAIR_VERIFIER_LLM`` must be ``ollama`` or ``fake``; there is no default, so a scored run can never
-    silently use the fake. ``ollama`` uses the team's shared profile (Qwen3 8B by default, context 8192,
+    silently use the fake. ``MAIR_VERIFIER_PROMPT`` selects ``v2`` (default, the scored run) or ``v3`` (post-hoc). ``ollama`` uses the team's shared profile (Qwen3 8B by default, context 8192,
     thinking off, temperature 0, seed 0) and checks installed weights before any evidence is sent.
     """
     mode = os.getenv("MAIR_VERIFIER_LLM", "")
+    prompt = os.getenv("MAIR_VERIFIER_PROMPT", "v2")
     if mode == "fake":
-        return AgentVerifier(FakeVerifierLLM())
+        return AgentVerifier(FakeVerifierLLM(), prompt=prompt)
     if mode != "ollama":
         raise ValueError("set MAIR_VERIFIER_LLM to 'ollama' or 'fake'")
     from authentication_agent.config import OllamaConfig
@@ -318,4 +348,4 @@ def make_agent_verifier() -> AgentVerifier:
                           num_ctx=int(os.getenv("MAIR_VERIFIER_NUM_CTX", "8192")), think=False, temperature=0.0, seed=0)
     runtime = local_model_runtime(config)
     limits = Limits(model_timeout_seconds=int(os.getenv("MAIR_VERIFIER_TIMEOUT", "180")))
-    return AgentVerifier(OllamaClient(config), limits=limits, llm_metadata=runtime)
+    return AgentVerifier(OllamaClient(config), limits=limits, llm_metadata=runtime, prompt=prompt)

@@ -262,3 +262,31 @@ def test_the_report_labels_plumbing_runs_and_never_headlines_a_percentage():
     text = render(results)
     assert "PLUMBING ONLY" in text and "must not be reported as results" in text
     assert "%" not in text
+
+
+# ---------------------------------------------------------------- post-hoc re-verification must never touch the scored run
+
+def test_reverify_refuses_to_overwrite_or_nest_inside_the_scored_run(tmp_path):
+    from evidence_verification.evaluation.reverify import reverify
+    scored = tmp_path / "scored"
+    (scored / "full").mkdir(parents=True)
+    marker = scored / "full" / "S99.verification.json"
+    marker.write_text("original", encoding="utf-8")
+    for destination in (scored, scored / "inside", tmp_path):            # same, inside, and containing the scored run
+        with pytest.raises((FileExistsError, ValueError)):
+            reverify(corpus=tmp_path, source=scored, destination=destination, verifier_spec="x:y")
+    existing = tmp_path / "already-there"
+    existing.mkdir()
+    with pytest.raises(FileExistsError):
+        reverify(corpus=tmp_path, source=scored, destination=existing, verifier_spec="x:y")
+    assert marker.read_text(encoding="utf-8") == "original", "the scored run was modified"
+
+
+def test_a_labelled_report_says_it_is_post_hoc_and_must_sit_beside_the_original():
+    results = {"plumbing_only": False, "scored": True, "label": "POST-HOC re-run", "inputs": {"corpus_manifest_sha256": "a"},
+               "provenance": {"git_commit": "c", "verifier_code_clean": True, "verifier": {
+                   "version": "1", "prompt_version": "p", "span_tolerance_seconds": 120},
+                   "protocol_public_sha256": "x", "protocol_private_sha256": None,
+                   "hardware": {"platform": "p", "logical_cpus": 1, "note": ""}}, "runs": [], "totals": {}}
+    text = render(results)
+    assert "POST-HOC re-run" in text and "never in place of it" in text
