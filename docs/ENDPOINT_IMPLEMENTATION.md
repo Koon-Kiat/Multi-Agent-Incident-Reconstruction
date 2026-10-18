@@ -1,5 +1,9 @@
 # Endpoint implementation review
 
+The original delivery review below records the 2026-09-24 implementation.
+The 2026-10-18 [context and coverage correction](ENDPOINT_CONTEXT_COVERAGE.md)
+supersedes its single-context and permanently sticky truncation limitations.
+
 ## Role alignment
 
 Source references: `MAIR_Six_Member_Roles_and_Boundaries.pdf`, the
@@ -58,13 +62,16 @@ The following are new component constraints, not removals from the original:
 - Relationships require corroborating process GUID, host and scenario evidence;
   PID-only, ambiguous, conflicting and out-of-window parents are not linked.
 - Default budgets are 100 events per query, 8 investigative tool calls and a
-  one-hour authorized window. Truncation remains explicit even after a follow-up.
+  one-hour authorized window. Incomplete retrieval remains explicit; bounded
+  recovery queries may complete the inventory within the same budgets.
 - Model interpretations are optional fixed tentative categories, not unrestricted
   narrative explanations or attack classifications. Every retrieved supported
   record still receives a deterministic finding.
-- The context guard measures bytes, not the model tokenizer's actual tokens;
-  large windows can exceed useful 8192-token context. Narrow caller-authorized
-  windows are needed; this is not a whole-corpus investigation guarantee.
+- Model presentation is batched without dropping retrieved observations. The
+  byte guard includes messages/schema; adapters exposing `num_ctx` also use a
+  conservative Qwen UTF-8 input bound with output/template space reserved.
+  A single oversized observation still fails closed; arbitrary whole-corpus
+  completeness is not guaranteed by the bounded retrieval budget.
 - Failures return no partial findings. Cold model loading can exceed the default
   timeout. Runtime/model binaries and generated results remain under ignored `out/`.
 
@@ -112,11 +119,11 @@ that cited records resolve and that selected fields and relationships agree;
 they do not measure detection accuracy, malicious/benign classification or
 independent evidence support.
 
-The public capture windows can exceed the default 100-event cap. This is
-reported through metadata, operation receipts, uncertainty and CLI exit 3.
-Caller-supplied trigger IDs can retrieve relevant records beyond the initial
-prefix. Narrow detection windows and scoped model follow-ups remain necessary
-for practical context sizes. Parents outside the authorized window stay missing.
+The public capture windows can exceed the default 100-event cap. The current
+agent attempts overlapping tail queries after seeds, within the tool budget.
+Any remaining gap is reported through metadata, operation receipts, uncertainty
+and CLI exit 3. Caller-supplied trigger IDs can retrieve relevant records beyond
+the initial prefix. Parents outside the authorized window stay missing.
 
 Local validation on 2026-09-24 installed standalone Ollama 0.34.4 and
 `qwen3:8b` (digest

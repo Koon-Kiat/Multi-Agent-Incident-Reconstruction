@@ -134,8 +134,10 @@ verifier setup failed.
 
 * No scored run has used local weights yet; all current outputs come from deterministic fake
   models.
-* Two endpoint windows (S02, S03) exceed the Endpoint Investigation Agent's context even at the
-  smallest split. Their detections are still covered by neighbouring windows, and the gap is
-  recorded.
+* Historical runs on the original endpoint agent had two unresolved S02/S03 context windows.
+  The endpoint-only [2026-10-18 correction](ENDPOINT_CONTEXT_COVERAGE.md) batches model review
+  and recovers capped retrieval within existing budgets. Historical run records remain unchanged;
+  rerun investigations to use the correction. Retrieval caps, oversized individual observations
+  and model/deadline failures remain explicit limitations.
 * R-FILE-01 fires on PowerShell's own `__PSScriptPolicyTest_*.ps1` files in S02 and S03, a likely
   benign lookalike; the reconstruction keeps it as a claim for the verifier and scorer to judge.

@@ -5,12 +5,13 @@ import json
 from pydantic import ValidationError
 
 from endpoint_agent.config import CONFIGURATION_VERSION, Limits
+from endpoint_agent.context import model_batch
 from endpoint_agent.errors import InvestigationError
 from endpoint_agent.llm import LLMAdapter
 from endpoint_agent.models import (InvestigationRequest, InvestigationResult, ModelReply,
                                    RunMetadata, ToolCall, interpretations_for)
 from endpoint_agent.observations import build_observations
-from endpoint_agent.prompts import PROMPT_VERSION, SYSTEM_PROMPT
+from endpoint_agent.prompts import PROMPT_VERSION
 from endpoint_agent.queries.interface import EndpointEventProvider
 from endpoint_agent.queries.semantics import check_bounds
 from endpoint_agent.queries.tools import EndpointTools
@@ -42,6 +43,7 @@ def investigate(request: InvestigationRequest, provider: EndpointEventProvider,
     seed_calls = tuple(_tool("get_endpoint_event", {"evidence_id": eid}) for eid in request.seed_evidence_ids)
     seeds_attempted = 0
     model_calls = 0
+    context_batches = []
 
     def result(status, findings=(), error=None):
         if status == "failed":
@@ -60,7 +62,9 @@ def investigate(request: InvestigationRequest, provider: EndpointEventProvider,
                 llm=llm.metadata(), limits=limits.model_dump(), tool_calls=tools.calls,
                 model_calls=model_calls, operations=tuple(tools.operations),
                 evidence_readbacks=tools.evidence_readbacks, retrieved_events=len(tools.retrieved),
-                truncated=tools.truncated))
+                truncated=tools.truncated, context_strategy="complete-evidence-batches-v1",
+                context_batches=tuple(context_batches), window_total_matched=tools.window_total_matched,
+                window_coverage_complete=tools.window_coverage_complete))
 
     try:
         check_bounds(tools.scope(), limits)
@@ -68,22 +72,20 @@ def investigate(request: InvestigationRequest, provider: EndpointEventProvider,
             raise InvestigationError("seed_budget_exceeded")
         last_tool = tools.execute(_tool("query_endpoint_events", {
             **request.window(), "limit": limits.max_events_per_query}), origin="initial")
+        initial = last_tool
         for call in seed_calls:
             seeds_attempted += 1
             last_tool = tools.execute(call, origin="seed")
+        # Avoid trading the old time-split evidence coverage for a successful but
+        # capped root window. Keep exact seeds ahead of optional recovery pages.
+        if not tools.window_coverage_complete:
+            last_tool = tools.recover_window(initial)
+        observations = build_observations(tools.retrieved.values(), tools.truncated)
+        offset, annotations = 0, {}
         while True:
-            observations = build_observations(tools.retrieved.values(), tools.truncated)
-            schema = ModelReply.grounded_schema(observations, limits.max_events_per_query)
-            # Only the allowlisted projection in ProcessFacts reaches model context.
-            context = {"request": request.model_dump(mode="json"), "limits": limits.model_dump(),
-                "tool_calls_remaining": limits.max_tool_calls - tools.calls,
-                "last_tool_result": last_tool,
-                "operation_history": [op.model_dump(mode="json") for op in tools.operations],
-                "observations": [finding.model_dump(mode="json") for finding in observations]}
-            messages = [{"role": "system", "content": SYSTEM_PROMPT},
-                        {"role": "user", "content": json.dumps(context)}]
-            if len(json.dumps({"messages": messages, "schema": schema}).encode()) > limits.max_context_bytes:
-                raise InvestigationError("context_size_limit")
+            batch, messages, schema, receipt = model_batch(
+                request, limits, tools, observations, offset, last_tool, llm.metadata())
+            context_batches.append(receipt.model_copy(update={"index": model_calls}))
             model_calls += 1
             reply_text = llm.complete(messages, schema, limits)
             if not isinstance(reply_text, str):
@@ -93,9 +95,13 @@ def investigate(request: InvestigationRequest, provider: EndpointEventProvider,
             reply = ModelReply.model_validate_json(reply_text).root
             if reply.action == "tool":
                 last_tool = tools.execute(ToolCall(reply.tool))
+                # A new record may corroborate or invalidate an earlier link.
+                # Rebuild globally and review the new snapshot from its start;
+                # annotations for old finding IDs must not survive that change.
+                observations = build_observations(tools.retrieved.values(), tools.truncated)
+                offset, annotations = 0, {}
                 continue
-            by_id = {finding.finding_id: finding for finding in observations}
-            annotations = {}
+            by_id = {finding.finding_id: finding for finding in batch}
             for annotation in reply.annotations:
                 observation = by_id.get(annotation.observation_id)
                 if (observation is None or annotation.evidence_ids != observation.evidence_ids
@@ -104,6 +110,9 @@ def investigate(request: InvestigationRequest, provider: EndpointEventProvider,
                 if annotation.interpretation is not None and annotation.interpretation not in interpretations_for(observation):
                     raise InvestigationError("invalid_interpretation")
                 annotations[annotation.observation_id] = annotation.interpretation
+            offset += len(batch)
+            if offset < len(observations):
+                continue
             tools.validate_references()
             findings = tuple(item.model_copy(update={
                 "interpretation": INTERPRETATIONS.get(annotations.get(item.finding_id))}) for item in observations)

@@ -44,9 +44,11 @@ def test_real_retrieval_facts_and_relationships_resolve_exactly(endpoint_corpus,
     assert response.events
     result = investigate(request, provider, FakeLLM())
     assert result.status == "completed", result.error_code
-    assert result.metadata.truncated == expected.truncated
-    assert len(result.findings) == len(response.events)
-    assert result.metadata.evidence_readbacks == len(response.events)
+    assert result.metadata.window_total_matched == expected.total_matched
+    assert result.metadata.window_coverage_complete == (len(result.findings) == expected.total_matched)
+    assert result.metadata.truncated == (len(result.findings) < expected.total_matched)
+    assert {e.evidence_id for e in response.events} <= {f.observed_events.evidence_id for f in result.findings}
+    assert result.metadata.evidence_readbacks == len(result.findings)
     assert InvestigationResult.model_validate_json(result.model_dump_json()) == result
     for finding in result.findings:
         observed = finding.observed_events
@@ -98,3 +100,46 @@ def test_real_exact_seed_can_retrieve_beyond_a_capped_prefix(endpoint_corpus):
     assert result.status == "completed" and result.metadata.truncated
     assert seed in result.metadata.operations[1].new_evidence_ids
     assert any(f.observed_events.evidence_id == seed for f in result.findings)
+
+
+@pytest.mark.parametrize("scenario", ["S01", "S02", "S03"])
+def test_all_planned_endpoint_windows_recover_complete_evidence_without_time_splitting(endpoint_corpus, scenario):
+    from event_processing.detection.engine import DetectionEngine
+    from incident_reconstruction.orchestrator import IncidentOrchestrator, task_limits
+
+    _, store = endpoint_corpus
+    engine = DetectionEngine(store, corpus_manifest_sha256="test-only")
+    plans = [p for p in IncidentOrchestrator(store, engine, {}).plan(scenario) if p.agent_type == "endpoint"]
+    assert plans
+    for plan in plans:
+        limits = task_limits(Limits(), plan)
+        request = InvestigationRequest(scenario_id=scenario, start_utc=plan.start_utc,
+            end_utc=plan.end_utc, seed_evidence_ids=plan.seed_evidence_ids)
+        result = investigate(request, CorpusEndpointProvider(store, limits), FakeLLM(), limits)
+        assert result.status == "completed", (plan.task_id, result.error_code)
+        expected = store.query(scenario, plan.start_utc, plan.end_utc,
+            channels=(SYSMON_CHANNEL,), event_ids=ENDPOINT_EVENT_IDS, limit=1000)
+        assert not expected.truncated
+        assert [f.observed_events.evidence_id for f in result.findings] == [e.evidence_id for e in expected.events]
+        assert result.metadata.window_coverage_complete and not result.metadata.truncated
+        viewed = [fid for b in result.metadata.context_batches for fid in b.observation_ids]
+        assert viewed == [f.finding_id for f in result.findings]
+
+
+@pytest.mark.parametrize("scenario,start,end,count", [
+    ("S02", "2026-09-21T02:07:26.6017385Z", "2026-09-21T02:07:35.2471628Z", 125),
+    ("S03", "2026-09-21T02:26:50.1893142Z", "2026-09-21T02:26:56.3601178Z", 117),
+])
+def test_formerly_unresolved_windows_fit_shared_8192_profile(endpoint_corpus, scenario, start, end, count):
+    from endpoint_agent.tests.test_context import ReviewingLLM
+
+    _, store = endpoint_corpus
+    llm = ReviewingLLM()
+    request = InvestigationRequest(scenario_id=scenario, start_utc=start, end_utc=end)
+    result = investigate(request, CorpusEndpointProvider(store), llm)
+    assert result.status == "completed", result.error_code
+    assert len(result.findings) == count == result.metadata.evidence_readbacks
+    assert result.metadata.window_coverage_complete and not result.metadata.truncated
+    expected = store.query(scenario, start, end, channels=(SYSMON_CHANNEL,), event_ids=ENDPOINT_EVENT_IDS, limit=1000)
+    assert [f.observed_events.evidence_id for f in result.findings] == [e.evidence_id for e in expected.events]
+    assert all(b.input_token_upper_bound + 2048 <= 8192 for b in result.metadata.context_batches)

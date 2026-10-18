@@ -54,6 +54,9 @@ request exact Sysmon trigger records from the caller. These IDs must belong to
 the requested scenario and their records must lie in the authorized window.
 Every seed consumes a tool slot in addition to the initial query; insufficient
 seed budget fails before retrieval. Missing IDs remain explicit missing lookups.
+After seeds, bounded overlapping tail queries recover a capped initial window
+when budget permits. Each recovery query consumes a tool slot and has a
+`coverage` operation receipt. No events at the cursor timestamp are skipped.
 
 The shared local profile is `qwen3:8b`, context 8192, thinking off, temperature 0,
 seed 0. `--model` / `MAIR_OLLAMA_MODEL`, `--endpoint` / `MAIR_OLLAMA_ENDPOINT`,
@@ -131,6 +134,22 @@ authorize execution. Final exact-ID readback checks that retrieved events have
 not disappeared or changed. This is reference consistency, not independent
 claim verification or an accuracy measurement.
 
+The model reviews consecutive batches of the complete retrieved snapshot. Python
+computes process links across that entire snapshot before batching, and returns
+every observation after every batch finishes. No command line, path, timestamp,
+identity or citation is clipped to make a batch fit. Repeated scope/uncertainty is
+carried once, unavailable null fields are omitted, and the model sees the latest
+operation summary; the complete query audit remains in result metadata. Each
+annotation must match an observation in the current batch. Any follow-up rebuilds
+the global observations and restarts review, discarding stale annotations.
+
+`metadata.context_batches` records each attempted model call's observation and
+evidence IDs, snapshot revision and serialized context size. If the adapter exposes
+`num_ctx`, batches additionally reserve `max_output_tokens` and use a conservative
+UTF-8 input token bound with chat-template headroom for the shared Qwen tokenizer.
+`context_strategy` identifies this behavior; historical results still parse with
+the original strategy default.
+
 ## Limits and tests
 
 Defaults match the existing runtime budgets: eight tool attempts, 100 events per
@@ -139,10 +158,21 @@ query, a one-hour window, 262144 context bytes, 16384 bytes per source event,
 CLI overrides include `--max-tool-calls`, `--max-events`, `--max-window-seconds`
 and `--timeout`. Programmatic `Limits` exposes the remaining budgets.
 Duplicate queries reuse the invocation snapshot but still consume budget.
-Truncation is sticky, including after useful follow-ups; there is no pagination
-or claim that the complete window was recovered. Large evidence unions can fail
-the context budget. Byte bounds are not a tokenizer-based context guarantee;
-use appropriately narrow detection windows for real inference.
+The initial query supplies `metadata.window_total_matched`; every retrieved event
+must lie in that window. `window_coverage_complete` becomes true only when the
+distinct retrieved count equals that total. `metadata.truncated` and incomplete
+inventory uncertainty clear only at that point; individual operation receipts
+retain their original truncation flags. Thus a completed root window does not
+silently replace the evidence formerly recovered by time splitting with a prefix.
+
+Recovery stops at the tool budget or a tail query that cannot advance. A page
+filled by one timestamp may prevent progress through this timestamp-only
+API; raise the authorized `--max-events` cap if appropriate, or retain the explicit
+gap. A single observation plus fixed instructions/schema that cannot fit still
+fails with `context_size_limit` and no partial findings. Custom adapters without
+`num_ctx` get the byte guard only. Batching increases model calls and latency;
+it does not give the model simultaneous free-form reasoning over all batches.
+See the [S02/S03 investigation and validation](../docs/ENDPOINT_CONTEXT_COVERAGE.md).
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q endpoint_agent/tests tests/test_endpoint_corpus.py --basetemp .test-tmp-endpoint

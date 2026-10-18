@@ -59,6 +59,18 @@ def test_cli_missing_and_altered_corpus_sanitizes_errors(portable_corpus, tmp_pa
     assert json.loads(capsys.readouterr().out)["error_code"] == "corpus_load_failed"
 
 
+def test_cli_recovered_window_exits_complete_with_original_truncation_audit(tmp_path, capsys):
+    info = load_scenario(build_scenario_dir(tmp_path / "datasets"))
+    corpus = tmp_path / "corpus"
+    records = [endpoint_event(i, second=i, scenario=info.scenario_id, Image="admin.exe") for i in range(1, 6)]
+    write_manifest(corpus, [write_scenario(corpus, info, records)])
+    assert main([*cli_args(corpus), "--max-events", "2"]) == 0
+    result = InvestigationResult.model_validate_json(capsys.readouterr().out)
+    assert len(result.findings) == 5
+    assert result.metadata.window_coverage_complete and not result.metadata.truncated
+    assert result.metadata.operations[0].truncated
+
+
 def test_cli_local_profile_and_model_digest_are_recorded(portable_corpus, monkeypatch, capsys):
     from endpoint_agent import investigate_corpus
     seen = []
