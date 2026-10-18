@@ -1,6 +1,6 @@
 # Endpoint context and evidence coverage correction
 
-The M4 statement was correct on latest `main`, commit
+The endpoint context limitation was correct on latest `main`, commit
 `e6a5ac4c2f8ac2c1b3fe1749fde7213b901a3d5d`, fetched on 2026-10-18.
 Both reported windows can be investigated without dropping supported evidence.
 The correction stays inside the Endpoint Investigation Agent: bounded model
@@ -9,7 +9,7 @@ documentation. Authentication, detection, shared normalization/query code,
 orchestration, reconstruction, verification, datasets and scoring are unchanged.
 
 The role boundary follows `MAIR_Six_Member_Roles_and_Boundaries.pdf`, pp. 2, 6
-and 9, and `SecurityAnalytics_Proposal.docx`, sections 3.1–3.2: M4 investigates
+and 9, and `SecurityAnalytics_Proposal.docx`, sections 3.1–3.2: the Endpoint Investigation Agent investigates
 recorded Sysmon evidence with read-only tools and separates facts from uncertain
 interpretations. Cross-source timelines and independent verification remain
 downstream responsibilities. Neither reference document is a runtime input.
@@ -153,7 +153,8 @@ Full generated findings and server logs remain under ignored
   The largest simulated root required 225 model calls: larger live root windows
   may exceed the orchestrator's existing 900-second task deadline. Full live
   end-to-end execution of all nine roots was not measured. Callers must retain
-  timeout outcomes; deadline policy is M5's responsibility and is unchanged.
+  timeout outcomes; deadline policy belongs to the Incident Reconstruction
+  Orchestrator and is unchanged.
   Per-request timeout, cold loading, provider/model failures and total run
   cancellation retain their existing limitations.
 

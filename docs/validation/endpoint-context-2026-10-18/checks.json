@@ -71,5 +71,13 @@
     "command": "python -m pip check",
     "result": "No broken requirements found.",
     "exit_code": 0
+  },
+  "pr_tracked_ci_shaped_regression": {
+    "command": "MAIR_DATASETS_DIR=out/ci-empty-datasets python -m pytest -q --basetemp .test-tmp-endpoint-pr-tracked-final",
+    "passed": 1093,
+    "skipped": 77,
+    "duration_seconds": 20.65,
+    "exit_code": 0,
+    "note": "Repeated after all new files were committed; fixes retired component labels in the new report detected by tracked-file CI policy. Runtime source hashes are unchanged."
   }
 }
