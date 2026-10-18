@@ -245,7 +245,7 @@ def interpretations_for(finding: Finding) -> tuple[str, ...]:
 
 class OperationReceipt(Model):
     index: int
-    origin: Literal["initial", "seed", "model"]
+    origin: Literal["initial", "seed", "coverage", "model"]
     call: ToolCall
     status: Literal["completed", "no_evidence", "rejected", "failed", "not_run"]
     evidence_ids: tuple[EvidenceId, ...] = ()
@@ -255,6 +255,15 @@ class OperationReceipt(Model):
     provider_invoked: bool = False
     reused_from: int | None = None
     error_code: str | None = None
+
+
+class ContextBatch(Model):
+    index: int = Field(ge=0)
+    revision: int = Field(ge=0)
+    observation_ids: tuple[str, ...]
+    evidence_ids: tuple[EvidenceId, ...]
+    context_bytes: int = Field(ge=0)
+    input_token_upper_bound: int | None = Field(default=None, ge=0)
 
 
 class RunMetadata(Model):
@@ -269,6 +278,11 @@ class RunMetadata(Model):
     evidence_readbacks: int
     retrieved_events: int
     truncated: bool
+    # Additive defaults preserve parsing of historical endpoint-result-v1 runs.
+    context_strategy: str = "single-context-v1"
+    context_batches: tuple[ContextBatch, ...] = ()
+    window_total_matched: int | None = Field(default=None, ge=0)
+    window_coverage_complete: bool = False
 
 
 class InvestigationResult(Model):

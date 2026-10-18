@@ -139,8 +139,11 @@ Verification & Evaluation. Every D1 figure is labelled provisional until that ag
 * **L5: the model layer sees retrieved records, not live telemetry.** The verifier agent judges the records the
   verifier retrieved for the claim; it does not run its own free-form queries.
 * **L6: one machine, one model.** Latency depends on hardware and on local model start-up and caching.
-* **L7: unresolved endpoint windows.** Two endpoint investigation windows exceed the agent's context even at
-  the smallest split; their detections are covered by neighbouring windows and the gap is recorded by the run.
+* **L7: historical endpoint context gaps.** The original agent left two S02/S03 windows unresolved even after
+  splitting. The endpoint-only [2026-10-18 correction](ENDPOINT_CONTEXT_COVERAGE.md) adds bounded model
+  batches and retrieval recovery; previous outputs remain historical and must not be relabelled as repaired.
+  Fresh runs must record the new endpoint prompt/configuration versions. Query budgets, oversized individual
+  observations and model/deadline failures can still leave explicit gaps. Scoring definitions are unchanged.
 
 ## 10. Amendments
 

@@ -2,6 +2,6 @@
 
 from authentication_agent.config import Limits, OllamaConfig
 
-CONFIGURATION_VERSION = "endpoint-config-v1"
+CONFIGURATION_VERSION = "endpoint-config-v2"
 
 __all__ = ["Limits", "OllamaConfig", "CONFIGURATION_VERSION"]

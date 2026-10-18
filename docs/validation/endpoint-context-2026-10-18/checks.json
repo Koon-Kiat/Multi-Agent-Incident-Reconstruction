@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-18",
+  "base_commit": "e6a5ac4c2f8ac2c1b3fe1749fde7213b901a3d5d",
+  "branch": "codex/endpoint-context-coverage",
+  "full_regression": {
+    "command": "python -m pytest -q --basetemp .test-tmp-endpoint-final-suite",
+    "passed": 1161,
+    "skipped": 7,
+    "duration_seconds": 466.11,
+    "exit_code": 0,
+    "datasets": "Original public S01-S03 EVTX exports via MAIR_DATASETS_DIR"
+  },
+  "additional_boundary_checks": {
+    "command": "python -m pytest -q endpoint_agent/tests/test_context.py endpoint_agent/tests/test_cli.py --basetemp .test-tmp-endpoint-final-boundaries",
+    "passed": 25,
+    "skipped": 1,
+    "duration_seconds": 4.41,
+    "exit_code": 0,
+    "note": "Includes two tests added after the full-suite collection: understated provider counts and recovered-window CLI exit/audit; both passed."
+  },
+  "final_code_live_cli": {
+    "command": "MAIR_TEST_ENDPOINT_OLLAMA=1 python -m pytest -q endpoint_agent/tests/test_cli.py::test_optional_local_ollama --basetemp .test-tmp-endpoint-final-live-cli",
+    "passed": 1,
+    "duration_seconds": 32.18,
+    "exit_code": 0
+  },
+  "shared_profile_coverage": {
+    "root_windows": 9,
+    "num_ctx": 8192,
+    "max_output_tokens": 2048,
+    "missing_baseline_evidence_ids": 0,
+    "all_expected_supported_records_returned": true,
+    "all_final_snapshot_observations_presented": true,
+    "summary": "coverage-summary.json"
+  },
+  "live_formerly_failing_windows": {
+    "S02": {
+      "expected_records": 125,
+      "returned_records": 125,
+      "coverage_complete": true
+    },
+    "S03": {
+      "expected_records": 117,
+      "returned_records": 117,
+      "coverage_complete": true
+    },
+    "summary": "live-summary.json"
+  },
+  "source_sha256": {
+    "endpoint_agent/agent.py": "96335a559e6e7d22dfbd98882a3b00029ca4f07249447b91bd6d0bd26506c92c",
+    "endpoint_agent/context.py": "1083e3780ca95855925301077493a703145847c9ae95ce9bb7e935cf85d9d5db",
+    "endpoint_agent/config.py": "b92b91a33d55588858d4f9b0c39021661ba25f49b79639299bc326a732bda6c2",
+    "endpoint_agent/models.py": "03092822df849d8c4e96eb9de755a10be54030328f9987ef27362d29277e919b",
+    "endpoint_agent/prompts.py": "2c6815b27a57233c2fbe0f36338e56f14ece3f94d28b78722c6f2fd598509217",
+    "endpoint_agent/queries/tools.py": "530a312e0d7a9b30cc342990494d844286fdfa4a784480694eba8fe6686dc793"
+  },
+  "whitespace_check": {
+    "command": "git diff --check",
+    "exit_code": 0
+  },
+  "scope": "Runtime Python changes are confined to endpoint_agent. Other changes are endpoint tests, handoff documentation and validation summaries. Existing main worktree merge was preserved.",
+  "pr_ci_shaped_regression": {
+    "command": "MAIR_DATASETS_DIR=out/ci-empty-datasets python -m pytest -q --basetemp .test-tmp-endpoint-pr-ci-final",
+    "passed": 1093,
+    "skipped": 77,
+    "duration_seconds": 20.7,
+    "exit_code": 0,
+    "note": "Full current test collection without original EVTX, matching CI lfs:false; explicit optional/platform/corpus guards remain active."
+  },
+  "dependency_check": {
+    "command": "python -m pip check",
+    "result": "No broken requirements found.",
+    "exit_code": 0
+  },
+  "pr_tracked_ci_shaped_regression": {
+    "command": "MAIR_DATASETS_DIR=out/ci-empty-datasets python -m pytest -q --basetemp .test-tmp-endpoint-pr-tracked-final",
+    "passed": 1093,
+    "skipped": 77,
+    "duration_seconds": 20.65,
+    "exit_code": 0,
+    "note": "Repeated after all new files were committed; fixes retired component labels in the new report detected by tracked-file CI policy. Runtime source hashes are unchanged."
+  }
+}

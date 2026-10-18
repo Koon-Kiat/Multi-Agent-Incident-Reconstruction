@@ -21,11 +21,42 @@ class EndpointTools:
         self.request, self.provider, self.limits = request, provider, limits
         self.calls = 0
         self.retrieved: dict[str, NormalisedEvent] = {}
-        self.truncated = False
+        self._query_truncated = False
+        self.window_total_matched: int | None = None
         self.missing = False
         self.operations: list[OperationReceipt] = []
         self.evidence_readbacks = 0
         self._cache: dict[str, tuple[int, dict]] = {}
+
+    @property
+    def window_coverage_complete(self) -> bool:
+        return self.window_total_matched is not None and len(self.retrieved) == self.window_total_matched
+
+    @property
+    def truncated(self) -> bool:
+        return self._query_truncated and not self.window_coverage_complete
+
+    def recover_window(self, initial: dict) -> dict:
+        """Recover a capped prefix using overlapping, caller-authorized tails.
+
+        Start at the last returned tick, never the next tick: every equal-time
+        record must remain eligible. Stop visibly incomplete when an entire page
+        shares that tick, so a timestamp-only API cannot make further progress.
+        Seeds cannot choose the cursor: a late seed could skip intervening events.
+        Every page is an ordinary bounded, audited query and consumes a tool slot.
+        """
+        last = initial
+        while (not self.window_coverage_complete and last["evidence_ids"]
+               and self.calls < self.limits.max_tool_calls):
+            cursor = self.retrieved[last["evidence_ids"][-1]]
+            call = ToolCall.model_validate_json(json.dumps({"name": "query_endpoint_events",
+                "arguments": {**self.request.window(), "start_utc": cursor.timestamp_utc,
+                              "limit": self.limits.max_events_per_query}}))
+            last = self.execute(call, origin="coverage")
+            if (not last["evidence_ids"]
+                    or event_order(self.retrieved[last["evidence_ids"][-1]]) <= event_order(cursor)):
+                break
+        return last
 
     def scope(self) -> QueryRequest:
         return QueryRequest(**self.request.window(), limit=self.limits.max_events_per_query)
@@ -137,7 +168,11 @@ class EndpointTools:
             new_ids = tuple(eid for eid in ids if eid not in self.retrieved)
             # A batch becomes visible only after all its records pass the boundary.
             self.retrieved.update(accepted)
-            self.truncated |= output["truncated"]
+            self._query_truncated |= output["truncated"]
+            if origin == "initial":
+                self.window_total_matched = output["total_matched"]
+            if self.window_total_matched is not None and len(self.retrieved) > self.window_total_matched:
+                raise InvestigationError("provider_contract_violation")
             if invoked:
                 self._cache[key] = (receipt["index"], deepcopy(output))
             self.operations.append(OperationReceipt(**receipt, status="completed" if ids else "no_evidence",

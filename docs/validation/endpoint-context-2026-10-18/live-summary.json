@@ -1,0 +1,678 @@
+{
+  "S02": {
+    "status": "completed",
+    "error_code": null,
+    "latency_seconds": 481.718,
+    "findings": 125,
+    "retrieved_events": 125,
+    "total_matched": 125,
+    "coverage_complete": true,
+    "truncated": false,
+    "tool_calls": 3,
+    "model_calls": 61,
+    "evidence_readbacks": 125,
+    "max_input_token_upper_bound": 6123,
+    "metrics": [
+      {
+        "prompt_eval_count": 1762,
+        "eval_count": 129,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1761,
+        "eval_count": 228,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1921,
+        "eval_count": 218,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1957,
+        "eval_count": 225,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1884,
+        "eval_count": 228,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1709,
+        "eval_count": 186,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1667,
+        "eval_count": 171,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2002,
+        "eval_count": 237,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1641,
+        "eval_count": 152,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1965,
+        "eval_count": 220,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1589,
+        "eval_count": 162,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1577,
+        "eval_count": 161,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2114,
+        "eval_count": 172,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1970,
+        "eval_count": 107,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1720,
+        "eval_count": 186,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1686,
+        "eval_count": 185,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1670,
+        "eval_count": 170,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1750,
+        "eval_count": 180,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2175,
+        "eval_count": 106,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2199,
+        "eval_count": 104,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1763,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1704,
+        "eval_count": 191,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1731,
+        "eval_count": 186,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1765,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1736,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1768,
+        "eval_count": 191,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1732,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1701,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1727,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1693,
+        "eval_count": 186,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1737,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1726,
+        "eval_count": 184,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1695,
+        "eval_count": 182,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1174,
+        "eval_count": 104,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2173,
+        "eval_count": 103,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1727,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2227,
+        "eval_count": 107,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1684,
+        "eval_count": 180,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1686,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1683,
+        "eval_count": 186,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1688,
+        "eval_count": 191,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1725,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1697,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1830,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1976,
+        "eval_count": 237,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1728,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1765,
+        "eval_count": 183,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1777,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1829,
+        "eval_count": 193,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1782,
+        "eval_count": 192,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1801,
+        "eval_count": 181,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1840,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1735,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1719,
+        "eval_count": 183,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1738,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1761,
+        "eval_count": 181,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2012,
+        "eval_count": 235,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1884,
+        "eval_count": 243,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1725,
+        "eval_count": 233,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1997,
+        "eval_count": 244,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1655,
+        "eval_count": 171,
+        "done_reason": "stop"
+      }
+    ],
+    "llm": {
+      "runtime": "ollama",
+      "model": "qwen3:8b",
+      "endpoint": "http://127.0.0.1:11434",
+      "temperature": 0.0,
+      "seed": 0,
+      "num_ctx": 8192,
+      "think": false
+    },
+    "prompt_version": "endpoint-prompt-v2",
+    "configuration_version": "endpoint-config-v2",
+    "context_strategy": "complete-evidence-batches-v1",
+    "all_expected_ids_returned": true,
+    "all_final_revision_observations_reviewed": true,
+    "all_citations_resolve": true,
+    "max_prompt_eval_count": 2227,
+    "max_eval_count": 244,
+    "runtime_preflight": {
+      "version": "0.34.4",
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41"
+    },
+    "finish_guard": "budget_or_repeat"
+  },
+  "S03": {
+    "status": "completed",
+    "error_code": null,
+    "latency_seconds": 410.021,
+    "findings": 117,
+    "retrieved_events": 117,
+    "total_matched": 117,
+    "coverage_complete": true,
+    "truncated": false,
+    "tool_calls": 3,
+    "model_calls": 59,
+    "evidence_readbacks": 117,
+    "max_input_token_upper_bound": 6121,
+    "metrics": [
+      {
+        "prompt_eval_count": 1764,
+        "eval_count": 129,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1763,
+        "eval_count": 227,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1917,
+        "eval_count": 216,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1959,
+        "eval_count": 235,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1877,
+        "eval_count": 215,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2143,
+        "eval_count": 249,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1639,
+        "eval_count": 172,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2022,
+        "eval_count": 234,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1644,
+        "eval_count": 155,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1544,
+        "eval_count": 159,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1589,
+        "eval_count": 159,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1577,
+        "eval_count": 161,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1615,
+        "eval_count": 157,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1649,
+        "eval_count": 107,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1969,
+        "eval_count": 106,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1720,
+        "eval_count": 191,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1684,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1714,
+        "eval_count": 192,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1712,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1680,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2165,
+        "eval_count": 104,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2193,
+        "eval_count": 104,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1722,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1759,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1694,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1726,
+        "eval_count": 183,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1726,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1756,
+        "eval_count": 185,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1725,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1754,
+        "eval_count": 185,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1691,
+        "eval_count": 186,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1698,
+        "eval_count": 192,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1724,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1732,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1692,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1691,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2168,
+        "eval_count": 106,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1721,
+        "eval_count": 188,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1680,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1678,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2215,
+        "eval_count": 101,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1678,
+        "eval_count": 187,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1737,
+        "eval_count": 193,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1588,
+        "eval_count": 170,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 2087,
+        "eval_count": 239,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1538,
+        "eval_count": 180,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1785,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1724,
+        "eval_count": 189,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1767,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1616,
+        "eval_count": 171,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1717,
+        "eval_count": 192,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1726,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1843,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1834,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1753,
+        "eval_count": 184,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1631,
+        "eval_count": 174,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1814,
+        "eval_count": 190,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1781,
+        "eval_count": 191,
+        "done_reason": "stop"
+      },
+      {
+        "prompt_eval_count": 1643,
+        "eval_count": 169,
+        "done_reason": "stop"
+      }
+    ],
+    "llm": {
+      "runtime": "ollama",
+      "model": "qwen3:8b",
+      "endpoint": "http://127.0.0.1:11434",
+      "temperature": 0.0,
+      "seed": 0,
+      "num_ctx": 8192,
+      "think": false
+    },
+    "prompt_version": "endpoint-prompt-v2",
+    "configuration_version": "endpoint-config-v2",
+    "context_strategy": "complete-evidence-batches-v1",
+    "all_expected_ids_returned": true,
+    "all_final_revision_observations_reviewed": true,
+    "all_citations_resolve": true,
+    "max_prompt_eval_count": 2215,
+    "max_eval_count": 249,
+    "runtime_preflight": {
+      "version": "0.34.4",
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41"
+    },
+    "finish_guard": "budget_or_repeat"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "S02": {
+    "task_id": "S02-endpoint-03.1.2.1",
+    "start_utc": "2026-09-21T02:07:26.6017385Z",
+    "end_utc": "2026-09-21T02:07:35.2471628Z",
+    "initial_retrieved_events": 100,
+    "total_matched": 125,
+    "original_context_bytes": 271013,
+    "max_context_bytes": 262144,
+    "error_code": "context_size_limit",
+    "window_evidence_in_other_completed_baseline_tasks": 0,
+    "window_evidence_missing_from_completed_baseline_tasks": 125
+  },
+  "S03": {
+    "task_id": "S03-endpoint-03.1.2.2",
+    "start_utc": "2026-09-21T02:26:50.1893142Z",
+    "end_utc": "2026-09-21T02:26:56.3601178Z",
+    "initial_retrieved_events": 100,
+    "total_matched": 117,
+    "original_context_bytes": 269740,
+    "max_context_bytes": 262144,
+    "error_code": "context_size_limit",
+    "window_evidence_in_other_completed_baseline_tasks": 0,
+    "window_evidence_missing_from_completed_baseline_tasks": 117
+  }
+}
