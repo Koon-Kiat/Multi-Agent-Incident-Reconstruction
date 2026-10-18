@@ -6,8 +6,10 @@ matches authentication findings; `observed_events` and `entities` carry distinct
 endpoint types. Consumers should dispatch on `agent_type` and use the appropriate
 typed result model. The authentication-only `Finding` class cannot deserialize
 endpoint payloads. No existing authentication or normalized-event fields change.
-This is a callable handoff for integration review; the actual orchestrator and
-independent verifier are not connected by this delivery.
+The original callable handoff is now consumed by the orchestrator and verifier.
+The [2026-10-18 context correction](ENDPOINT_CONTEXT_COVERAGE.md) changes only
+endpoint internals and adds optional endpoint metadata with historical defaults;
+the request, provider API and finding envelope are unchanged.
 
 ## Ordinary invocation
 
@@ -111,8 +113,12 @@ supported types. `parent_process_guid` selects only matching process-creation
 records. The account filter uses normalized `user` exactly as stored.
 
 The agent exposes these through five typed tools. A query and each exact seed
-run before model decisions. A GUID tool requires a host/GUID pair already seen
-in retrieved events. Operation receipts identify `initial`, `seed` and `model`
+run before model decisions. Bounded recovery queries then reuse the same query
+API with overlapping tail windows. Their cursor comes from the last query page,
+never a potentially later exact seed; equal-timestamp events remain eligible.
+Recovery stops on no progress or exhausted budget. A GUID tool requires a
+host/GUID pair already seen in retrieved events. Receipts identify `initial`,
+`seed`, `coverage` and `model`
 origins, exact arguments, returned/new IDs, truncation, snapshot reuse and failures.
 Later seeds are marked `not_run` if an earlier required operation fails.
 Final readbacks are counted separately from investigative tool calls.
@@ -120,8 +126,12 @@ Final readbacks are counted separately from investigative tool calls.
 ## Consumption rules
 
 Completed findings contain observations of supported source records and optional
-qualified interpretations. `metadata.truncated` and finding-level uncertainty
-must survive reconstruction and reporting. An empty completed result is distinct
+qualified interpretations. `metadata.window_total_matched` is the initial whole
+window's count; `window_coverage_complete` requires exactly that many distinct
+retrieved records. Until then, `metadata.truncated` and finding-level incomplete
+inventory uncertainty must survive reconstruction and reporting. Once the whole
+inventory is recovered these warnings clear, while original query truncation
+flags remain unchanged in operation receipts. An empty completed result is distinct
 from a failed result. Failures carry sanitized error codes and no partial findings.
 
 Each finding describes an anchor event in `observed_events.evidence_id`; its
@@ -141,3 +151,13 @@ Independent verification owns support verdicts. This module's exact-ID readback
 checks existence and stability only. The verifier can resolve every citation
 through `store.lookup()` to its original `raw_reference`, `raw_xml` and source
 digest without receiving the investigator's private model context.
+
+`context_strategy: complete-evidence-batches-v1` uses globally computed findings
+and consecutive model batches. `context_batches` records each attempted call's
+`index`, `revision` (tool-call count), `observation_ids`, `evidence_ids`,
+`context_bytes` and optional `input_token_upper_bound`. After a follow-up, earlier
+annotations are discarded and all observations are reviewed again. A completed
+result's final revision covers every returned finding. Batch failure still returns
+no partial findings. Metadata defaults let the updated models read historical
+`endpoint-result-v1` outputs; consumers with private strict metadata copies must
+adopt the updated endpoint model. No consumer code or scoring definition changes.

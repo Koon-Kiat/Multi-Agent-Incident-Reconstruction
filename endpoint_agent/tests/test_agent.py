@@ -66,7 +66,8 @@ def test_useful_followup_recovers_chain_after_truncated_initial_window(events, i
     llm = SequenceLLM(call("get_process_children", process_guid=ROOT, host=HOST, limit=1))
     result = investigate(investigation, provider, llm, limits)
     assert result.status == "completed" and result.metadata.truncated
-    assert result.metadata.operations[1].new_evidence_ids == ("SYN-ENDPOINT-SYS-2",)
+    followup = next(op for op in result.metadata.operations if op.origin == "model")
+    assert followup.new_evidence_ids == ("SYN-ENDPOINT-SYS-2",)
     assert result.findings[1].observed_events.relationships
     assert all(any("truncated" in s for s in finding.uncertainty) for finding in result.findings)
 

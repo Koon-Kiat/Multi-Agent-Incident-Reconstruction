@@ -1,0 +1,195 @@
+{
+  "date": "2026-10-18",
+  "baseline_commit": "e6a5ac4c2f8ac2c1b3fe1749fde7213b901a3d5d",
+  "corpus_manifest_sha256": "34c5d0ac01e5a6028cbc2a6deb39197a179007be549971119f83e6000f9069c7",
+  "validation_type": "unscored fake-model coverage with num_ctx=8192",
+  "scenarios": {
+    "S01": {
+      "baseline_endpoint_tasks": 2,
+      "baseline_unresolved": [],
+      "baseline_successful_unique_evidence": 203,
+      "new_unique_evidence": 657,
+      "missing_baseline_evidence": 0,
+      "additional_evidence": 454,
+      "root_windows": [
+        {
+          "task_id": "S01-endpoint-01",
+          "start_utc": "2022-08-31T17:46:28.7290708Z",
+          "end_utc": "2022-08-31T17:47:16.8176302Z",
+          "expected_records": 509,
+          "retrieved_records": 509,
+          "evidence_ids_sha256": "356357e5068cbe9d770908cb808a73886aaf8dc09a6c5a5dd03b1e30b5242820",
+          "model_calls": 225,
+          "tool_calls": 9,
+          "max_tool_calls": 11,
+          "readbacks": 509,
+          "max_context_bytes": 11247,
+          "max_input_token_upper_bound": 6140,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 10.224
+        },
+        {
+          "task_id": "S01-endpoint-02",
+          "start_utc": "2022-08-31T17:48:26.7422157Z",
+          "end_utc": "2022-08-31T17:48:58.6798309Z",
+          "expected_records": 148,
+          "retrieved_records": 148,
+          "evidence_ids_sha256": "d916150307d872e5fd2c646e2f80311d1e3979cd641c2951d0a43e0f61b1d587",
+          "model_calls": 71,
+          "tool_calls": 4,
+          "max_tool_calls": 10,
+          "readbacks": 148,
+          "max_context_bytes": 11229,
+          "max_input_token_upper_bound": 6140,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 2.25
+        }
+      ]
+    },
+    "S02": {
+      "baseline_endpoint_tasks": 12,
+      "baseline_unresolved": [
+        "S02-endpoint-03.1.2.1"
+      ],
+      "baseline_successful_unique_evidence": 408,
+      "new_unique_evidence": 781,
+      "missing_baseline_evidence": 0,
+      "additional_evidence": 373,
+      "root_windows": [
+        {
+          "task_id": "S02-endpoint-01",
+          "start_utc": "2026-09-21T02:03:35.1343100Z",
+          "end_utc": "2026-09-21T02:04:05.1343101Z",
+          "expected_records": 23,
+          "retrieved_records": 23,
+          "evidence_ids_sha256": "914dee31e930766044b4385e958569f17a726bb1bd35b3c3425ae3e0d437c532",
+          "model_calls": 8,
+          "tool_calls": 1,
+          "max_tool_calls": 8,
+          "readbacks": 23,
+          "max_context_bytes": 11216,
+          "max_input_token_upper_bound": 6106,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 0.147
+        },
+        {
+          "task_id": "S02-endpoint-02",
+          "start_utc": "2026-09-21T02:04:50.2257872Z",
+          "end_utc": "2026-09-21T02:06:14.9266971Z",
+          "expected_records": 392,
+          "retrieved_records": 392,
+          "evidence_ids_sha256": "781b0e0ebb7fc08cd88d1bdab51e2986b4ec1b5d5c530d7ca14b3c76bd14d32c",
+          "model_calls": 168,
+          "tool_calls": 7,
+          "max_tool_calls": 11,
+          "readbacks": 392,
+          "max_context_bytes": 11366,
+          "max_input_token_upper_bound": 6144,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 7.262
+        },
+        {
+          "task_id": "S02-endpoint-03",
+          "start_utc": "2026-09-21T02:07:09.3108899Z",
+          "end_utc": "2026-09-21T02:08:18.4742844Z",
+          "expected_records": 366,
+          "retrieved_records": 366,
+          "evidence_ids_sha256": "e8f408a9c91be428c5199700479be39815c56826de0a6cf7a0423939d56f275c",
+          "model_calls": 157,
+          "tool_calls": 6,
+          "max_tool_calls": 10,
+          "readbacks": 366,
+          "max_context_bytes": 11304,
+          "max_input_token_upper_bound": 6144,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 6.515
+        }
+      ]
+    },
+    "S03": {
+      "baseline_endpoint_tasks": 9,
+      "baseline_unresolved": [
+        "S03-endpoint-03.1.2.2"
+      ],
+      "baseline_successful_unique_evidence": 337,
+      "new_unique_evidence": 918,
+      "missing_baseline_evidence": 0,
+      "additional_evidence": 581,
+      "root_windows": [
+        {
+          "task_id": "S03-endpoint-01",
+          "start_utc": "2026-09-21T02:24:07.8718622Z",
+          "end_utc": "2026-09-21T02:24:37.8718623Z",
+          "expected_records": 109,
+          "retrieved_records": 109,
+          "evidence_ids_sha256": "7a59ae48a487fd09d24114a31e00c980a8bd57f3ef0f3dbf3e09533e476cc7d6",
+          "model_calls": 41,
+          "tool_calls": 2,
+          "max_tool_calls": 8,
+          "readbacks": 109,
+          "max_context_bytes": 11287,
+          "max_input_token_upper_bound": 6134,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 1.178
+        },
+        {
+          "task_id": "S03-endpoint-02",
+          "start_utc": "2026-09-21T02:24:42.9286686Z",
+          "end_utc": "2026-09-21T02:26:05.6027859Z",
+          "expected_records": 420,
+          "retrieved_records": 420,
+          "evidence_ids_sha256": "e93a4b1d2309c5fce9e76909dff9a92bc1b71f67194d97d0317fd847984e4393",
+          "model_calls": 176,
+          "tool_calls": 8,
+          "max_tool_calls": 11,
+          "readbacks": 420,
+          "max_context_bytes": 11313,
+          "max_input_token_upper_bound": 6140,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 7.935
+        },
+        {
+          "task_id": "S03-endpoint-03",
+          "start_utc": "2026-09-21T02:26:31.6769035Z",
+          "end_utc": "2026-09-21T02:27:21.0433321Z",
+          "expected_records": 368,
+          "retrieved_records": 368,
+          "evidence_ids_sha256": "c560bf5aefb6e114c8f05999577d3a92dd494dfa09da910e3f97784ff689a8c4",
+          "model_calls": 159,
+          "tool_calls": 5,
+          "max_tool_calls": 9,
+          "readbacks": 368,
+          "max_context_bytes": 11323,
+          "max_input_token_upper_bound": 6144,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 6.672
+        },
+        {
+          "task_id": "S03-endpoint-04",
+          "start_utc": "2026-09-21T02:27:29.6557823Z",
+          "end_utc": "2026-09-21T02:27:59.6557824Z",
+          "expected_records": 21,
+          "retrieved_records": 21,
+          "evidence_ids_sha256": "1a6a03b4fdfd7507313ce59532f76a6982ec1b71cecb716ac253da3efef63c69",
+          "model_calls": 8,
+          "tool_calls": 2,
+          "max_tool_calls": 9,
+          "readbacks": 21,
+          "max_context_bytes": 10938,
+          "max_input_token_upper_bound": 5813,
+          "coverage_complete": true,
+          "truncated": false,
+          "latency_seconds": 0.148
+        }
+      ]
+    }
+  }
+}
