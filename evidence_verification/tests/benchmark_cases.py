@@ -61,7 +61,7 @@ DERIVED_FAITHFUL = {
     "D3 parent process": _typed("discovery_commands", [sys_id(20)], (5, 5),
                                 "whoami.exe was started by explorer.exe under the analyst account."),
     "D4 office parent": _typed("unusual_parent_shell", [sys_id(23)], (8, 8),
-                               "cmd.exe was started by winword.exe under the account LAB-A\other."),
+                               "cmd.exe was started by winword.exe under the account LAB-A\\other."),
     "D5 order derived": make_claim(
         claim_text="Events 4625, 4625 and 4624 were recorded for the analyst account, in that order."),
     "D6 path characterised": _typed("payload_written", [sys_id(21)], (6, 6),
