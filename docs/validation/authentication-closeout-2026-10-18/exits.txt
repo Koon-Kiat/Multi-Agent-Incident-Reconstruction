@@ -1,0 +1,4 @@
+autonomy=1
+corpus=1
+synthetic=1
+investigations=0

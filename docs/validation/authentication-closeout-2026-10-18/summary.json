@@ -1,0 +1,1105 @@
+{
+  "autonomy": {
+    "total": 18,
+    "check_pass": 17,
+    "behavior_pass": 10,
+    "strict_useful": 1,
+    "elapsed_seconds": 184.501,
+    "cases": [
+      {
+        "file": "autonomy/sufficient-1.json",
+        "status": "failed",
+        "error": "model_timeout",
+        "check_errors": [
+          "investigation did not complete"
+        ],
+        "behavior_errors": [
+          "factual completion or final model response failed"
+        ],
+        "elapsed_seconds": 60.016,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "autonomy/sufficient-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 12.562,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "autonomy/sufficient-3.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.047,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "autonomy/useful_synthetic-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 10.953,
+        "optional_operations": 2,
+        "new_optional_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "repeated_operations": 0,
+        "strict_useful": true,
+        "relevant_new_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "autonomy/useful_synthetic-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [
+          "model repeated an identical operation",
+          "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+        ],
+        "elapsed_seconds": 12.578,
+        "optional_operations": 3,
+        "new_optional_ids": [],
+        "repeated_operations": 3,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "autonomy/useful_synthetic-3.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [
+          "model repeated an identical operation",
+          "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+        ],
+        "elapsed_seconds": 19.453,
+        "optional_operations": 5,
+        "new_optional_ids": [],
+        "repeated_operations": 4,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "autonomy/useful_corpus-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [
+          "model repeated an identical operation",
+          "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+        ],
+        "elapsed_seconds": 14.812,
+        "optional_operations": 3,
+        "new_optional_ids": [],
+        "repeated_operations": 1,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "autonomy/useful_corpus-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [
+          "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+        ],
+        "elapsed_seconds": 1.438,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "autonomy/useful_corpus-3.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [
+          "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+        ],
+        "elapsed_seconds": 1.156,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "autonomy/empty-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.5,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "No authentication evidence was returned for this window; this does not establish absence of activity."
+        ]
+      },
+      {
+        "file": "autonomy/empty-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 0.532,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "No authentication evidence was returned for this window; this does not establish absence of activity."
+        ]
+      },
+      {
+        "file": "autonomy/empty-3.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 0.531,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "No authentication evidence was returned for this window; this does not establish absence of activity."
+        ]
+      },
+      {
+        "file": "autonomy/missing_context-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 8.109,
+        "optional_operations": 2,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "autonomy/missing_context-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [
+          "model repeated an identical operation"
+        ],
+        "elapsed_seconds": 5.875,
+        "optional_operations": 2,
+        "new_optional_ids": [],
+        "repeated_operations": 1,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "autonomy/missing_context-3.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [
+          "model repeated an identical operation"
+        ],
+        "elapsed_seconds": 5.235,
+        "optional_operations": 2,
+        "new_optional_ids": [],
+        "repeated_operations": 1,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "autonomy/missing_exact-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.188,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "An exact evidence lookup returned not found; no replacement was used."
+        ]
+      },
+      {
+        "file": "autonomy/missing_exact-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 12.75,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "An exact evidence lookup returned not found; no replacement was used."
+        ]
+      },
+      {
+        "file": "autonomy/missing_exact-3.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 12.766,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": false,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "An exact evidence lookup returned not found; no replacement was used."
+        ]
+      }
+    ],
+    "result_error_codes": {
+      "model_timeout": 1
+    }
+  },
+  "corpus": {
+    "total": 11,
+    "check_pass": 6,
+    "behavior_pass": 6,
+    "strict_useful": 0,
+    "elapsed_seconds": 55.22,
+    "cases": [
+      {
+        "file": "corpus/S01.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.157,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/S02.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.984,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/S03.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.047,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/empty.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.734,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "No authentication evidence was returned for this window; this does not establish absence of activity."
+        ]
+      },
+      {
+        "file": "corpus/get_existing.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.547,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/get_missing.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call",
+          "unknown lookup was not explicitly reported"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.813,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/query_tool.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 11.921,
+        "optional_operations": 1,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/account_history.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 8.735,
+        "optional_operations": 1,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/tool_budget.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "expected fail-closed outcome tool_budget_exhausted",
+          "failed investigations must contain no findings",
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.969,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "corpus/bounded_query.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 6.25,
+        "optional_operations": 1,
+        "new_optional_ids": [],
+        "repeated_operations": 1,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "corpus/interpretation.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 9.063,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      }
+    ],
+    "result_error_codes": {}
+  },
+  "synthetic": {
+    "total": 16,
+    "check_pass": 11,
+    "behavior_pass": 11,
+    "strict_useful": 0,
+    "elapsed_seconds": 51.299,
+    "cases": [
+      {
+        "file": "synthetic/SYN-A.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.172,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/SYN-B.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.485,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/SYN-C.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 6.188,
+        "optional_operations": 1,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/SYN-D.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.438,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/SYN-E.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.187,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "No authentication evidence was returned for this window; this does not establish absence of activity."
+        ]
+      },
+      {
+        "file": "synthetic/SYN-F.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 8.313,
+        "optional_operations": 2,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/SYN-H1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.797,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/SYN-H2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.047,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/SYN-I.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.5,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/get_existing.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.063,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/get_missing.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call",
+          "unknown lookup was not explicitly reported"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.093,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/query_tool.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.672,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/account_history.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.782,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/tool_budget.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [
+          "expected fail-closed outcome tool_budget_exhausted",
+          "failed investigations must contain no findings",
+          "model did not emit the directed approved tool call"
+        ],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.921,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "synthetic/bounded_query.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 9.907,
+        "optional_operations": 2,
+        "new_optional_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "repeated_operations": 1,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "synthetic/interpretation.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.734,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      }
+    ],
+    "result_error_codes": {}
+  },
+  "investigations": {
+    "total": 23,
+    "check_pass": 23,
+    "behavior_pass": 23,
+    "strict_useful": 0,
+    "elapsed_seconds": 133.578,
+    "cases": [
+      {
+        "file": "investigations/ordinary-S01-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.781,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-S02-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.562,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-S03-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.485,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-empty-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.204,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "No authentication evidence was returned for this window; this does not establish absence of activity."
+        ]
+      },
+      {
+        "file": "investigations/ordinary-bounded-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 6.187,
+        "optional_operations": 1,
+        "new_optional_ids": [],
+        "repeated_operations": 1,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "investigations/ordinary-synthetic_sufficient-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.969,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-synthetic_missing_context-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 8.39,
+        "optional_operations": 2,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-synthetic_bounded-1.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 9.047,
+        "optional_operations": 2,
+        "new_optional_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "repeated_operations": 1,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "investigations/ordinary-S01-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.891,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-S02-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.578,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-S03-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 2.156,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-empty-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.625,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "No authentication evidence was returned for this window; this does not establish absence of activity."
+        ]
+      },
+      {
+        "file": "investigations/ordinary-bounded-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 14.891,
+        "optional_operations": 3,
+        "new_optional_ids": [],
+        "repeated_operations": 1,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "investigations/ordinary-synthetic_sufficient-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 1.484,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-synthetic_missing_context-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 6.297,
+        "optional_operations": 2,
+        "new_optional_ids": [],
+        "repeated_operations": 1,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/ordinary-synthetic_bounded-2.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 9.234,
+        "optional_operations": 2,
+        "new_optional_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "repeated_operations": 1,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "At least one query was truncated; this is not a complete window inventory."
+        ]
+      },
+      {
+        "file": "investigations/required-exact_existing.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.625,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/required-exact_missing.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 22.703,
+        "optional_operations": 3,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "An exact evidence lookup returned not found; no replacement was used."
+        ]
+      },
+      {
+        "file": "investigations/required-filtered.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 11.047,
+        "optional_operations": 1,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/required-history.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.235,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      },
+      {
+        "file": "investigations/required-combined.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 3.531,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "An exact evidence lookup returned not found; no replacement was used."
+        ]
+      },
+      {
+        "file": "investigations/required-duplicates.json",
+        "status": "completed",
+        "error": null,
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 13.64,
+        "optional_operations": 1,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": [
+          "An exact evidence lookup returned not found; no replacement was used."
+        ]
+      },
+      {
+        "file": "investigations/required-budget.json",
+        "status": "failed",
+        "error": "tool_budget_exhausted",
+        "check_errors": [],
+        "behavior_errors": [],
+        "elapsed_seconds": 0.016,
+        "optional_operations": 0,
+        "new_optional_ids": [],
+        "repeated_operations": 0,
+        "strict_useful": null,
+        "relevant_new_ids": [],
+        "uncertainty": []
+      }
+    ],
+    "result_error_codes": {
+      "tool_budget_exhausted": 1
+    }
+  }
+}

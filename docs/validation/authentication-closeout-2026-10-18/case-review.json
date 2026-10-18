@@ -1,0 +1,3878 @@
+[
+  {
+    "file": "autonomy/sufficient-1.json",
+    "status": "failed",
+    "error": "model_timeout",
+    "check_errors": [
+      "investigation did not complete"
+    ],
+    "behavior_errors": [
+      "factual completion or final model response failed"
+    ],
+    "elapsed_seconds": 60.016,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "The complete initial authentication inventory is sufficient; no new evidence is available.",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "6a9fb4914ae37fcc692d4d54a1676b77200c4652ff17a852347bb9b131354931",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2",
+            "SYN-A-SEC-3",
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": null,
+        "error": "model_timeout",
+        "metrics": {},
+        "elapsed_seconds": 60.016
+      }
+    ]
+  },
+  {
+    "file": "autonomy/useful_synthetic-1.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [],
+    "elapsed_seconds": 10.953,
+    "optional_operations": 2,
+    "new_optional_ids": [
+      "SYN-A-SEC-4"
+    ],
+    "repeated_operations": 0,
+    "strict_useful": true,
+    "relevant_new_ids": [
+      "SYN-A-SEC-4"
+    ],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Do the observed failed logons have a subsequent successful logon in the requested window?",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_account_authentication_history",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "account": "demo.user",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "event_ids": [
+              4624
+            ],
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "273399b8be38410a9f21efbccb787f8a96924be707be31a758bea6ff1ea0de0f",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. To determine if there is a pattern or if additional context is needed, we should investigate the account authentication history for the account 'demo.user' within the same time window.",
+          "action": "tool",
+          "tool": {
+            "name": "get_account_authentication_history",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "account": "demo.user",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2635,
+          "eval_count": 173,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.766
+      },
+      {
+        "context_sha256": "14c8403e8aeec6193c31bfc16293ce2dd68c88c1fba68c2fc890373989c7b7ee",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts for the account 'demo.user' on host 'LAB-A', but no successful logons. A more focused query could check for any successful logons in the same timeframe to determine if there was a compromise or a successful login after the failed attempts.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2,
+              "event_ids": [
+                4624
+              ]
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2804,
+          "eval_count": 184,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 4.062
+      },
+      {
+        "context_sha256": "b6ab535ca0f80ee5d770d322822ee879647164e7d911f3bebde29a04b546f4f8",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence covers the requested window and includes both failed and successful logon attempts. No further authentication context is needed.",
+          "action": "finish",
+          "tool": null,
+          "annotations": [
+            {
+              "observation_id": "AUTH-ade353af32bb2ee4e160ec6d",
+              "evidence_ids": [
+                "SYN-A-SEC-1",
+                "SYN-A-SEC-2",
+                "SYN-A-SEC-4"
+              ],
+              "interpretation": "may_warrant_review"
+            }
+          ]
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3110,
+          "eval_count": 127,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.125
+      }
+    ]
+  },
+  {
+    "file": "autonomy/useful_synthetic-2.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [
+      "model repeated an identical operation",
+      "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+    ],
+    "elapsed_seconds": 12.578,
+    "optional_operations": 3,
+    "new_optional_ids": [],
+    "repeated_operations": 3,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Do the observed failed logons have a subsequent successful logon in the requested window?",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 3,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "273399b8be38410a9f21efbccb787f8a96924be707be31a758bea6ff1ea0de0f",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A deeper investigation may require checking if there are additional authentication events outside the current window or for a specific account.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2635,
+          "eval_count": 152,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.172
+      },
+      {
+        "context_sha256": "a0861ed2e6f8c85b682959560cadb768298c31d91538177c5f40a59b1ca8ba52",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts within the specified window, but no successful logons. A deeper investigation may require checking if there are additional authentication events outside the initial query window or if there are any successful logons associated with the same account.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2797,
+          "eval_count": 165,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.843
+      },
+      {
+        "context_sha256": "15d5a896cf1f7c0473c3421bcc687e2554ee8e49fd1fbd514cc5082f87214237",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts within the specified window, but no successful logons. A deeper investigation may require checking if there are additional authentication events or if the account was successfully logged in outside the observed window.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2959,
+          "eval_count": 159,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.641
+      },
+      {
+        "context_sha256": "24348e9c0976c8b07b13f47366d648fa4a0e3366d5ff5c7b0ab608cdf58c49de",
+        "remaining_budget": 4,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The available evidence shows two failed logon attempts within the specified time window, but no successful logons. There is no indication of a common actor or compromise based on authentication records alone.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3121,
+          "eval_count": 63,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.906
+      }
+    ]
+  },
+  {
+    "file": "autonomy/useful_synthetic-3.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [
+      "model repeated an identical operation",
+      "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+    ],
+    "elapsed_seconds": 19.453,
+    "optional_operations": 5,
+    "new_optional_ids": [],
+    "repeated_operations": 4,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Do the observed failed logons have a subsequent successful logon in the requested window?",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 3,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 4,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 5,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_account_authentication_history",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "account": "demo.user",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "273399b8be38410a9f21efbccb787f8a96924be707be31a758bea6ff1ea0de0f",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A deeper investigation may require checking if there are additional authentication events outside the current window or for a specific account.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2635,
+          "eval_count": 152,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.125
+      },
+      {
+        "context_sha256": "a0861ed2e6f8c85b682959560cadb768298c31d91538177c5f40a59b1ca8ba52",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A deeper investigation may require checking if there are additional authentication events outside the current window or for a specific account.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2797,
+          "eval_count": 152,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.109
+      },
+      {
+        "context_sha256": "15d5a896cf1f7c0473c3421bcc687e2554ee8e49fd1fbd514cc5082f87214237",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts within the specified window, but no successful logons. Further investigation may require checking if any successful logons occurred outside the window or if additional failed attempts were recorded.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2959,
+          "eval_count": 156,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.344
+      },
+      {
+        "context_sha256": "24348e9c0976c8b07b13f47366d648fa4a0e3366d5ff5c7b0ab608cdf58c49de",
+        "remaining_budget": 4,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts within the specified window, but no successful logons. The truncated result suggests there may be additional events outside the current window. Further investigation could focus on expanding the time range or checking for successful logons.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3121,
+          "eval_count": 164,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.891
+      },
+      {
+        "context_sha256": "de9649e332240c1618377ff85f7c1d0897ca151ea900123645c872f434c25cb7",
+        "remaining_budget": 3,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The available evidence shows two failed logon attempts within the specified time window, but no successful logons. Further investigation may require checking for additional authentication events or account-specific history.",
+          "action": "tool",
+          "tool": {
+            "name": "get_account_authentication_history",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "account": "demo.user",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3283,
+          "eval_count": 158,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.828
+      },
+      {
+        "context_sha256": "a6d602eac790fffe2ada7aeb68ab7f1baa0bc9f3582cb777d3ebbf97030772ac",
+        "remaining_budget": 2,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The available evidence shows two failed logon attempts within the specified time window, but no successful logons. There is no additional context to determine if these attempts are part of a larger pattern or if they indicate a potential compromise.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3452,
+          "eval_count": 71,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.125
+      }
+    ]
+  },
+  {
+    "file": "autonomy/useful_corpus-1.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [
+      "model repeated an identical operation",
+      "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+    ],
+    "elapsed_seconds": 14.812,
+    "optional_operations": 3,
+    "new_optional_ids": [],
+    "repeated_operations": 1,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Does the incomplete window also contain failed logons, beyond the initial service successes?",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_authentication_event",
+          "arguments": {
+            "evidence_id": "S02-SEC-43503"
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 3,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_authentication_event",
+          "arguments": {
+            "evidence_id": "S02-SEC-43547"
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43547"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "63b741364d48f7b329ec142822e9234d1ccbe3af9c3cab33b79c7293ac91e4cd",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The available evidence shows two successful logons by the SYSTEM account on the same host within the requested window. However, the source address and workstation information are missing, which limits the ability to determine the origin or context of these logons. Further investigation may require additional queries or tools to gather more detailed information.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "S02",
+              "start_utc": "2026-09-21T02:04:30Z",
+              "end_utc": "2026-09-21T02:06:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3052,
+          "eval_count": 175,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.969
+      },
+      {
+        "context_sha256": "848880a062d5709c2f6cf19d249d177ba96d9cfd3ed8713a674213e5a18ef287",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The available evidence shows two successful logons by the SYSTEM account on the same host within the requested window. However, the source address and workstation information are missing, which limits the ability to determine the origin of these logons. Further investigation could focus on retrieving additional details about these events or checking for any failed logon attempts that might provide more context.",
+          "action": "tool",
+          "tool": {
+            "name": "get_authentication_event",
+            "arguments": {
+              "evidence_id": "S02-SEC-43503"
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3222,
+          "eval_count": 109,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.812
+      },
+      {
+        "context_sha256": "16dfd5e370e3d842c89119a66b56acc904ae17fffe09b56a4d410bf6a5f440e4",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "last_tool_result": {
+          "found": true,
+          "evidence_ids": [
+            "S02-SEC-43503"
+          ]
+        },
+        "decision": {
+          "assessment": "The available evidence shows two successful logons by the SYSTEM account on the same host within the requested window. However, the source address and workstation information are missing, which limits the ability to determine the origin or context of these logons. Further investigation may require additional queries or tools to gather more detailed information.",
+          "action": "tool",
+          "tool": {
+            "name": "get_authentication_event",
+            "arguments": {
+              "evidence_id": "S02-SEC-43547"
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3317,
+          "eval_count": 123,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.125
+      },
+      {
+        "context_sha256": "96cefe046f47488bf786237517d50ff23acf03169a3c6abb98fabb9a94db18ba",
+        "remaining_budget": 4,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "last_tool_result": {
+          "found": true,
+          "evidence_ids": [
+            "S02-SEC-43547"
+          ]
+        },
+        "decision": {
+          "assessment": "The available evidence shows two successful logons by the SYSTEM account on the same host within the specified time window. No additional authentication events or account-specific details are available to further investigate potential compromise or actor correlation.",
+          "action": "finish",
+          "tool": null,
+          "annotations": [
+            {
+              "observation_id": "AUTH-c7ed785dafc87fa56e099841",
+              "evidence_ids": [
+                "S02-SEC-43503"
+              ],
+              "interpretation": "may_warrant_review"
+            },
+            {
+              "observation_id": "AUTH-7d89d1e7693505a812a8574a",
+              "evidence_ids": [
+                "S02-SEC-43547"
+              ],
+              "interpretation": "may_warrant_review"
+            }
+          ]
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3425,
+          "eval_count": 198,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 4.859
+      }
+    ]
+  },
+  {
+    "file": "autonomy/useful_corpus-2.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [
+      "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+    ],
+    "elapsed_seconds": 1.438,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Does the incomplete window also contain failed logons, beyond the initial service successes?",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "63b741364d48f7b329ec142822e9234d1ccbe3af9c3cab33b79c7293ac91e4cd",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The available evidence shows two successful logons by the SYSTEM account on the same host within the requested window. No additional authentication events are available due to the truncated query. Further investigation is not warranted at this time.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3052,
+          "eval_count": 57,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.406
+      }
+    ]
+  },
+  {
+    "file": "autonomy/useful_corpus-3.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [
+      "useful new outcome was not retrieved, reviewed and explicitly annotated by the model"
+    ],
+    "elapsed_seconds": 1.156,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Does the incomplete window also contain failed logons, beyond the initial service successes?",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "63b741364d48f7b329ec142822e9234d1ccbe3af9c3cab33b79c7293ac91e4cd",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The available evidence shows two successful logons by the SYSTEM account on the same host within the requested window. No additional authentication events are available due to the truncated query. Further investigation is not warranted at this time.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3052,
+          "eval_count": 57,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.125
+      }
+    ]
+  },
+  {
+    "file": "autonomy/missing_context-2.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [
+      "model repeated an identical operation"
+    ],
+    "elapsed_seconds": 5.875,
+    "optional_operations": 2,
+    "new_optional_ids": [],
+    "repeated_operations": 1,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-F",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Missing or conflicting identity fields cannot be repaired by re-fetching these records.",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-F",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "new_evidence_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_authentication_event",
+          "arguments": {
+            "evidence_id": "SYN-F-SEC-1"
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-F-SEC-1"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_authentication_event",
+          "arguments": {
+            "evidence_id": "SYN-F-SEC-1"
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-F-SEC-1"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": false,
+        "reused_from": 1,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "6fe3a351c27350931ce1f1ac9e22a505a4ec71fba8ac9b56698714f7bc0d1c1a",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-F-SEC-1",
+            "SYN-F-SEC-2",
+            "SYN-F-SEC-3"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence includes one failed logon and two successful logons, but no account or host details are available for the failed logon. Further investigation is needed to determine if there is a common actor or account compromise.",
+          "action": "tool",
+          "tool": {
+            "name": "get_authentication_event",
+            "arguments": {
+              "evidence_id": "SYN-F-SEC-1"
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3484,
+          "eval_count": 78,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.953
+      },
+      {
+        "context_sha256": "1112684e269cd2abeafb3680464b1ce9b92d4123275a34632107efbc7a817d10",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "last_tool_result": {
+          "found": true,
+          "evidence_ids": [
+            "SYN-F-SEC-1"
+          ]
+        },
+        "decision": {
+          "assessment": "The available evidence includes one failed logon and two successful logons, but no account details or source addresses are available for the failed logon. Further investigation is needed to determine if there is a common actor or account compromise.",
+          "action": "tool",
+          "tool": {
+            "name": "get_authentication_event",
+            "arguments": {
+              "evidence_id": "SYN-F-SEC-1"
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3566,
+          "eval_count": 79,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.844
+      },
+      {
+        "context_sha256": "26ff3acd7081e0c236ef4bc54aac3e853fc9912300fc63640a133f40abbee4ad",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "last_tool_result": {
+          "found": true,
+          "evidence_ids": [
+            "SYN-F-SEC-1"
+          ]
+        },
+        "decision": {
+          "assessment": "The available evidence does not provide sufficient context to determine if there is a common actor or account compromise. No additional authentication events or account details are available for further analysis.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3667,
+          "eval_count": 59,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.078
+      }
+    ]
+  },
+  {
+    "file": "autonomy/missing_context-3.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [
+      "model repeated an identical operation"
+    ],
+    "elapsed_seconds": 5.235,
+    "optional_operations": 2,
+    "new_optional_ids": [],
+    "repeated_operations": 1,
+    "strict_useful": false,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-F",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": "Missing or conflicting identity fields cannot be repaired by re-fetching these records.",
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-F",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "new_evidence_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_authentication_event",
+          "arguments": {
+            "evidence_id": "SYN-F-SEC-1"
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-F-SEC-1"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_authentication_event",
+          "arguments": {
+            "evidence_id": "SYN-F-SEC-1"
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-F-SEC-1"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": false,
+        "reused_from": 1,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "6fe3a351c27350931ce1f1ac9e22a505a4ec71fba8ac9b56698714f7bc0d1c1a",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-F-SEC-1",
+            "SYN-F-SEC-2",
+            "SYN-F-SEC-3"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence includes one failed logon and two successful logons, but no account or host details are available for the failed logon. Further investigation is needed to determine if there is a common actor or account compromise.",
+          "action": "tool",
+          "tool": {
+            "name": "get_authentication_event",
+            "arguments": {
+              "evidence_id": "SYN-F-SEC-1"
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3484,
+          "eval_count": 78,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.875
+      },
+      {
+        "context_sha256": "1112684e269cd2abeafb3680464b1ce9b92d4123275a34632107efbc7a817d10",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "last_tool_result": {
+          "found": true,
+          "evidence_ids": [
+            "SYN-F-SEC-1"
+          ]
+        },
+        "decision": {
+          "assessment": "The available evidence includes one failed logon and two successful logons, but no account details or source addresses are available for the failed logon. Further investigation is needed to determine if there is a common actor or account compromise.",
+          "action": "tool",
+          "tool": {
+            "name": "get_authentication_event",
+            "arguments": {
+              "evidence_id": "SYN-F-SEC-1"
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3566,
+          "eval_count": 79,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.875
+      },
+      {
+        "context_sha256": "26ff3acd7081e0c236ef4bc54aac3e853fc9912300fc63640a133f40abbee4ad",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-F-SEC-1",
+          "SYN-F-SEC-2",
+          "SYN-F-SEC-3"
+        ],
+        "last_tool_result": {
+          "found": true,
+          "evidence_ids": [
+            "SYN-F-SEC-1"
+          ]
+        },
+        "decision": {
+          "assessment": "The available evidence does not provide sufficient context to determine if there is a common actor or account compromise. No additional authentication events or account details are available for further analysis.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3667,
+          "eval_count": 59,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.453
+      }
+    ]
+  },
+  {
+    "file": "corpus/get_existing.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 2.547,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_authentication_event",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "27d9f8d5ba64632b5c155f144c12dfc7752dbde6362646cae495c3a9ae06a600",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547",
+            "S02-SEC-43554",
+            "S02-SEC-43558",
+            "S02-SEC-43559",
+            "S02-SEC-43571",
+            "S02-SEC-43573",
+            "S02-SEC-43575",
+            "S02-SEC-43578",
+            "S02-SEC-43580",
+            "S02-SEC-43584",
+            "S02-SEC-43591"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query has retrieved all authentication events within the specified window. No further evidence is needed to determine the authentication context.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 7059,
+          "eval_count": 39,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.531
+      }
+    ]
+  },
+  {
+    "file": "corpus/get_missing.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call",
+      "unknown lookup was not explicitly reported"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 2.813,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_authentication_event",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "c66db4089cba1e283a34d1f1caff105f8bb5792407c84ef278cf351ed41e1fe9",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547",
+            "S02-SEC-43554",
+            "S02-SEC-43558",
+            "S02-SEC-43559",
+            "S02-SEC-43571",
+            "S02-SEC-43573",
+            "S02-SEC-43575",
+            "S02-SEC-43578",
+            "S02-SEC-43580",
+            "S02-SEC-43584",
+            "S02-SEC-43591"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query has retrieved all authentication records within the specified window. No further evidence is needed to establish the authentication context.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 7067,
+          "eval_count": 39,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.797
+      }
+    ]
+  },
+  {
+    "file": "corpus/query_tool.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 11.921,
+    "optional_operations": 1,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "query_authentication_events",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_account_authentication_history",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "event_ids": [
+              4624,
+              4625
+            ],
+            "account": "mair_user",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "045d7084e942d59f55735577ba7911e8f6fde693a867360237273e82880fa406",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547",
+            "S02-SEC-43554",
+            "S02-SEC-43558",
+            "S02-SEC-43559",
+            "S02-SEC-43571",
+            "S02-SEC-43573",
+            "S02-SEC-43575",
+            "S02-SEC-43578",
+            "S02-SEC-43580",
+            "S02-SEC-43584",
+            "S02-SEC-43591"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence shows multiple successful and failed logons, but there is no clear indication of a common actor or compromise. Further investigation into the account 'mair_user' and its authentication history may be useful.",
+          "action": "tool",
+          "tool": {
+            "name": "get_account_authentication_history",
+            "arguments": {
+              "scenario_id": "S02",
+              "start_utc": "2026-09-21T02:04:30Z",
+              "end_utc": "2026-09-21T02:06:00Z",
+              "account": "mair_user",
+              "limit": 100,
+              "event_ids": [
+                4624,
+                4625
+              ]
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 7174,
+          "eval_count": 147,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 5.25
+      },
+      {
+        "context_sha256": "a7d57290506b70a591afd7b38c2fae0f19a8504237632b4b41f54cbb341cf074",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43571",
+            "S02-SEC-43573",
+            "S02-SEC-43575",
+            "S02-SEC-43578",
+            "S02-SEC-43580",
+            "S02-SEC-43584"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence shows multiple failed logon attempts followed by a successful logon for the account 'mair_user'. However, there is no additional context about the source or nature of these attempts. Further investigation may be needed to determine if this is suspicious activity.",
+          "action": "finish",
+          "tool": null,
+          "annotations": [
+            {
+              "observation_id": "AUTH-b639e5e8bb7ec69813438dcd",
+              "evidence_ids": [
+                "S02-SEC-43571",
+                "S02-SEC-43573",
+                "S02-SEC-43575",
+                "S02-SEC-43578",
+                "S02-SEC-43580",
+                "S02-SEC-43584"
+              ],
+              "interpretation": "may_warrant_review"
+            }
+          ]
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 7094,
+          "eval_count": 208,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 6.609
+      }
+    ]
+  },
+  {
+    "file": "corpus/account_history.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 8.735,
+    "optional_operations": 1,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_account_authentication_history",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "get_account_authentication_history",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "account": "mair_user",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584"
+        ],
+        "new_evidence_ids": [],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "c83390e1db2eaa7bfec3ea1e5713e85df98768f5907c69efca169033aba82f11",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547",
+            "S02-SEC-43554",
+            "S02-SEC-43558",
+            "S02-SEC-43559",
+            "S02-SEC-43571",
+            "S02-SEC-43573",
+            "S02-SEC-43575",
+            "S02-SEC-43578",
+            "S02-SEC-43580",
+            "S02-SEC-43584",
+            "S02-SEC-43591"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence shows multiple successful and failed logons, but there is no clear indication of a common actor or compromise. Further investigation into the account 'mair_user' and its associated logon attempts may be necessary.",
+          "action": "tool",
+          "tool": {
+            "name": "get_account_authentication_history",
+            "arguments": {
+              "scenario_id": "S02",
+              "start_utc": "2026-09-21T02:04:30Z",
+              "end_utc": "2026-09-21T02:06:00Z",
+              "account": "mair_user",
+              "limit": 100
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 7167,
+          "eval_count": 135,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 4.953
+      },
+      {
+        "context_sha256": "5ea0bb27b6ff92bdb209ac6d80b10206a2014fb9476ca41f7de575d936ceb744",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43571",
+            "S02-SEC-43573",
+            "S02-SEC-43575",
+            "S02-SEC-43578",
+            "S02-SEC-43580",
+            "S02-SEC-43584"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence shows multiple failed logon attempts followed by a successful logon for the account 'mair_user'. However, there is no additional context about the source or nature of these attempts, and no further authentication events are available within the window. No further queries are needed.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 7078,
+          "eval_count": 82,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.719
+      }
+    ]
+  },
+  {
+    "file": "corpus/tool_budget.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "expected fail-closed outcome tool_budget_exhausted",
+      "failed investigations must contain no findings",
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 2.969,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "S02",
+      "start_utc": "2026-09-21T02:04:30Z",
+      "end_utc": "2026-09-21T02:06:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 1,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_authentication_event",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "S02",
+            "start_utc": "2026-09-21T02:04:30Z",
+            "end_utc": "2026-09-21T02:06:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "new_evidence_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "8ea5348842f0d806a676357df9844abbcf566fcbbb6c90d5f3cfe72010b7cde2",
+        "remaining_budget": 0,
+        "visible_ids": [
+          "S02-SEC-43503",
+          "S02-SEC-43547",
+          "S02-SEC-43554",
+          "S02-SEC-43558",
+          "S02-SEC-43559",
+          "S02-SEC-43571",
+          "S02-SEC-43573",
+          "S02-SEC-43575",
+          "S02-SEC-43578",
+          "S02-SEC-43580",
+          "S02-SEC-43584",
+          "S02-SEC-43591"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "S02-SEC-43503",
+            "S02-SEC-43547",
+            "S02-SEC-43554",
+            "S02-SEC-43558",
+            "S02-SEC-43559",
+            "S02-SEC-43571",
+            "S02-SEC-43573",
+            "S02-SEC-43575",
+            "S02-SEC-43578",
+            "S02-SEC-43580",
+            "S02-SEC-43584",
+            "S02-SEC-43591"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query has retrieved all authentication events within the specified window. No further evidence is needed to determine the authentication context.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 7059,
+          "eval_count": 39,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.938
+      }
+    ]
+  },
+  {
+    "file": "synthetic/get_existing.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 2.063,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_authentication_event",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "4a77f46fbd0e211eba1ffa5941a77b4c7c8b1e64f0a68959af2c07947d72452b",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2",
+            "SYN-A-SEC-3",
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query has retrieved all authentication events in the specified window. No further context is needed to determine the authentication sequence for the account 'demo.user'.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3096,
+          "eval_count": 57,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.063
+      }
+    ]
+  },
+  {
+    "file": "synthetic/get_missing.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call",
+      "unknown lookup was not explicitly reported"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 2.093,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_authentication_event",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "fb9f5beff3859ef89560890f431c4ee812ec4c56826c682d9f6424173581c13b",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2",
+            "SYN-A-SEC-3",
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query has retrieved all authentication events in the specified window. No further evidence is needed to confirm the observed pattern of failed logons followed by a successful logon.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3100,
+          "eval_count": 60,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.093
+      }
+    ]
+  },
+  {
+    "file": "synthetic/query_tool.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 1.672,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "query_authentication_events",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "71666028d5e7726ca49407b2724b941577d335f5c878c687029ce370e068f4a1",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2",
+            "SYN-A-SEC-3",
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query retrieved authentication events for the specified window, but no further evidence is needed to determine the sequence of logon attempts.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3219,
+          "eval_count": 41,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.656
+      }
+    ]
+  },
+  {
+    "file": "synthetic/account_history.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 1.782,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_account_authentication_history",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "12a00c9532fb446aaeb80a55b01355a09834d1a42f96d63f7ac35e0bc1039aa4",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2",
+            "SYN-A-SEC-3",
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query has retrieved all authentication events within the specified window. No further evidence is needed to confirm the observed authentication pattern.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3214,
+          "eval_count": 40,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.782
+      }
+    ]
+  },
+  {
+    "file": "synthetic/tool_budget.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [
+      "expected fail-closed outcome tool_budget_exhausted",
+      "failed investigations must contain no findings",
+      "model did not emit the directed approved tool call"
+    ],
+    "behavior_errors": [],
+    "elapsed_seconds": 1.921,
+    "optional_operations": 0,
+    "new_optional_ids": [],
+    "repeated_operations": 0,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 1,
+      "max_events_per_query": 100,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": "get_authentication_event",
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 100
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "c244f855fc5fe29384beee260d71a32710672299727078563cc3547fde50a05a",
+        "remaining_budget": 0,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-3",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2",
+            "SYN-A-SEC-3",
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The initial query has retrieved all authentication events in the specified window. No further context is needed to determine the authentication pattern observed.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3096,
+          "eval_count": 51,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.921
+      }
+    ]
+  },
+  {
+    "file": "synthetic/bounded_query.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [],
+    "elapsed_seconds": 9.907,
+    "optional_operations": 2,
+    "new_optional_ids": [
+      "SYN-A-SEC-4"
+    ],
+    "repeated_operations": 1,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "event_ids": [
+              4624
+            ],
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "273399b8be38410a9f21efbccb787f8a96924be707be31a758bea6ff1ea0de0f",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A deeper investigation may require checking if there are additional authentication events outside the current window or for a specific account.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2635,
+          "eval_count": 152,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.875
+      },
+      {
+        "context_sha256": "a0861ed2e6f8c85b682959560cadb768298c31d91538177c5f40a59b1ca8ba52",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A more focused query could check for successful logons or account-specific authentication history to determine if there was a transition from failure to success.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2,
+              "event_ids": [
+                4624
+              ]
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2797,
+          "eval_count": 168,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 4.016
+      },
+      {
+        "context_sha256": "2d0f0d194de5ee388c1cd73b9c6a87b4ea18bda3b3035e7777bec8fc268a4735",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence includes 2 failed logons and 1 successful logon for the account 'demo.user' on host 'LAB-A'. No further authentication events are needed to understand the sequence of events within the specified window.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3103,
+          "eval_count": 60,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 2.016
+      }
+    ]
+  },
+  {
+    "file": "investigations/ordinary-synthetic_bounded-1.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [],
+    "elapsed_seconds": 9.047,
+    "optional_operations": 2,
+    "new_optional_ids": [
+      "SYN-A-SEC-4"
+    ],
+    "repeated_operations": 1,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "event_ids": [
+              4624
+            ],
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "273399b8be38410a9f21efbccb787f8a96924be707be31a758bea6ff1ea0de0f",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A deeper investigation may require checking if these failed attempts were part of a larger pattern or if there were any successful logons outside the current window.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2635,
+          "eval_count": 159,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.734
+      },
+      {
+        "context_sha256": "a0861ed2e6f8c85b682959560cadb768298c31d91538177c5f40a59b1ca8ba52",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A more focused query could check for successful logons or account-specific authentication history to determine if there was a transition from failure to success.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2,
+              "event_ids": [
+                4624
+              ]
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2797,
+          "eval_count": 168,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.766
+      },
+      {
+        "context_sha256": "2d0f0d194de5ee388c1cd73b9c6a87b4ea18bda3b3035e7777bec8fc268a4735",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence includes 2 failed logons and 1 successful logon for the account 'demo.user' on host 'LAB-A'. No further authentication evidence is needed to understand the sequence of events within the specified window.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3103,
+          "eval_count": 60,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.531
+      }
+    ]
+  },
+  {
+    "file": "investigations/ordinary-synthetic_bounded-2.json",
+    "status": "completed",
+    "error": null,
+    "check_errors": [],
+    "behavior_errors": [],
+    "elapsed_seconds": 9.234,
+    "optional_operations": 2,
+    "new_optional_ids": [
+      "SYN-A-SEC-4"
+    ],
+    "repeated_operations": 1,
+    "strict_useful": null,
+    "relevant_new_ids": [],
+    "uncertainty": [
+      "At least one query was truncated; this is not a complete window inventory."
+    ],
+    "request": {
+      "scenario_id": "SYN-A",
+      "start_utc": "2026-01-10T00:00:00Z",
+      "end_utc": "2026-01-10T00:01:00Z"
+    },
+    "limits": {
+      "max_tool_calls": 8,
+      "max_events_per_query": 2,
+      "max_window_seconds": 3600,
+      "max_model_output_bytes": 32768,
+      "max_event_bytes": 16384,
+      "max_context_bytes": 262144,
+      "model_timeout_seconds": 60,
+      "max_output_tokens": 2048
+    },
+    "expected": null,
+    "directed_first_tool": null,
+    "operations": [
+      {
+        "index": 0,
+        "origin": "initial",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "truncated": true,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "new_evidence_ids": [],
+        "truncated": true,
+        "provider_invoked": false,
+        "reused_from": 0,
+        "error_code": null
+      },
+      {
+        "index": 2,
+        "origin": "model",
+        "required_index": null,
+        "call": {
+          "name": "query_authentication_events",
+          "arguments": {
+            "scenario_id": "SYN-A",
+            "start_utc": "2026-01-10T00:00:00Z",
+            "end_utc": "2026-01-10T00:01:00Z",
+            "event_ids": [
+              4624
+            ],
+            "limit": 2
+          }
+        },
+        "status": "completed",
+        "evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "new_evidence_ids": [
+          "SYN-A-SEC-4"
+        ],
+        "truncated": false,
+        "provider_invoked": true,
+        "reused_from": null,
+        "error_code": null
+      }
+    ],
+    "turns": [
+      {
+        "context_sha256": "273399b8be38410a9f21efbccb787f8a96924be707be31a758bea6ff1ea0de0f",
+        "remaining_budget": 7,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A deeper investigation may require checking if these failed attempts were part of a larger pattern or if there were any successful logons outside the current window.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2635,
+          "eval_count": 159,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.703
+      },
+      {
+        "context_sha256": "a0861ed2e6f8c85b682959560cadb768298c31d91538177c5f40a59b1ca8ba52",
+        "remaining_budget": 6,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-1",
+            "SYN-A-SEC-2"
+          ],
+          "truncated": true
+        },
+        "decision": {
+          "assessment": "The initial query retrieved two failed logon attempts, but no successful logons. A more focused query could check for successful logons or account-specific authentication history to determine if there was a transition from failure to success.",
+          "action": "tool",
+          "tool": {
+            "name": "query_authentication_events",
+            "arguments": {
+              "scenario_id": "SYN-A",
+              "start_utc": "2026-01-10T00:00:00Z",
+              "end_utc": "2026-01-10T00:01:00Z",
+              "limit": 2,
+              "event_ids": [
+                4624
+              ]
+            }
+          },
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 2797,
+          "eval_count": 168,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 3.859
+      },
+      {
+        "context_sha256": "2d0f0d194de5ee388c1cd73b9c6a87b4ea18bda3b3035e7777bec8fc268a4735",
+        "remaining_budget": 5,
+        "visible_ids": [
+          "SYN-A-SEC-1",
+          "SYN-A-SEC-2",
+          "SYN-A-SEC-4"
+        ],
+        "last_tool_result": {
+          "evidence_ids": [
+            "SYN-A-SEC-4"
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "assessment": "The available evidence includes 2 failed logons and 1 successful logon for the account 'demo.user' on host 'LAB-A'. No further authentication evidence is needed to understand the sequence of events within the specified window.",
+          "action": "finish",
+          "tool": null,
+          "annotations": []
+        },
+        "error": null,
+        "metrics": {
+          "prompt_eval_count": 3103,
+          "eval_count": 60,
+          "done_reason": "stop"
+        },
+        "elapsed_seconds": 1.672
+      }
+    ]
+  }
+]

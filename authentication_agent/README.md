@@ -7,7 +7,9 @@ Event Processing & Detection Engine's corpus through `CorpusAuthenticationProvid
 Existing positional calls remain valid; an optional typed `required_operations`
 keyword supports trusted caller requirements. Evidence validation remains strict. Packages,
 commands, schema identifiers and finding IDs now use descriptive names; see the
-[migration guide](../docs/COMPONENT_NAMING.md). The orchestrator is not connected.
+[migration guide](../docs/COMPONENT_NAMING.md). The orchestrator calls this boundary
+through `incident_reconstruction.orchestrator.corpus_investigators`; see the
+[handoff](../docs/ORCHESTRATOR_HANDOFF.md).
 
 ## Real-data entry point
 

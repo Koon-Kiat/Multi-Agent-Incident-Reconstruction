@@ -1,0 +1,19 @@
+{
+  "gpu_sample_count": 180,
+  "sample_interval_seconds": 5,
+  "gpu_utilization_percent_range": [
+    18.0,
+    100.0
+  ],
+  "device_memory_allocated_percent_range": [
+    30.5,
+    85.5
+  ],
+  "scope": "Includes active inference and later idle time; device allocations include other processes. Not per-model memory or causal profiling.",
+  "server_evidence": [
+    "load_tensors: offloaded 37/37 layers to GPU",
+    "time=2026-10-18T18:01:53.013+08:00 level=INFO source=llama_server.go:1403 msg=\"llama-server started in 34.12 seconds\""
+  ],
+  "raw_gpu_samples_sha256": "a777cb2e48ee6f9a5f060e0679e45487a93d32977cb5324b44cbd0cc0424d777",
+  "raw_server_log_sha256": "9c9fa1c8d087c797aeedebb1e00d66e19cb66c1315a09494913ef512b8b78e0a"
+}
