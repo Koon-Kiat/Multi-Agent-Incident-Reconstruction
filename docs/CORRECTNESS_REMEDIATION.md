@@ -72,7 +72,7 @@ is claimed; deterministic extraction and mandatory operations never establish au
 
 ## Follow-up: retrieval and semantic verification
 
-Artifacts for this follow-up are separate under `out/m3-m6-quality-2026-10-19/`. The model name, digest,
+Artifacts for this follow-up are retained separately under the ignored local `out/` directory. The model name, digest,
 Ollama version, context, temperature, seed, thinking mode and output/tool budgets match the profile above.
 Authentication retains its 60-second per-call limit. The recording wrapper now forwards the real
 adapter's token counter, matching production context admission rather than applying its UTF-8 fallback.
@@ -141,6 +141,8 @@ local-model runs are recorded separately. These totals overlap and are not added
 ## Remaining items and PR assessment
 
 No blocking data-integrity, scope-control or scoring defect was found by the final automated checks.
+The [public aggregate audit](validation/correctness-2026-10-20.json) records the final source fingerprint,
+model profile, test counts and development results without uploading raw inference traces.
 The following are explicit follow-ups, not claims that all model behavior or final evaluation is complete:
 
 * **Conservative model judgments.** The final live component run consulted all 17 newly generated real-corpus
@@ -162,3 +164,9 @@ to the final implementation; subsequent changes affect only overflowing views or
 These are development results, not an independent accuracy estimate. All nine current fake mode/scenario
 artifact sets pass binding validation and remain labelled plumbing only. Original evidence and historical scores
 are preserved. Current live traces and the aggregate audit remain in the ignored local output directories.
+
+Four complex-context embellishment cases were also declared before their first live execution. None was
+confirmed and none failed operationally. Only two pairs had an unmodified base confirmed by the model;
+only those pairs earn evidence of catching the added assertion. No catch credit is assigned where the
+base was already lowered. Seven compact model requests independently round-trip every displayed field
+and metadata value to the source corpus. All observed prompt counts satisfy their declared input/output bounds.
