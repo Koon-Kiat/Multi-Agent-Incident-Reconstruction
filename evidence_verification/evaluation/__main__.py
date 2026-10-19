@@ -24,18 +24,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ground-truth", type=Path, default=Path("ground_truth/private"))
     parser.add_argument("--out", type=Path, default=Path("out/evaluation"))
     parser.add_argument("--allow-fake", action="store_true", help="inspect plumbing runs; results are labelled")
+    parser.add_argument("--allow-partial",action="store_true",help="inspect an incomplete comparison; never a final score")
+    parser.add_argument("--claim-reviews",type=Path,help="independent claim/stage correctness annotations")
+    parser.add_argument("--scoring-contract",type=Path,help="approved event-label scoring agreement")
     parser.add_argument("--label", help="e.g. 'POST-HOC re-run'; printed as a banner on every table")
     parser.add_argument("--hardware-note", default="", help="free text recorded with the results, e.g. GPU and RAM")
     args = parser.parse_args(argv)
     try:
         results = evaluate(corpus=args.corpus, runs=args.runs, ground_truth=args.ground_truth, out=args.out,
                            detections=args.detections, allow_fake=args.allow_fake, hardware_note=args.hardware_note,
-                           label=args.label)
-    except (EvaluationError, GroundTruthError) as error:
+                           label=args.label,allow_partial=args.allow_partial,
+                           claim_reviews=args.claim_reviews,scoring_contract=args.scoring_contract)
+    except (ValueError, OSError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     scored = sum(1 for r in results["runs"] if r["status"] == "scored")
-    print(f"{scored} run(s) scored{' (PLUMBING ONLY)' if results['plumbing_only'] else ''} -> {args.out}")
+    qualification = "FINAL SCORE" if results["scored"] else ("PLUMBING ONLY" if results["plumbing_only"] else "DIAGNOSTIC ONLY")
+    print(f"{scored} run(s) analysed ({qualification}) -> {args.out}")
     for configuration, totals in results["totals"].items():
         print(f"  {configuration}: stages {totals['stages_matched']}/{totals['stages_total']}, "
               f"claims aligned/neutral/unaligned {totals['claims_aligned']}/{totals['claims_neutral']}/"

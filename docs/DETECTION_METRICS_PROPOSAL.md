@@ -219,6 +219,11 @@ excluded-event tallies and the undefined-metric cases.
 
 ## What the engine will not do
 
+**2026-10-19 implementation amendment:** corrected runs use `detection-score-v2`, where F1 is 0.0 if both
+precision and recall are defined zeros. Undefined precision or recall still yields undefined F1. The discussion
+above records the historical v1 convention. This implementation change does not imply a joint scoring agreement;
+new final comparisons require the owner-approved contract in EVALUATION_PROTOCOL Amendment 4.
+
 * The engine will **not** locate, request or open the answer key or a private label file. It reads the
   label file it is given and nothing else.
 * The engine will **not** score the real baseline until this proposal is agreed and a labels file path is

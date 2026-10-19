@@ -181,7 +181,7 @@ class LoopingLLM:
                            "tool": {"name": "query_endpoint_events", "arguments": window}})
 
 
-@pytest.mark.parametrize("guard, statuses", [(True, {"completed"}), (False, {"failed"})])
+@pytest.mark.parametrize("guard, statuses", [(True, {"completed"}), (False, {"completed","failed"})])
 def test_finish_guard_stops_a_looping_model_from_discarding_evidence(store, engine, guard, statuses):
     agents = corpus_investigators(store, authentication_llm=LoopingLLM("authentication"),
                                   endpoint_llm=LoopingLLM("endpoint"), limits=Limits(), finish_guard=guard)
@@ -192,10 +192,14 @@ def test_finish_guard_stops_a_looping_model_from_discarding_evidence(store, engi
         # The first model query already repeats the initial one; the next decision may only finish.
         for task in result.tasks:
             model_ops = [op for op in task.result.metadata.operations if op.origin == "model"]
-            assert len(model_ops) == 1 and model_ops[0].reused_from is not None
+            if task.plan.agent_type=="authentication":
+                assert model_ops==[]  # Complete-inventory menu already permits only finish.
+                assert task.result.metadata.planning_policy=="public-query-menu-v1"
+            else:
+                assert len(model_ops) == 1 and model_ops[0].reused_from is not None
             assert task.result.metadata.llm["finish_guard"] == "budget_or_repeat"
     else:
-        assert {task.error_code for task in result.tasks} == {"tool_budget_exhausted"}
+        assert {task.error_code for task in result.tasks if task.status=="failed"} == {"tool_budget_exhausted"}
 
 
 def test_finish_guard_leaves_other_turns_untouched():
@@ -220,3 +224,26 @@ def test_finish_guard_leaves_other_turns_untouched():
     assert seen[0] is schema and seen[2] is schema
     assert seen[1] == {"$defs": schema["$defs"], "$ref": "#/$defs/_FinishReply"}
     assert guard.forced_finishes == 1
+
+
+def test_production_transport_inherits_task_deadline_and_stops_later_calls():
+    import time
+    from incident_reconstruction.orchestrator import FinishGuard,TASK_DEADLINE
+    seen=[]
+    class Recorder:
+        def complete(self,messages,schema,limits):
+            seen.append(limits.model_timeout_seconds)
+            return "{}"
+    guard=FinishGuard(Recorder())
+    token=TASK_DEADLINE.set(time.perf_counter()+2)
+    try:
+        guard.complete([],{},Limits(model_timeout_seconds=60))
+        assert 1<=seen[0]<=2
+    finally:
+        TASK_DEADLINE.reset(token)
+    token=TASK_DEADLINE.set(time.perf_counter()-1)
+    try:
+        with pytest.raises(TimeoutError): guard.complete([],{},Limits())
+        assert len(seen)==1
+    finally:
+        TASK_DEADLINE.reset(token)

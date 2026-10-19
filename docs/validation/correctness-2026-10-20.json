@@ -1,0 +1,134 @@
+{
+  "scope": "Local development validation; no independent project accuracy claim",
+  "implementation_sha256": "ef357718f0054b2e17fe2249e0003519c60514d90ea8ba68c6a57579611386b9",
+  "authentication_baseline": {
+    "cases": 18,
+    "factual_passed": 18,
+    "behavior_passed": 6,
+    "valid_opportunities": 6,
+    "useful_demonstrated": 0
+  },
+  "authentication_revised": {
+    "cases": 18,
+    "factual_passed": 18,
+    "behavior_passed": 18,
+    "valid_opportunities": 6,
+    "useful_demonstrated": 6
+  },
+  "authentication_new": {
+    "cases": 8,
+    "factual_passed": 8,
+    "behavior_passed": 8,
+    "valid_opportunities": 4,
+    "useful_demonstrated": 4
+  },
+  "verifier": {
+    "verifier-development-release.json": {
+      "supported": {
+        "total": 12,
+        "confirmed": 12,
+        "operational_abstention": 0
+      },
+      "unsupported": {
+        "total": 12,
+        "confirmed": 0,
+        "operational_abstention": 0
+      },
+      "ordinary_requests_byte_equivalent_to_current": true
+    },
+    "verifier-new-release.json": {
+      "supported": {
+        "total": 8,
+        "confirmed": 8,
+        "operational_abstention": 0
+      },
+      "unsupported": {
+        "total": 8,
+        "confirmed": 0,
+        "operational_abstention": 0
+      },
+      "ordinary_requests_byte_equivalent_to_current": true
+    }
+  },
+  "real_corpus_component": {
+    "cases": 17,
+    "verdicts": {
+      "confirmed": 13,
+      "partially_supported": 2,
+      "unverified": 2,
+      "rejected": 0
+    },
+    "model_calls": 17,
+    "operational_failures": 0,
+    "lowered_claims": [
+      {
+        "scenario": "S01",
+        "claim_id": "S01-CLM-02",
+        "claim_type": "discovery_commands",
+        "verdict": "partially_supported"
+      },
+      {
+        "scenario": "S02",
+        "claim_id": "S02-CLM-03",
+        "claim_type": "failed_logons_then_success",
+        "verdict": "unverified"
+      },
+      {
+        "scenario": "S02",
+        "claim_id": "S02-CLM-06",
+        "claim_type": "discovery_commands",
+        "verdict": "partially_supported"
+      },
+      {
+        "scenario": "S03",
+        "claim_id": "S03-CLM-06",
+        "claim_type": "payload_written",
+        "verdict": "unverified"
+      }
+    ],
+    "note": "New template claims, without independent labels; lowered claims require human audit and are not accuracy measurements."
+  },
+  "complex_challenges": {
+    "total": 4,
+    "unsupported_confirmed": 0,
+    "operational_failures": 0,
+    "qualified_supported_base_pairs": 2,
+    "note": "Only pairs whose unmodified base is confirmed can earn evidence of catching the added assertion."
+  },
+  "grouped_complete_source_roundtrips": 7,
+  "fake_artifact_bindings": "All nine current configurations/scenarios valid; fake plumbing only",
+  "git_diff_check": "passed",
+  "tracked_and_new_component_naming": "passed",
+  "new_case_sha256": "902a15a804aa3ed9135b4026094d5ec6cb59b27b29f2769989911ea149151219",
+  "limitations": [
+    "Self-authored/reused development cases are not independent project evaluation",
+    "Historical scored claim files unavailable; real-corpus check uses new deterministic template claims",
+    "Private lab keys/runbooks, independent reviews and owner scoring contract still required"
+  ],
+  "schema_version": "development-validation-v1",
+  "recorded_date": "2026-10-20",
+  "full_regression": {
+    "passed": 1256,
+    "skipped": 7,
+    "seconds": 573.23
+  },
+  "release_focused": {
+    "passed": 478,
+    "skipped": 4,
+    "seconds": 88.49
+  },
+  "runtime": {
+    "runtime": "ollama",
+    "version": "0.34.4",
+    "model": "qwen3:8b",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "configuration": {
+      "model": "qwen3:8b",
+      "endpoint": "http://127.0.0.1:11434",
+      "temperature": 0.0,
+      "seed": 0,
+      "num_ctx": 8192,
+      "think": false
+    }
+  }
+}

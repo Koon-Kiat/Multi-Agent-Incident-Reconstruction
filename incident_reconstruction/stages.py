@@ -29,6 +29,7 @@ from event_processing.detection.schema import Detection
 from event_processing.query import EventStore
 from event_processing.schema import NormalisedEvent
 from event_processing.timeutil import TICKS_PER_SECOND, iso_to_ticks
+from event_processing.identity import qualified_account
 
 from .attack import candidates_for
 from .claims import ClaimEntities, ClaimLink
@@ -66,18 +67,18 @@ TRIGGER_FIELDS = (
     "CommandLine", "User", "SourceImage", "TargetImage", "GrantedAccess", "TargetFilename",
     "TargetObject", "Details", "ServiceName", "ServiceFileName", "TaskName",
 )
-ACCOUNT_FIELDS = ("TargetUserName", "SubjectUserName", "User")
+ACCOUNT_FIELDS = ("TargetUserName", "SubjectUserName", "User", "SourceUser", "TargetUser")
 _SYSTEM_ACCOUNT = re.compile(r"^(system|local service|network service|anonymous logon|-|(dwm|umfd)-\d+|.*\$)$", re.I)
 
 
 def account_key(value: str | None) -> str | None:
-    """Comparable account name: domain prefix removed, case-folded; ``None`` for system identities."""
+    """Case-folded recorded principal with its domain; None for system identities."""
     if not value:
         return None
     name = value.rsplit("\\", 1)[-1].strip()
     if not name or _SYSTEM_ACCOUNT.match(name):
         return None
-    return name.casefold()
+    return value.strip().casefold()
 
 
 @dataclass
@@ -133,9 +134,14 @@ class Stage:
     def accounts(self) -> set[str]:
         keys = {account_key(value) for event in self.trigger_events
                 for value in (event.user, *(event.event_data.get(name) for name in ACCOUNT_FIELDS))}
+        keys |= {account_key(qualified_account(event.event_data.get(name),event.event_data.get(domain)))
+                 for event in self.trigger_events for name,domain in
+                 (("TargetUserName","TargetDomainName"),("SubjectUserName","SubjectDomainName"))}
         keys |= {account_key(finding.entities.account) for finding in self.findings
                  if finding.finding_id in self.direct_finding_ids}
-        return keys - {None}
+        keys.discard(None)
+        qualified_names={key.rsplit("\\",1)[-1] for key in keys if "\\" in key}
+        return {key for key in keys if "\\" in key or key not in qualified_names}
 
     def entities(self) -> ClaimEntities:
         accounts, hosts, processes, guids, files = [], [], [], [], []

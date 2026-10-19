@@ -20,7 +20,7 @@ from incident_reconstruction.verification import VerificationDecision
 
 from . import checks as C
 
-VERIFIER_VERSION = "1"
+VERIFIER_VERSION = "3"
 _ORDER = {"reject": 0, "insufficient": 1, "partial": 2}
 
 

@@ -17,6 +17,10 @@ class OllamaClient:
     def metadata(self) -> dict:
         return {"runtime": "ollama", **self.config.model_dump()}
 
+    def input_token_upper_bound(self,messages) -> int:
+        from .token_counting import input_upper_bound
+        return input_upper_bound(messages,self.config.endpoint,self.config.model)
+
     def complete(self, messages: list[dict[str, str]], schema: dict, limits: Limits) -> str:
         self.last_response_metrics = {}
         # The public Incident Reconstruction Orchestrator entry point is synchronous. Async orchestrators should run
@@ -24,7 +28,14 @@ class OllamaClient:
         try:
             asyncio.get_running_loop()
         except RuntimeError:
-            return asyncio.run(self._complete(messages, schema, limits))
+            from authentication_agent.context import context_measure
+            fits,_,upper=context_measure(messages,schema,self.metadata(),limits,self.input_token_upper_bound)
+            if not fits:
+                raise InvestigationError("context_size_limit")
+            result=asyncio.run(self._complete(messages, schema, limits))
+            if self.last_response_metrics.get("prompt_eval_count",0)>upper:
+                raise InvestigationError("tokenizer_context_bound_mismatch")
+            return result
         raise InvestigationError("sync_adapter_requires_worker_thread")
 
     async def _complete(self, messages: list[dict[str, str]], schema: dict, limits: Limits) -> str:

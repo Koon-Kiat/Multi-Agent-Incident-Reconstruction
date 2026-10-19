@@ -150,6 +150,13 @@ def test_an_empty_flag_set_leaves_precision_undefined_and_recall_defined():
     assert counts.recall == 0.0  # one positive, none flagged: a defined zero, not "undefined"
 
 
+def test_defined_zero_precision_and_recall_produce_zero_f1_in_v2():
+    labels=(LabelRow(evidence_id="SYN-B-SEC-2",label="positive"),)
+    report=score((_run(SCENARIO,_detection(SCENARIO,"R-A",(1,))),),labels)
+    assert (report.overall.tp,report.overall.fp,report.overall.fn)==(0,1,1)
+    assert report.overall.precision==report.overall.recall==report.overall.f1==0.0
+
+
 def test_no_positives_leaves_recall_undefined():
     labels = (LabelRow(evidence_id="SYN-B-SEC-3", label="negative"),)
     report = score(_runs(), labels)
@@ -317,9 +324,9 @@ def test_an_unsupported_unit_is_rejected():
 def test_a_report_declaring_another_schema_version_is_rejected():
     # B9: `score_report.json` identifies itself with one exact version, not free text.
     report = score(_runs(), _labels())
-    assert report.schema_version == "detection-score-v1"
+    assert report.schema_version == "detection-score-v2"
     document = report.model_dump()
-    document["schema_version"] = "detection-score-v2"
+    document["schema_version"] = "unsupported-score-version"
     with pytest.raises(ValidationError, match="schema_version"):
         ScoreReport.model_validate(document)
 
@@ -538,6 +545,6 @@ def test_the_report_is_written_as_deterministic_sorted_key_json(tmp_path: Path):
     assert payload.endswith(b"\n") and b"\r\n" not in payload
     document = json.loads(payload)
     assert list(document) == sorted(document)
-    assert document["schema_version"] == "detection-score-v1"
+    assert document["schema_version"] == "detection-score-v2"
     assert document["unit"] == "evidence_id"
     assert document["overall"]["tp"] == 2

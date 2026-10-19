@@ -31,6 +31,7 @@ from typing import Literal, Protocol
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 
 from event_processing.query import EventStore
+from event_processing.provenance import json_digest
 
 from .claims import Reconstruction
 
@@ -57,6 +58,7 @@ class VerificationReport(Model):
     decisions: tuple[VerificationDecision, ...]
     integrity_notes: tuple[str, ...] = ()
     latency_seconds: float = Field(ge=0)
+    reconstruction_sha256: str | None = None
 
     @model_validator(mode="after")
     def one_decision_per_claim(self) -> VerificationReport:
@@ -99,6 +101,10 @@ def load_verifier(spec: str) -> Verifier:
 
 def run_verification(verifier: Verifier, reconstruction: Reconstruction, store: EventStore) -> VerificationReport:
     started = time.perf_counter()
+    try:
+        before=dict(verifier.metadata())
+    except Exception:
+        before={}
     claim_ids = [claim.claim_id for claim in reconstruction.claims]
     notes: list[str] = []
     try:
@@ -126,10 +132,16 @@ def run_verification(verifier: Verifier, reconstruction: Reconstruction, store: 
         metadata = dict(verifier.metadata())
     except Exception as error:
         metadata = {"verifier": "unknown", "metadata_error": type(error).__name__}
+    # A verifier instance can serve multiple scenarios. Reports carry this
+    # invocation's counters, not the instance's accumulated history.
+    for key in ("agent_consulted","agent_model_calls","agent_lowered","agent_failed","agent_seconds","agent_format_retries"):
+        if type(metadata.get(key)) in (int,float) and type(before.get(key,0)) in (int,float):
+            metadata[key]=max(0,metadata[key]-before.get(key,0))
     return VerificationReport(
         scenario_id=reconstruction.scenario_id,
         verifier=metadata,
         decisions=tuple(decisions[claim_id] for claim_id in claim_ids),
         integrity_notes=tuple(notes),
         latency_seconds=round(time.perf_counter() - started, 3),
+        reconstruction_sha256=json_digest(reconstruction.model_dump(mode="json")),
     )

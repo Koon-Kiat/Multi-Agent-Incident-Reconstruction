@@ -32,10 +32,17 @@ def test_response_diagnostics_keep_counts_without_thinking_or_machine_details():
             "eval_count": 234, "machine_detail": "do not retain", "message": {
                 "thinking": "do not retain", "content": '{"action":"finish","tool":null,"annotations":[]}'}})
     client = OllamaClient(OllamaConfig(model="test-local"), httpx.MockTransport(handler))
-    client.complete([], {}, Limits())
+    client.complete([{"role": "user", "content": "x" * 2000}], {}, Limits())
     assert client.last_response_metrics == {"prompt_eval_count": 1234, "eval_count": 234, "done_reason": "stop"}
     assert "do not retain" not in json.dumps(client.metadata())
     assert "last_response_metrics" not in client.metadata()
+
+
+def test_runtime_cannot_silently_exceed_the_preflight_token_bound():
+    client = OllamaClient(OllamaConfig(model="test-local"), httpx.MockTransport(lambda _: httpx.Response(
+        200, json={"done": True, "prompt_eval_count": 1000, "message": {"content": "{}"}})))
+    with pytest.raises(InvestigationError, match="tokenizer_context_bound_mismatch"):
+        client.complete([], {}, Limits())
 
 
 def test_incomplete_response_records_output_budget_exhaustion():

@@ -15,6 +15,7 @@ Thumbs.db
 # Private ground-truth answer keys
 ground_truth/private/
 ground_truth/*_private.csv
+runbooks/private/
 
 # Large/raw dataset artifacts
 *.pcapng

@@ -106,7 +106,7 @@ def test_system_identities_never_link_stages():
     assert account_key("NT AUTHORITY\\SYSTEM") is None
     assert account_key("DWM-3") is None and account_key("UMFD-2") is None
     assert account_key("LAB-A$") is None and account_key("-") is None
-    assert account_key("LAB-A\\Analyst") == "analyst"
+    assert account_key("LAB-A\\Analyst") == "lab-a\\analyst"
 
 
 def test_reconstruction_claims_are_scoped_ordered_and_unverified(run, store):

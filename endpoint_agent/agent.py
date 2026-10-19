@@ -84,7 +84,8 @@ def investigate(request: InvestigationRequest, provider: EndpointEventProvider,
         offset, annotations = 0, {}
         while True:
             batch, messages, schema, receipt = model_batch(
-                request, limits, tools, observations, offset, last_tool, llm.metadata())
+                request, limits, tools, observations, offset, last_tool, llm.metadata(),
+                getattr(llm,"input_token_upper_bound",None))
             context_batches.append(receipt.model_copy(update={"index": model_calls}))
             model_calls += 1
             reply_text = llm.complete(messages, schema, limits)
@@ -92,14 +93,16 @@ def investigate(request: InvestigationRequest, provider: EndpointEventProvider,
                 raise InvestigationError("invalid_model_response")
             if len(reply_text.encode()) > limits.max_model_output_bytes:
                 raise InvestigationError("model_output_limit")
-            reply = ModelReply.model_validate_json(reply_text).root
+            reply = ModelReply.parse_grounded_reply(reply_text,batch).root
             if reply.action == "tool":
+                previous=(set(tools.retrieved),tools.truncated)
                 last_tool = tools.execute(ToolCall(reply.tool))
                 # A new record may corroborate or invalidate an earlier link.
                 # Rebuild globally and review the new snapshot from its start;
                 # annotations for old finding IDs must not survive that change.
-                observations = build_observations(tools.retrieved.values(), tools.truncated)
-                offset, annotations = 0, {}
+                if previous!=(set(tools.retrieved),tools.truncated):
+                    observations = build_observations(tools.retrieved.values(), tools.truncated)
+                    offset, annotations = 0, {}
                 continue
             by_id = {finding.finding_id: finding for finding in batch}
             for annotation in reply.annotations:

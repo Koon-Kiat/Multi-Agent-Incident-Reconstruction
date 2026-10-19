@@ -75,8 +75,21 @@ class RecordedLLM:
                 "directed_first_tool": self.first_tool.name if self.first_tool else None,
                 "directed_annotation": self.annotate}
 
+    def input_token_upper_bound(self,messages):
+        counter=getattr(self.llm,"input_token_upper_bound",None)
+        return counter(messages) if counter is not None else sum(len(m["content"].encode()) for m in messages)+256
+
     def complete(self, messages, schema, limits):
         copied = [dict(message) for message in messages]
+        if self.first_tool or self.annotate:
+            # Explicitly directed development exercises retain the legacy free
+            # tool/annotation decoder. Ordinary/autonomy runs use production
+            # menu constraints unchanged and get no desired action injected.
+            from authentication_agent.models import Finding
+            context=json.loads(copied[-1]["content"])
+            observations=tuple(Finding.model_validate_json(json.dumps({k:v for k,v in o.items() if k in Finding.model_fields}))
+                for o in context["observations"])
+            schema=ModelReply.grounded_schema(observations,max_events_per_query=limits.max_events_per_query)
         if self.first_tool and not self.calls:
             copied[0]["content"] += (
                 "\nDevelopment tool exercise: your FIRST response must request exactly this approved tool, "

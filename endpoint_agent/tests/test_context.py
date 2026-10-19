@@ -27,8 +27,8 @@ class ReviewingLLM(FakeLLM):
         self.contexts.append(context)
         # The decoder is grounded to just the visible batch, including parent citations.
         allowed = schema["$defs"]["Annotation"]["anyOf"]
-        assert [x["properties"]["observation_id"]["const"] for x in allowed] == [
-            f["finding_id"] for f in context["observations"]]
+        assert [x["properties"]["index"]["const"] for x in allowed] == [
+            f["observation_index"] for f in context["observations"]]
         assert len(json.dumps({"messages": messages, "schema": schema},
                               ensure_ascii=False, separators=(",", ":")).encode()) <= limits.max_context_bytes
         return json.dumps({"action": "finish", "tool": None, "annotations": [
@@ -60,7 +60,7 @@ def test_dense_equal_time_records_and_cross_batch_links_survive(investigation):
         expected = finding.model_dump(mode="json", exclude_none=True,
             exclude={"agent_type", "scenario_id", "interpretation"})
         expected["uncertainty"] = [s for s in finding.uncertainty if s not in BASE_UNCERTAINTY]
-        assert row == expected
+        assert {k:v for k,v in row.items() if k!="observation_index"} == expected
     parent = result.findings[0]
     last = result.findings[-1]
     assert last.observed_events.relationships[0].source_evidence_id == parent.observed_events.evidence_id
@@ -97,6 +97,48 @@ def test_annotation_from_another_batch_is_rejected(provider, investigation):
 
     result = investigate(investigation, provider, CrossBatch(), Limits(max_context_bytes=9000))
     assert result.error_code == "invalid_evidence_reference" and not result.findings
+
+
+def test_indexed_annotations_expand_to_original_evidence_and_exact_readbacks(provider, investigation):
+    class Indexed(ReviewingLLM):
+        def complete(self,messages,schema,limits):
+            context=json.loads(messages[-1]["content"])
+            self.contexts.append(context)
+            return json.dumps({"action":"finish","tool":None,"annotations":[
+                {"index":o["observation_index"],"interpretation":"context_required"} for o in context["observations"]]})
+    result=investigate(investigation,provider,Indexed(),Limits(max_context_bytes=9000))
+    assert result.status=="completed",result.error_code
+    assert all(f.interpretation is not None for f in result.findings)
+    assert result.metadata.evidence_readbacks==result.metadata.retrieved_events
+    assert all(f.evidence_ids for f in result.findings)
+
+
+@pytest.mark.parametrize("item",[{"index":True,"interpretation":None},
+    {"index":99999,"interpretation":None},{"index":0,"interpretation":None,"evidence_ids":[]}])
+def test_invalid_or_mixed_annotation_index_is_rejected(provider,investigation,item):
+    class Invalid(ReviewingLLM):
+        def complete(self,*args):
+            return json.dumps({"action":"finish","tool":None,"annotations":[item]})
+    result=investigate(investigation,provider,Invalid())
+    assert result.status=="failed" and not result.findings
+
+
+def test_late_query_without_new_records_preserves_earlier_batch_review(provider,investigation):
+    class NoChange(ReviewingLLM):
+        called=False
+        def complete(self,messages,schema,limits):
+            context=json.loads(messages[-1]["content"])
+            if not self.called and context["batch"]["offset"]>0:
+                self.called=True
+                eid=context["observations"][0]["observed_events"]["evidence_id"]
+                return json.dumps({"action":"tool","annotations":[],"tool":{
+                    "name":"get_endpoint_event","arguments":{"evidence_id":eid}}})
+            return super().complete(messages,schema,limits)
+    llm=NoChange()
+    result=investigate(investigation,provider,llm,Limits(max_context_bytes=9000))
+    assert result.status=="completed" and llm.called,result.error_code
+    assert sum(c["batch"]["offset"]==0 for c in llm.contexts)==1
+    assert all(f.interpretation is not None for f in result.findings)
 
 
 def test_late_tool_rebuilds_global_links_and_invalidates_earlier_annotations(investigation):

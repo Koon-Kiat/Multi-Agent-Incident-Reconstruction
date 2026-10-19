@@ -74,21 +74,21 @@ def assess(case, event_id=None):
     operations = case["result"]["metadata"]["operations"]
     optional = [op for op in operations if op["origin"] == "model"]
     initial_ids = set(operations[0]["evidence_ids"])
+    optional_new={eid for op in optional for eid in op["new_evidence_ids"]}
     # Record contents must actually occur in a post-retrieval model context.
     reviewed = {}
     annotations = set()
     finished = False
     for call in case["model_calls"]:
         context = json.loads(call["messages"][-1]["content"])
-        model_ids = {eid for op in context["operation_history"] if op["origin"] == "model"
-                     for eid in op["new_evidence_ids"]}
         for observation in context["observations"]:
             for event in observation["events"]:
-                if event["evidence_id"] in model_ids:
+                if event["evidence_id"] in optional_new:
                     reviewed[event["evidence_id"]] = event
         if "reply" in call:
             try:
-                reply = ModelReply.model_validate_json(call["reply"])
+                from authentication_agent.planning import parse_reply
+                reply = parse_reply(call["reply"],context["observations"],context.get("available_queries",{}))
             except ValueError:
                 continue
             if reply.action == "finish":

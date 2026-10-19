@@ -358,9 +358,12 @@ For the real authentication entry point and current integration findings, see
   the System channel, which carries 7045, is not part of the export. `R-PERSIST-01` therefore has a
   narrower field of view than a real deployment would.
 * **Security and Sysmon spell the same person differently.** Security events carry
-  `TargetUserName`/`SubjectUserName` (often `mair_user`), Sysmon events carry `User` (often with a
+  `TargetUserName`/`SubjectUserName` (often `mair_user`), Sysmon 10 carries `SourceUser` and other
+  supported Sysmon events carry `User` (often with a
   domain). The engine normalises neither: no case folding, no domain stripping, values verbatim, so the
-  two channels can group the same human under two names. Scoring treats each event as its own unit
+  two channels can represent the same human under two names. Authentication detection separately uses
+  `host-domain-sid-v1` to avoid merging conflicting principals; raw normalized values stay verbatim.
+  Scoring treats each event as its own unit
   (open question 1 in the metrics proposal).
 * **A field the source does not carry is `None` or `""`, not absent.** `host` and `user` can be
   either; a present-but-empty value stays `""` and is distinct from missing. Consumers must not

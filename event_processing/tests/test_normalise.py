@@ -59,6 +59,19 @@ def test_security_logon_uses_target_user_name():
     assert event.parse_warnings == ()
 
 
+def test_sysmon_process_access_uses_source_user_without_losing_raw_fields():
+    event=normalise(raw_record(channel=SYSMON,event_id=10,event_data={
+        "SourceUser":"LAB\\analyst","TargetUser":"NT AUTHORITY\\SYSTEM","SourceImage":"C:\\tool.exe"}),filename="Sysmon.evtx")
+    assert event.user=="LAB\\analyst"
+    assert event.event_data["TargetUser"]=="NT AUTHORITY\\SYSTEM"
+
+
+def test_sysmon_process_access_missing_source_user_is_explicit():
+    event=normalise(raw_record(channel=SYSMON,event_id=10,event_data={"TargetUser":"SYSTEM"}),filename="Sysmon.evtx")
+    assert event.user is None
+    assert "SourceUser" in event.parse_warnings[0]
+
+
 def test_security_process_creation_uses_subject_user_name():
     event = normalise(
         raw_record(
