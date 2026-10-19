@@ -1,21 +1,40 @@
-# Event Processing & Detection Engine Detection Metrics Proposal (DRAFT)
+# Event Processing & Detection Engine Detection Metrics Proposal (partly agreed)
 
-> **DRAFT — not agreed. The baseline must not be scored until this is agreed.**
+> **Partly agreed. The baseline must not be scored until the remaining items are agreed.**
 >
 > The engine owns the scoring *code*, not the definitions. The unit, the positive label and the excluded
 > category below are the engine's proposal for a joint call with Dataset & Ground Truth Management and Evidence Verification & Evaluation that
-> `docs/EVIDENCE_QUERY_REQUIREMENTS.md` item 5 asks for. Until that call agrees them, no result of
+> `docs/EVIDENCE_QUERY_REQUIREMENTS.md` item 5 asks for. The agreements themselves are recorded in
+> `docs/EVALUATION_PROTOCOL.md` section 12, not here. On 2026-10-19 the engine confirmed its side of items 1,
+> 3, 5, 6 and 7 there ([Agreed so far](#agreed-so-far)). Until Dataset & Ground Truth Management confirms its
+> items and the scoring exclusions (`docs/EVIDENCE_ACCEPTANCE.md` A3) are agreed, no result of
 > `python -m event_processing score` is a reportable number: the code is implemented and tested
 > (`event_processing/metrics.py`, `event_processing/tests/test_metrics.py`), the real baseline is **not** scored, and task
 > T4.3 in `task_plan.md` stays BLOCKED.
 
-Owner: Event Processing & Detection Engine. Status: proposal awaiting agreement with Dataset & Ground Truth Management and Evidence Verification & Evaluation.
+Owner: Event Processing & Detection Engine. Status: the engine's positions are confirmed (2026-10-19); awaiting Dataset & Ground Truth Management on `EVALUATION_PROTOCOL.md` section 12 items 1, 2, 4 and 9, and the scoring exclusions (A3).
 Related: [`DETECTION_RULES.md`](DETECTION_RULES.md) (the baseline and its counts),
 [`EVIDENCE_QUERY_REQUIREMENTS.md`](EVIDENCE_QUERY_REQUIREMENTS.md) item 5 (Evidence Verification & Evaluation's ask and its two corpus
 observations).
 
+## Agreed so far
+
+Recorded 2026-10-19. "Confirmed" means the engine has confirmed the position in
+`docs/EVALUATION_PROTOCOL.md` section 12; a row is agreed only when every owner named there has confirmed it.
+
+| Question below | Section 12 item | Position | Engine | Still needs |
+|---|---|---|---|---|
+| 1. Security + Sysmon views | 1, unit | The evidence ID; one action on two channels counts twice. A once-per-action view is the stage-level reconstruction score, not this metric. | Confirmed (its own proposal) | Dataset & Ground Truth Management |
+| 2. Benign-lookalike scenario | 3 | Scored in the same precision pool, and also reported per scenario (the score report already has a per-scenario scope). | Confirmed | — |
+| 3. S01 labels | 4 | In scope with its own labels; designated contextual records excluded, not negative. | Not the engine's item | Dataset & Ground Truth Management |
+| 4. Scaffolding | 5 | Headline view excludes and tallies it separately; a strict view counts it as false positives. Both are reported. | Confirmed (both views implemented) | — |
+| 5. F1 when P = R = 0 | 6 | F1 is **0.0** when precision and recall are both defined and both 0; `null` only when precision or recall itself is undefined. | Confirmed; **code changed** (`detection-score-v2`) | — |
+| 6. Per-rule recall | 7 | Measured against all positives; per-rule figures are not additive and not a partition. | Confirmed (unchanged behaviour) | — |
+| 7. R-AUTH-02 span | — | Not in section 12. | — | Incident Reconstruction Orchestrator |
+
 ## Contents
 
+* [Agreed so far](#agreed-so-far)
 * [What the engine needs from the call](#what-the-engine-needs-from-the-call)
 * [The proposal](#the-proposal)
 * [The excluded category](#the-excluded-category)
@@ -197,12 +216,14 @@ excluded-event tallies and the undefined-metric cases.
    labels, or reported separately? Nothing in the engine's code assumes an answer.
 4. **Scaffolding as FP or as excluded?** The engine proposes `excluded` (tallied separately); the stricter
    alternative is `negative` (counted as FP). The call should pick the headline view.
-5. **Is `F1 = None` when precision = recall = 0 the convention Dataset & Ground Truth Management and Evidence Verification & Evaluation want?** Mathematically
-   `2PR/(P+R)` is `0/0` there. The engine reports `null` for every metric with a zero denominator, and
-   `F1` is left `null` whenever `P + R = 0`, so a rule with `TP = 0` and `FP > 0` (precision 0.0,
-   recall 0.0) shows `F1 = null` rather than `0.0`. `null` means "not measured"; `0.0` would mean
-   "measured and zero", which would put an undefined ratio into a per-rule table. The code follows
-   the convention already; the call should confirm it, because it changes how those rows read.
+5. **Is `F1 = None` when precision = recall = 0 the convention Dataset & Ground Truth Management and Evidence Verification & Evaluation want?**
+   **Resolved 2026-10-19 (section 12 item 6): no.** The engine originally left `F1` `null` whenever
+   `P + R = 0`, so a rule with `TP = 0` and `FP > 0` (precision 0.0, recall 0.0) showed `F1 = null`.
+   Evidence Verification & Evaluation proposed `0.0`, and the engine agreed: when precision and recall are
+   both defined, both are measured values, so a zero F1 is a measured result ("found nothing it should
+   have"), not an undefined one. `null` now means only that precision or recall itself has a zero
+   denominator. The scorer implements this and its report schema is now `detection-score-v2`; a
+   `detection-score-v1` report is rejected rather than read with the old meaning.
 6. **Per-rule recall is measured against the whole positive population.** Each rule's TP/FP/FN is
    computed over **all** positives, not over the positives that rule was "supposed" to find (the engine has
    no per-rule expected-population mapping). So per-rule recalls are shares of the same denominator:
