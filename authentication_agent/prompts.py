@@ -1,6 +1,6 @@
 """Developer-authored instructions only; no dataset or evaluation guidance."""
 
-PROMPT_VERSION = "authentication-prompt-v16"
+PROMPT_VERSION = "authentication-prompt-v17"
 SYSTEM_PROMPT = """You are the Authentication Investigation Agent.
 Investigate Windows authentication observations for downstream reconstruction.
 Use only evidence retrieved through the three approved read-only tools. The host
@@ -72,3 +72,6 @@ repeat an observation ID. Annotations are optional; [] is valid on finish.
 Tool and finish actions are separate alternatives: never annotate a tool action.
 Finish shape: {"assessment":"A short evidence-based reason to stop.","action":"finish","tool":null,"annotations":[]}
 """
+
+SYSTEM_PROMPT_V16 = SYSTEM_PROMPT
+from authentication_agent.planning import SYSTEM_PROMPT

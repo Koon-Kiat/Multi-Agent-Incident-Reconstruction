@@ -87,6 +87,16 @@ def test_a_key_missing_a_column_is_refused(tmp_path):
         GT.load_ground_truth(tmp_path)
 
 
+@pytest.mark.parametrize("rows,message",[
+    ((STAGE_ROWS[0],STAGE_ROWS[1].replace(SCENARIO,"OTHER")),"mixed scenarios"),
+    ((STAGE_ROWS[0],STAGE_ROWS[1].replace("ST02","ST01")),"duplicate stage"),
+    ((STAGE_ROWS[0].replace('"10;11;12"','"0;11;12"'),),"invalid stage"),
+])
+def test_ambiguous_or_invalid_private_keys_are_refused(tmp_path,rows,message):
+    (tmp_path/f"{SCENARIO}_ground_truth.csv").write_text(key_text(*rows),encoding="utf8")
+    with pytest.raises(GT.GroundTruthError,match=message): GT.load_ground_truth(tmp_path)
+
+
 def test_no_key_for_a_scenario_is_an_error_not_a_silent_skip(key_dir):
     with pytest.raises(GT.GroundTruthError, match="no ground truth"):
         GT.load_ground_truth(key_dir, (SCENARIO, "S99"))

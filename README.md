@@ -60,7 +60,10 @@ installed local model (Ollama on the same machine, `ollama pull qwen3:8b` first)
 ```powershell
 python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode single-agent --out out/runs
 python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode multi-agent --out out/runs
-python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode full --out out/runs
+$env:MAIR_VERIFIER_LLM = "ollama"
+$env:MAIR_VERIFIER_MODEL = "qwen3:8b"
+python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode full --out out/runs `
+    --verifier evidence_verification.agent:make_agent_verifier
 start out/runs/index.html
 ```
 
@@ -74,8 +77,13 @@ Each run ends by writing an HTML report per scenario and `out/runs/index.html`. 
 `--scenario S02` (repeatable), `--plan-only` (print the investigation windows), and
 `--reconstruct-only` (re-narrate and re-verify saved runs without re-running the agents).
 Exit `1` means the files were written but something stayed incomplete, such as an investigation
-window that exceeded the agent's context; it is listed in the report. Until the independent
-verifier is connected, `full` marks every claim unverified.
+window that exceeded the agent's context; it is listed in the report. Omitting `--verifier`
+leaves claims unverified. The full comparison requires the independent model factory above.
+
+For corrected-code evaluation, use a fresh output directory and follow
+[the remediation and validation notes](docs/CORRECTNESS_REMEDIATION.md) and
+[protocol Amendment 4](docs/EVALUATION_PROTOCOL.md#13-amendment-4-corrected-code-comparisons).
+Saved historical runs retain their original definitions and are not overwritten.
 
 To check a release from a clean checkout (fresh virtual environment, corpus, all modes, reports
 and tests):

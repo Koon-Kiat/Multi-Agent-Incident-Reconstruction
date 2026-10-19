@@ -180,7 +180,8 @@ def test_detect_refuses_a_tampered_corpus(corpus_dir: Path, tmp_path: Path):
 def test_the_run_declares_the_thresholds_it_used(corpus_dir: Path):
     run = DetectionEngine(EventStore.load(corpus_dir), corpus_manifest_sha256=SHA).run(SCENARIO)
     params = {rule.rule_id: rule.params for rule in run.rules}
-    assert params["R-AUTH-01"] == {"min_failures": 3, "window_seconds": 300, "variant": "burst_then_success"}
+    assert params["R-AUTH-01"] == {"min_failures": 3, "window_seconds": 300, "variant": "burst_then_success",
+                                  "principal_policy": "host-domain-sid-v1"}
     assert params["R-EXEC-01"]["min_distinct_binaries"] == 3
     assert params["R-EXEC-01"]["window_seconds"] == 120
     assert "0x001410" in str(params["R-CRED-01"]["masks"])

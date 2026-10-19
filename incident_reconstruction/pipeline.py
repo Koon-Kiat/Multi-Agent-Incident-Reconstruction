@@ -30,6 +30,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 from event_processing.query import EventStore
+from event_processing.provenance import implementation_digest, json_digest
+import hashlib
 
 from .claims import Mode, Reconstruction
 from .models import OrchestrationRun
@@ -65,8 +67,13 @@ class PipelineSummary(Model):
     detections: int = Field(ge=0)
     claims: int = Field(ge=0)
     model_calls: int = Field(ge=0)
+    verification_model_calls: int = Field(default=0,ge=0)
     verdicts: dict[str, int] | None = None
     artifacts: tuple[str, ...] = ()
+    artifact_sha256: dict[str, str] = Field(default_factory=dict)
+    implementation_sha256: str | None = None
+    detection_sha256: str | None = None
+    post_hoc: dict[str, JsonValue] | None = None
 
 
 @dataclass(frozen=True)
@@ -87,7 +94,8 @@ class PipelineOutput:
             if document is not None:
                 written.append(_write(directory / f"{scenario}.{kind}.json", document))
         artifacts = tuple(path.name for path in written)
-        summary = self.summary.model_copy(update={"artifacts": artifacts})
+        summary = self.summary.model_copy(update={"artifacts": artifacts,
+            "artifact_sha256": {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in written}})
         written.append(_write(directory / f"{scenario}.pipeline.json", summary))
         return tuple(written)
 
@@ -129,6 +137,7 @@ class Pipeline:
 
         detections = timed("detection", lambda: self._engine.triggers_for(scenario_id))
         orchestration = verification = None
+        verification_calls=0
         if mode == "single-agent":
             result = timed("single_agent", lambda: self._single_agent.investigate(
                 scenario_id, detections, corpus_manifest_sha256=self._engine.corpus_manifest_sha256))
@@ -141,6 +150,10 @@ class Pipeline:
                                                    if task.result is not None)
             if mode == "full":
                 verification = timed("verification", lambda: run_verification(self._verifier, result, self._store))
+                verification_calls=verification.verifier.get("agent_model_calls",verification.verifier.get("agent_consulted",0))
+                if type(verification_calls) is not int or verification_calls<0:
+                    verification_calls=0
+                model_calls+=verification_calls
 
         summary = PipelineSummary(
             mode=mode,
@@ -154,7 +167,10 @@ class Pipeline:
             detections=len(detections),
             claims=len(result.claims),
             model_calls=model_calls,
+            verification_model_calls=verification_calls,
             verdicts=dict(Counter(d.verdict for d in verification.decisions)) if verification else None,
+            implementation_sha256=implementation_digest(),
+            detection_sha256=json_digest([d.model_dump(mode="json") for d in detections]),
         )
         return PipelineOutput(summary=summary, reconstruction=result, orchestration=orchestration,
                               verification=verification)

@@ -94,11 +94,14 @@ try {
         Expect (Test-Path "out\detections\summary.json") "conventional detection summary written"
 
         $llm = if ($Ollama) { @("--llm", "ollama", "--model", $Model) } else { @("--llm", "fake") }
+        $env:MAIR_VERIFIER_LLM = if ($Ollama) { "ollama" } else { "fake" }
+        $env:MAIR_VERIFIER_MODEL = $Model
         foreach ($mode in @("single-agent", "multi-agent", "full")) {
             Step "Running $mode ($($llm -join ' '))"
             # 1 means written but incomplete (for example an unresolved investigation window).
+            $verifierArgs = if ($mode -eq "full") { @("--verifier", "evidence_verification.agent:make_agent_verifier") } else { @() }
             $code = Invoke-Native $py (@("-m", "incident_reconstruction", "--corpus", "out\corpus", "--mode", $mode,
-                                         "--out", "out\runs") + $llm) @(0, 1)
+                                         "--out", "out\runs") + $llm + $verifierArgs) @(0, 1)
             Expect ($code -eq 0 -or $code -eq 1) "$mode finished with exit code $code"
             foreach ($scenario in @("S01", "S02", "S03")) {
                 $kinds = @("pipeline", "reconstruction")
@@ -139,7 +142,10 @@ try {
     if ($Keep -or $failures.Count) {
         Write-Host "Kept for inspection: $work"
     } else {
-        Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+        $resolvedWork = [System.IO.Path]::GetFullPath($work)
+        $expectedParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+        if ((Split-Path -Parent $resolvedWork).TrimEnd('\') -ne $expectedParent.TrimEnd('\') -or (Split-Path -Leaf $resolvedWork) -notlike "mair-smoke-*") { throw "unexpected temporary cleanup target" }
+        Remove-Item -LiteralPath $resolvedWork -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
 if ($failures.Count) { exit 1 } else { exit 0 }

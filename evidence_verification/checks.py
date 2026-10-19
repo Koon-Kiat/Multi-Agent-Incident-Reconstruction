@@ -18,7 +18,10 @@ malicious, so a benign lookalike whose records are real and as described is conf
 
 from __future__ import annotations
 
+from event_processing.identity import authentication_principals
+
 import re
+from decimal import Decimal
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -80,6 +83,14 @@ _FILE_TOKEN = re.compile(
 _FAILED_COUNT = re.compile(
     r"\b(\d+|" + "|".join(NUMBER_WORDS) + r")\s+(?:consecutive\s+|repeated\s+|separate\s+)?failed\s+"
     r"(?:interactive\s+)?(?:logon|login|authentication|sign-in)s?\b", re.I)
+_FAILURE_SEPARATION = re.compile(
+    r"\bfailed\s+(?:logon|login|authentication|sign-in)s?\b[^.!?;\n]{0,100}?\b"
+    r"(\d+(?:\.\d+)?|" + "|".join(NUMBER_WORDS) + r")\s+"
+    r"(milliseconds?|seconds?|minutes?)\s+apart\b", re.I)
+_AUTH_ORDER = re.compile(
+    r"\b(failed|successful)\s+(?:logon|login|authentication|sign-in)s?\b"
+    r"([^.!?;\n]{0,100}?)\b(preceded|before|followed\s+by|after)\b[^.!?;\n]{0,60}?"
+    r"\b(failed|successful)\s+(?:logon|login|authentication|sign-in)s?\b",re.I)
 
 
 @dataclass(frozen=True)
@@ -290,7 +301,12 @@ def text_checks(gathered: ClaimEvidence) -> list[Check]:
 
     pool = facts.value_pool(context)
     haystack = "\n".join(pool).casefold() + "\n" + "\n".join(e.raw_xml for e in context).casefold()
-    unrecorded = [token for token in dict.fromkeys(_FILE_TOKEN.findall(text)) if token.casefold() not in haystack]
+    # Unquoted Windows paths can run to sentence/closing punctuation. Prefer
+    # the literal match (preserving a recorded unusual name); otherwise remove
+    # prose punctuation without changing internal dots or path components.
+    unrecorded = [token for token in dict.fromkeys(_FILE_TOKEN.findall(text))
+                  if token.casefold() not in haystack
+                  and token.rstrip(".)]}:").casefold() not in haystack]
     checks.append(_fail("text_files_recorded", "partial", "unsupported_assertion",
                         "the claim text names file/process(es) that no referenced record contains: "
                         + ", ".join(unrecorded[:3])) if unrecorded
@@ -308,6 +324,39 @@ def text_checks(gathered: ClaimEvidence) -> list[Check]:
                                 f"logons ({in_context} in the stage's context)"))
         else:
             checks.append(_pass("text_failed_logon_count", "partial", f"{claimed} failed logons cited"))
+    vague = re.search(r"\b(dozens|hundreds|thousands)\s+(?:of\s+)?failed\s+logons?\b",text,re.I)
+    if vague:
+        minimum={"dozens":24,"hundreds":200,"thousands":2000}[vague.group(1).casefold()]
+        cited=sum(e.channel==SECURITY and e.source_event_id==4625 for e in gathered.cited_events())
+        if cited<minimum:
+            checks.append(_fail("text_failed_logon_count","partial","unsupported_assertion",
+                f"the claim says {vague.group(1)}, requiring at least {minimum} cited failed logons; found {cited}"))
+    for separation in _FAILURE_SEPARATION.finditer(text):
+        raw, unit = separation.groups()
+        duration = Decimal(NUMBER_WORDS[raw.casefold()]) if raw.casefold() in NUMBER_WORDS else Decimal(raw)
+        seconds = duration * ({"millisecond": Decimal("0.001"), "second": Decimal(1), "minute": Decimal(60)}[unit.casefold().rstrip("s")])
+        failures = [e for e in gathered.cited_events() if e.channel == SECURITY and e.source_event_id == 4625]
+        # "Apart" states a separation between two failures. More records make
+        # that pair ambiguous; do not silently choose whichever pair agrees.
+        if len(failures) != 2 or Decimal(failures[-1].timestamp_ticks - failures[0].timestamp_ticks) != seconds * TICKS_PER_SECOND:
+            checks.append(_fail("text_failed_logon_separation", "partial", "time_mismatch",
+                                "the stated separation is not supported by exactly two cited failed-logon timestamps"))
+        else:
+            checks.append(_pass("text_failed_logon_separation", "partial", "the cited failure timestamps agree"))
+    for ordering in _AUTH_ORDER.finditer(text):
+        first,between,relation,second=ordering.groups()
+        if first.casefold()==second.casefold() or re.search(r"\b(?:not|never)\b",between,re.I):
+            continue  # Do not infer an order from negation or an ambiguous same-type pair.
+        types={"failed":4625,"successful":4624}
+        left=[e.timestamp_ticks for e in gathered.cited_events() if e.channel==SECURITY and e.source_event_id==types[first.casefold()]]
+        right=[e.timestamp_ticks for e in gathered.cited_events() if e.channel==SECURITY and e.source_event_id==types[second.casefold()]]
+        if relation.casefold()=="after":
+            left,right=right,left
+        if not left or not right or max(left)>=min(right):
+            checks.append(_fail("text_logon_order","partial","ordering_conflict",
+                                "the cited timestamps do not establish the successful/failed logon order stated in the text"))
+        else:
+            checks.append(_pass("text_logon_order","partial","the stated order agrees with the cited timestamps"))
     return checks
 
 
@@ -323,12 +372,13 @@ def _drops_file(event: NormalisedEvent) -> bool:
 
 
 def _failed_then_success(events: list[NormalisedEvent], minimum: int, need_success: bool) -> tuple[bool, str]:
-    failures: dict[str, list[NormalisedEvent]] = {}
-    successes: dict[str, list[NormalisedEvent]] = {}
+    failures = {}
+    successes = {}
+    principals = authentication_principals(events)
     for event in events:
         if event.channel != SECURITY:
             continue
-        account = (event.event_data.get("TargetUserName") or "").casefold()
+        account = principals.get(event.evidence_id)
         if event.source_event_id == 4625:
             failures.setdefault(account, []).append(event)
         elif event.source_event_id == 4624:
@@ -338,11 +388,15 @@ def _failed_then_success(events: list[NormalisedEvent], minimum: int, need_succe
         return False, f"at least {minimum} failed logons for one account (found {len(best)})"
     if not need_success:
         return True, f"{len(best)} failed logons for one account"
-    account = (best[0].event_data.get("TargetUserName") or "").casefold()
-    later = [s for s in successes.get(account, []) if s.timestamp_ticks > best[0].timestamp_ticks]
-    if not later:
-        return False, "a successful logon for that account after the first failure"
-    return True, f"{len(best)} failed logons then a successful logon for the same account"
+    for account, group in failures.items():
+        for success in successes.get(account, []):
+            preceding = [f for f in group if f.timestamp_ticks < success.timestamp_ticks]
+            if len(preceding) >= minimum:
+                # Every cited failure in this principal's sequence must precede
+                # its successful outcome, not merely the first one.
+                if len(preceding) == len(group):
+                    return True, f"{len(preceding)} failed logons then a successful logon for the same principal"
+    return False, f"at least {minimum} failures for one principal strictly before a successful outcome"
 
 
 STRUCTURES = {

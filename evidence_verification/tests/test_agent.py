@@ -37,11 +37,11 @@ def reply(*assertions, reason="r"):
 
 # The default claim says: two failed logons were followed by a successful logon for the same account.
 GROUNDED = (("Two failed logons", sec_id(10), "event_id 4625"),
-            ("followed by a successful logon for the same account", sec_id(12), "event_id 4624 analyst"))
+            ("followed by a successful logon for the same account", sec_id(12), "event_id 4624"))
 
 
 def decide(store, llm, claim=None):
-    return A.AgentVerifier(llm).verify(make_reconstruction(claim or make_claim()), store)[0]
+    return A.AgentVerifier(llm,prompt="v4").verify(make_reconstruction(claim or make_claim()), store)[0]
 
 
 # ---------------------------------------------------------------- independence of the prompt
@@ -69,7 +69,6 @@ def test_the_prompt_holds_the_claim_and_the_records_the_verifier_retrieved(store
 def test_the_prompt_is_bounded(store):
     many = tuple(sec_id(i) for i in (10, 11, 12, 13, 14))
     payload = json.loads(A.build_messages(assess_one(make_claim(context_evidence_ids=many), store))[1]["content"])
-    assert payload["records_shown"] <= A.MAX_RECORDS
     assert payload["records_shown"] == len(payload["records"]) == payload["records_available"]
     assert len(json.dumps(payload)) < 12_000
 
@@ -117,11 +116,10 @@ def test_a_quote_that_shares_no_word_with_the_cited_record_is_fabricated_and_doe
     assert "quoted support does not appear in the cited record" in decision.conflicts[0]
 
 
-def test_a_quote_copied_from_the_claim_but_citing_a_real_record_is_tolerated(store):
-    # The prompt forbids it, but the record is cited and shares words with it; only fabrication is vetoed.
+def test_a_paraphrased_quote_sharing_record_words_is_not_a_recorded_span(store):
     llm = ScriptedLLM(reply(("Two failed logons", sec_id(10), "Two failed logons event 4625"),
                             ("followed by a successful logon for the same account", sec_id(12), "analyst 4624")))
-    assert decide(store, llm).verdict == "confirmed"
+    assert decide(store, llm).verdict == "unverified"
 
 
 def test_an_assertion_the_model_added_that_the_claim_never_made_is_ignored(store):
@@ -132,7 +130,7 @@ def test_an_assertion_the_model_added_that_the_claim_never_made_is_ignored(store
 def test_a_reply_naming_nothing_about_the_claim_is_unavailable_not_a_downgrade(store):
     llm = ScriptedLLM(reply(("xylophone budget approved", "NONE", "")))
     decision = decide(store, llm)
-    assert decision.verdict == "confirmed"
+    assert decision.verdict == "unverified"
     assert "verifier agent was unavailable" in decision.reason
 
 
@@ -188,15 +186,16 @@ def test_an_unverified_claim_is_never_sent_to_the_model(store):
     ScriptedLLM(reply=reply(*([("a b c", "NONE", "")] * 7))),                      # over the assertion limit
     ScriptedLLM(reply={"reason": "r", "assertions": [{"assertion": "x", "shown_by": "NONE"}]}),  # missing quote
 ])
-def test_an_unavailable_or_invalid_agent_never_changes_the_verdict(store, llm):
+def test_an_unavailable_or_invalid_agent_marks_independent_review_incomplete(store, llm):
     decision = decide(store, llm)
-    assert decision.verdict == "confirmed"
+    assert decision.verdict == "unverified"
+    assert any(c.startswith("verification_incomplete") for c in decision.conflicts)
     assert "verifier agent was unavailable" in decision.reason
 
 
 def test_metadata_counts_what_the_agent_did(store):
     verifier = A.AgentVerifier(ScriptedLLM(reply(("Two failed logons", "NONE", ""),
-                                                 ("followed by a successful logon for the same account", "NONE", ""))))
+                                                 ("followed by a successful logon for the same account", "NONE", ""))),prompt="v4")
     verifier.verify(make_reconstruction(make_claim()), store)
     meta = verifier.metadata()
     assert meta["mode"] == "deterministic_and_agent" and meta["independent_lookup"] is True
@@ -209,10 +208,10 @@ def test_metadata_counts_what_the_agent_did(store):
 def test_run_verification_accepts_the_agents_decisions(store):
     llm = ScriptedLLM(reply(("Two failed logons", "NONE", ""),
                             ("followed by a successful logon for the same account", "NONE", "")))
-    report = run_verification(A.AgentVerifier(llm), make_reconstruction(make_claim()), store)
+    report = run_verification(A.AgentVerifier(llm,prompt="v4"), make_reconstruction(make_claim()), store)
     assert report.integrity_notes == ()
     assert report.verdicts() == {"SYN-V1-CLM-01": "unverified"}
-    assert report.verifier["prompt_version"] == A.PROMPT_VERSION
+    assert report.verifier["prompt_version"] == "evidence-verifier-prompt-v4"
 
 
 # ---------------------------------------------------------------- the factory
@@ -232,12 +231,14 @@ def test_the_fake_factory_loads_through_the_orchestrators_loader(monkeypatch, st
 
 # ---------------------------------------------------------------- prompt selection (post-hoc revision is opt-in)
 
-def test_v2_stays_the_default_and_is_the_scored_prompt(monkeypatch):
+def test_v5_is_the_corrected_default_and_legacy_prompts_remain_explicit(monkeypatch):
     monkeypatch.setenv("MAIR_VERIFIER_LLM", "fake")
     monkeypatch.delenv("MAIR_VERIFIER_PROMPT", raising=False)
     verifier = A.make_agent_verifier()
-    assert verifier.metadata()["prompt_version"] == "evidence-verifier-prompt-v2"
-    assert verifier._system_prompt == A.SYSTEM_PROMPT_V2 == A.SYSTEM_PROMPT
+    assert verifier.metadata()["prompt_version"] == "evidence-verifier-prompt-v5"
+    assert verifier._system_prompt == A.SYSTEM_PROMPT_V5
+    monkeypatch.setenv("MAIR_VERIFIER_PROMPT","v2")
+    assert A.make_agent_verifier()._system_prompt == A.SYSTEM_PROMPT_V2
 
 
 def test_v3_is_opt_in_and_differs_only_in_the_rules_block(monkeypatch):

@@ -272,3 +272,73 @@ Until items 1 to 7 are confirmed, every detection figure is labelled provisional
 single-agent configuration is reported with its budget stated. A disagreement on any item is resolved by amending
 this section and, where a definition changes, by a labelled re-scoring beside the original (section 7).
 
+## 13. Amendment 4: corrected-code comparisons
+
+Recorded 2026-10-19 after a repository correctness review. Sections above describe the historical experiments;
+their outputs, prompts and reported measurements remain unchanged. The following applies to newly generated,
+explicitly labelled corrected-code runs. It does not assert owner approval or invent missing lab material.
+
+* Authentication detection uses principal policy `host-domain-sid-v1`: R-AUTH-01 v5 and R-AUTH-02 v6. A matching
+  username cannot merge conflicting domains/SIDs. A successful outcome must follow its required failures.
+  Sysmon 10 normalizes `SourceUser`; other supported Sysmon types use `User`.
+* Verifier v2 defaults to prompt v4, preserves complete referenced records/fields, and validates contiguous
+  copied quote spans. Incomplete evidence, unavailable models and invalid/incomplete replies are unverified.
+  Plural exaggerated counts and explicit separation between two failed logons receive deterministic checks.
+  Model support judgments still require separate validation; an authentic quote alone is not semantic proof.
+* Authentication and endpoint model views respect both byte and token limits. Installed Qwen2 BPE metadata is
+  read locally, with a conservative UTF-8 fallback and output/template space reserved. Runtime prompt counts
+  above the bound fail explicitly. No source facts are clipped to fit. Endpoint prompt/config v3 uses validated
+  batch indices in model replies; final findings retain exact original IDs. Unchanged retrieval does not restart
+  completed batches. Production model calls inherit the task deadline.
+* `detection-score-v2` reports F1 0.0 when precision and recall are both defined zeros; it remains undefined
+  when either input rate is undefined. Historical v1 results retain their original convention. Implementation
+  of this convention is versioned; joint owner approval is recorded in the contract, not assumed here.
+* Evidence-overlap stage matches and ordering are **alignment diagnostics**, not semantic accuracy. A final
+  comparison additionally requires independent human support/stage annotations for every immutable claim,
+  bound to its reconstruction, corpus and private key. Partial/uncertain labels remain separate. The verifier
+  is never its own answer key. A separate supported/unsupported audit reports false alarms and missed claims.
+  Operational verification failures are abstentions, never successful unsupported-claim catches; abstaining
+  on an unsupported claim remains a miss in recall. Decision coverage and abstentions are reported separately.
+* The detection scoring contract identifies dataset/detection/evaluation owners, fixes positive/exclusion/F1
+  policies and confirms review of the negative population. Both forms bind CSVs and the exclusions file.
+  `prepare_review` produces unanswered forms only. Existing disagreements remain pending until completed.
+* Final evaluation requires A plus every B/C/D scenario, the same installed model name/digest/runtime and
+  temperature/seed/context/thinking profile across active roles, matching corpus/triggers, current implementation
+  fingerprint, and matching artifact hashes. A fake verifier, stale report or missing run cannot be a final
+  comparison. Verifier calls are included in totals and counted per invocation, not cumulatively across scenarios.
+* Use a new output directory. `--allow-partial` and `--allow-fake` produce clearly labelled diagnostics only.
+  Post-hoc verification stays separately labelled and cannot become a fresh complete corrected-code experiment.
+
+This change addresses implementation correctness. It does not establish real A-D accuracy without Dataset & Ground Truth Management's
+private key/runbooks, completed independent reviews and the scoring agreement. Development benchmarks already
+used while debugging are in-sample regression evidence, not a new held-out quality estimate.
+
+## 14. Amendment 5: constrained follow-up selection and complete clause review
+
+Recorded 2026-10-19 after the corrected-code development checks exposed unreliable useful retrieval and
+remaining false semantic downgrades. Historical artifacts above remain unchanged. New runs use:
+
+* Authentication prompt v17/configuration v5 and planning policy `public-query-menu-v1`. Public request,
+  retrieved records and receipts determine a bounded menu; the model selects a question or finishes. A
+  complete initial inventory permits finishing only. Equivalent completed operations are removed. Model
+  replies annotate complete observation batches by validated indices, retaining original citations in output.
+  The menu contains no hidden-record probes, evaluator witnesses or expected outcome. Host constraints and
+  trusted required operations are not evidence of autonomous reasoning.
+* Verifier version 3/prompt v5 and quote policy `indexed-source-fact-v2`. Host-defined clauses preserve all
+  non-whitespace claim text, including causal/purpose assertions. Each clause requires a model support
+  assessment; valid source fact IDs replace model-copied quotations. All fields and records remain visible.
+  Arithmetic and comparison may use multiple facts. Selecting a genuine fact ID is provenance, not proof
+  that its semantic interpretation is correct. The model cannot raise deterministic verdicts.
+  Overflow first tries complete in-span records with grouped context, then all grouped facts before
+  abstaining. Identical field/value pairs name their exact
+  original record indices; absent fields stay absent and metadata/event-data keys remain distinct. Its instructions distinguish primary
+  activity from surrounding context, including contextual citations outside the stated span. Exact in-span counts and elapsed times support arithmetic without
+  supplying semantic labels. Reconstruction links retain recorded domains, matching verifier semantics.
+* One format-only repair may follow an invalid verifier reply. It provides no expected support label or
+  answer. `agent_model_calls` includes repair calls and `agent_format_retries` records their number.
+  Exhausted repair and operational failures remain explicit abstentions, not successful semantic catches.
+* Reused development benchmarks remain in-sample. New self-authored synthetic cases were hashed before
+  implementation changes and first live execution; they test generalization within this harness, not
+  independent real-world accuracy. Failed prototypes and all original result files are preserved. Full
+  project comparison still needs the private lab key/runbooks, independent reviews and owner agreement.
+

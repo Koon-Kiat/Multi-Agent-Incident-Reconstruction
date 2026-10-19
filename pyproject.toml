@@ -7,7 +7,7 @@ name = "mair-incident-reconstruction"
 version = "0.2.0"
 description = "Local security event processing, evidence-based authentication and endpoint investigation, and incident reconstruction orchestration"
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.10,<3", "httpx>=0.28,<1", "python-evtx>=0.8.1,<1"]
+dependencies = ["pydantic>=2.10,<3", "httpx>=0.28,<1", "python-evtx>=0.8.1,<1", "tokenizers>=0.21,<0.24"]
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]

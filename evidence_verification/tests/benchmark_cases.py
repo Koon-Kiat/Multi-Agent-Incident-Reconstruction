@@ -1,5 +1,5 @@
-"""Synthetic benchmark for the verifier's model layer. Every case PASSES the deterministic checks; the model
-layer exists to catch what they cannot read. Faithful claims state only what their records state; embellished
+"""Synthetic verifier development benchmark. Historically every case passed deterministic checks;
+corrected count/order/duration checks now catch some cases before model consultation. Faithful claims state only what their records state; embellished
 claims add an intent, cause, consequence, wrong account, wrong order or vague count the records do not state.
 No real evidence and no answer key is involved."""
 from __future__ import annotations

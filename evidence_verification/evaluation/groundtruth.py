@@ -15,6 +15,7 @@ import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from event_processing.ids import make_evidence_id, parse_evidence_id
 
 REQUIRED_COLUMNS = ("scenario_id", "stage_id", "stage_order", "time_utc", "expected_label",
                     "security_record_ids", "sysmon_record_ids")
@@ -50,21 +51,33 @@ def load_stages(path: Path) -> tuple[Stage, ...]:
             raise GroundTruthError(f"{path.name} is missing column(s): {', '.join(missing)}")
         stages = []
         for row in reader:
+            if any(row.get(name) is None for name in REQUIRED_COLUMNS):
+                raise GroundTruthError(f"{path.name}: incomplete stage row")
             scenario = row["scenario_id"].strip()
             label = row["expected_label"].strip().casefold()
             if label not in LABELS:
                 raise GroundTruthError(f"{path.name}: stage {row['stage_id']} has label {label!r}")
-            evidence = tuple(
-                [f"{scenario}-SEC-{n}" for n in _ids(row["security_record_ids"])]
-                + [f"{scenario}-SYS-{n}" for n in _ids(row["sysmon_record_ids"])])
+            try:
+                evidence = tuple(
+                    [make_evidence_id(scenario,"Security",n) for n in _ids(row["security_record_ids"])]
+                    + [make_evidence_id(scenario,"Microsoft-Windows-Sysmon/Operational",n) for n in _ids(row["sysmon_record_ids"])])
+                order = int(row["stage_order"])
+            except ValueError as error:
+                raise GroundTruthError(f"{path.name}: invalid stage order or evidence ID") from error
             if not evidence:
                 raise GroundTruthError(f"{path.name}: stage {row['stage_id']} cites no records")
             techniques = tuple(t.strip() for t in (row.get("mitre_technique") or "").replace(",", ";").split(";")
                                if t.strip())
-            stages.append(Stage(scenario, row["stage_id"].strip(), int(row["stage_order"]), label,
+            if len(set(evidence)) != len(evidence):
+                raise GroundTruthError(f"{path.name}: duplicate evidence IDs within a stage")
+            stages.append(Stage(scenario, row["stage_id"].strip(), order, label,
                                 row["time_utc"].strip(), evidence, techniques))
     if not stages:
         raise GroundTruthError(f"{path.name} holds no stages")
+    if len({s.scenario_id for s in stages}) != 1:
+        raise GroundTruthError(f"{path.name}: mixed scenarios in one ground-truth file")
+    if any(not s.stage_id for s in stages) or len({s.stage_id for s in stages}) != len(stages):
+        raise GroundTruthError(f"{path.name}: empty or duplicate stage IDs")
     orders = sorted(stage.order for stage in stages)
     if orders != list(range(1, len(stages) + 1)):
         raise GroundTruthError(f"{path.name}: stage_order is not a contiguous 1..n sequence")
@@ -81,6 +94,8 @@ def load_ground_truth(directory: Path | str, scenarios: tuple[str, ...] | None =
     table = {}
     for path in files:
         stages = load_stages(path)
+        if stages[0].scenario_id in table:
+            raise GroundTruthError(f"duplicate ground-truth files for {stages[0].scenario_id}")
         table[stages[0].scenario_id] = stages
     if scenarios is not None:
         absent = [s for s in scenarios if s not in table]
@@ -96,7 +111,22 @@ def load_neutral_evidence(directory: Path | str) -> dict[str, frozenset[str]]:
     path = Path(directory) / EXCLUSIONS_FILE
     if not path.is_file():
         return {}
-    document = json.loads(path.read_text(encoding="utf-8-sig"))
-    if document.get("schema_version") != EXCLUSIONS_SCHEMA:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError,ValueError) as error:
+        raise GroundTruthError(f"invalid {EXCLUSIONS_FILE}") from error
+    if not isinstance(document,dict) or document.get("schema_version") != EXCLUSIONS_SCHEMA:
         raise GroundTruthError(f"{EXCLUSIONS_FILE} must declare schema_version {EXCLUSIONS_SCHEMA!r}")
-    return {scenario: frozenset(ids) for scenario, ids in document.get("neutral_evidence_ids", {}).items()}
+    mapping = document.get("neutral_evidence_ids")
+    if not isinstance(mapping,dict):
+        raise GroundTruthError("neutral_evidence_ids must be a scenario-to-ID-list mapping")
+    for scenario,ids in mapping.items():
+        if not isinstance(ids,list) or any(not isinstance(i,str) for i in ids):
+            raise GroundTruthError("neutral evidence IDs must be lists of strings")
+        try:
+            valid = all(parse_evidence_id(i).scenario_id == scenario for i in ids)
+        except ValueError as error:
+            raise GroundTruthError("invalid neutral evidence ID") from error
+        if not valid or len(set(ids)) != len(ids):
+            raise GroundTruthError("neutral evidence IDs must be unique and belong to their scenario")
+    return {scenario: frozenset(ids) for scenario, ids in mapping.items()}

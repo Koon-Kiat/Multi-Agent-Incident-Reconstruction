@@ -7,6 +7,7 @@ from collections.abc import Iterable
 
 from authentication_agent.models import AuthenticationEvent, Entities, Finding, ObservedEvents, TimePeriod, utc_ticks
 from authentication_agent.queries.semantics import account_of, event_order
+from event_processing.identity import authentication_principals
 
 BASE_UNCERTAINTY = (
     "Authentication telemetry alone does not establish account compromise or a common actor.",
@@ -44,14 +45,16 @@ def entities_for(event: AuthenticationEvent) -> tuple[Entities, list[str]]:
 
 
 def build_observations(events: Iterable[AuthenticationEvent], truncated: bool) -> tuple[Finding, ...]:
-    groups: dict[str, list[tuple[AuthenticationEvent, Entities, list[str]]]] = defaultdict(list)
-    for event in sorted(events, key=event_order):
+    groups: dict[tuple, list[tuple[AuthenticationEvent, Entities, list[str]]]] = defaultdict(list)
+    events=sorted(events,key=event_order)
+    principals=authentication_principals(events)
+    for event in events:
         entities, issues = entities_for(event)
         # No linkage through unknown/conflicting identity dimensions. Separate records
         # can still be observed individually, without assuming an actor relationship.
-        key = entities.model_dump_json()
+        key = (entities.model_dump_json(),principals[event.evidence_id].key)
         if issues:
-            key += event.evidence_id
+            key = (*key,event.evidence_id)
         groups[key].append((event, entities, issues))
     findings = []
     for group in groups.values():

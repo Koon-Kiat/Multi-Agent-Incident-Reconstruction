@@ -12,6 +12,7 @@ import re
 from pathlib import PureWindowsPath
 
 from event_processing.schema import NormalisedEvent
+from event_processing.identity import qualified_account
 
 SECURITY = "Security"
 SYSMON = "Microsoft-Windows-Sysmon/Operational"
@@ -24,19 +25,24 @@ _SYSTEM_ACCOUNT = re.compile(r"^(system|local service|network service|anonymous 
 
 
 def account_key(value: str | None) -> str | None:
-    """Comparable account name: domain prefix removed, case-folded; ``None`` for non-person identities."""
+    """Case-folded principal, retaining its domain; None for non-person identities."""
     if not value:
         return None
     name = value.rsplit("\\", 1)[-1].strip()
     if not name or _SYSTEM_ACCOUNT.match(name):
         return None
-    return name.casefold()
+    return value.strip().casefold()
 
 
 def event_accounts(event: NormalisedEvent) -> set[str]:
     """Person-account keys an event names, from its normalised user and every account field."""
-    values = [event.user, *(event.event_data.get(name) for name in ACCOUNT_FIELDS)]
-    return {key for key in (account_key(value) for value in values) if key}
+    data = event.event_data
+    values = [event.user, *(data.get(name) for name in ACCOUNT_FIELDS)]
+    values += [qualified_account(data.get(name), data.get(domain)) for name, domain in
+               (("TargetUserName", "TargetDomainName"), ("SubjectUserName", "SubjectDomainName"))]
+    keys = {key for key in (account_key(value) for value in values) if key}
+    qualified_names = {key.rsplit("\\", 1)[-1] for key in keys if "\\" in key}
+    return {key for key in keys if "\\" in key or key not in qualified_names}
 
 
 def stem(path: str | None) -> str | None:
@@ -95,6 +101,10 @@ def value_pool(events) -> set[str]:
         for value in (event.user, event.host, *event.event_data.values()):
             if value:
                 pool.add(value)
+        for name, domain in (("TargetUserName", "TargetDomainName"), ("SubjectUserName", "SubjectDomainName")):
+            value = qualified_account(event.event_data.get(name), event.event_data.get(domain))
+            if value:
+                pool.add(value)
     return pool
 
 
@@ -102,8 +112,6 @@ def grounded(entity: str, pool: set[str], folded_pool: set[str]) -> bool:
     """True when ``entity`` is a recorded value: exactly, ignoring case, or as the account part of ``DOMAIN\\name``."""
     if entity in pool or entity.casefold() in folded_pool:
         return True
-    if "\\" in entity and not entity[1:3] == ":\\":
-        return entity.rsplit("\\", 1)[-1].casefold() in folded_pool
     return False
 
 

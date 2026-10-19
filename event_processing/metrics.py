@@ -55,7 +55,7 @@ from event_processing.detection.schema import DetectionRun
 from event_processing.ids import parse_evidence_id
 from event_processing.protected_paths import refuse_protected_output
 
-SCORE_REPORT_SCHEMA_VERSION = "detection-score-v1"
+SCORE_REPORT_SCHEMA_VERSION = "detection-score-v2"
 SCORE_REPORT_FILENAME = "score_report.json"
 SCORE_UNITS = ("evidence_id",)
 LABEL_VALUES = ("positive", "negative", "excluded")
@@ -128,11 +128,11 @@ class ScoreCounts(BaseModel):
             raise ValueError("precision must be None exactly when its denominator is zero")
         if (self.recall is None) != (self.recall_denominator == 0):
             raise ValueError("recall must be None exactly when its denominator is zero")
-        if self.precision is None or self.recall is None or self.precision + self.recall == 0:
+        if self.precision is None or self.recall is None:
             if self.f1 is not None:
-                raise ValueError("f1 must be None when a metric is undefined or P + R is zero")
+                raise ValueError("f1 must be None when precision or recall is undefined")
         else:
-            expected = 2 * self.precision * self.recall / (self.precision + self.recall)
+            expected = 0.0 if self.precision + self.recall == 0 else 2 * self.precision * self.recall / (self.precision + self.recall)
             if self.f1 is None or abs(self.f1 - expected) > 1e-12:
                 raise ValueError("f1 must equal 2PR / (P + R)")
         return self
@@ -547,10 +547,10 @@ def _counts(
     recall_denominator = tp + fn
     precision = None if precision_denominator == 0 else tp / precision_denominator
     recall = None if recall_denominator == 0 else tp / recall_denominator
-    if precision is None or recall is None or precision + recall == 0:
+    if precision is None or recall is None:
         f1 = None
     else:
-        f1 = 2 * precision * recall / (precision + recall)
+        f1 = 0.0 if precision + recall == 0 else 2 * precision * recall / (precision + recall)
     return ScoreCounts(
         flagged=len(flagged),
         positives=len(positives),

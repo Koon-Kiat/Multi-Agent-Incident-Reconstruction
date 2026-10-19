@@ -137,8 +137,8 @@ def test_the_rule_catalogue_is_sorted_unique_and_fully_specified():
     # R-AUTH-01 detection claims. Phase 6 (B6): R-EXEC-02's PowerShell test became a whole-executable
     # match, a logic change, so it moved to v2. Everything else is v1.
     expected_versions = {
-        "R-AUTH-01": "4",
-        "R-AUTH-02": "5",
+        "R-AUTH-01": "5",
+        "R-AUTH-02": "6",
         "R-EXEC-01": "2",
         "R-EXEC-02": "2",
         "R-EXEC-03": "2",

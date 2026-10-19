@@ -32,14 +32,15 @@ def _observation(finding):
     return value
 
 
-def model_batch(request, limits, tools, observations, offset, last_tool, llm_metadata):
+def model_batch(request, limits, tools, observations, offset, last_tool, llm_metadata, token_counter=None):
     """Choose the largest fitting consecutive batch, or fail without dropping data.
 
     A caller exposing num_ctx (including Ollama and FinishGuard) also gets a
     conservative input token bound with output space reserved. Custom adapters
     without num_ctx receive the serialized byte guard only.
     """
-    num_ctx = llm_metadata.get("num_ctx")
+    configuration = llm_metadata.get("configuration",llm_metadata)
+    num_ctx = configuration.get("num_ctx") if isinstance(configuration,dict) else None
     token_budget = num_ctx - limits.max_output_tokens if type(num_ctx) is int else None
 
     def prepare(count):
@@ -66,7 +67,7 @@ def model_batch(request, limits, tools, observations, offset, last_tool, llm_met
             "batch": {"offset": offset, "count": count, "total": len(observations),
                       "revision": tools.calls},
             "shared_uncertainty": BASE_UNCERTAINTY,
-            "observations": [_observation(finding) for finding in batch],
+            "observations": [{"observation_index":index,**_observation(finding)} for index,finding in enumerate(batch)],
         }
         messages = [{"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": _json(context)}]
@@ -79,6 +80,11 @@ def model_batch(request, limits, tools, observations, offset, last_tool, llm_met
             schema = {"$defs": schema["$defs"], "$ref": "#/$defs/_FinishReply"}
         size = len(_json({"messages": messages, "schema": schema}).encode("utf-8"))
         tokens = sum(len(m["content"].encode("utf-8")) for m in messages) + CHAT_TEMPLATE_TOKEN_RESERVE
+        if token_counter is not None:
+            measured=token_counter(messages)
+            if type(measured) is not int or measured < 0:
+                raise InvestigationError("invalid_token_count")
+            tokens=measured
         fits = size <= limits.max_context_bytes and (token_budget is None or tokens <= token_budget)
         return fits, batch, messages, schema, size, tokens
 

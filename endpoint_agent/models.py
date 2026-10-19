@@ -226,14 +226,37 @@ class ModelReply(RootModel[Annotated[_ToolReply | _FinishReply, Field(discrimina
         else:
             schema["$defs"]["Annotation"] = {"anyOf": [
                 {"type": "object", "additionalProperties": False,
-                 "required": ["observation_id", "evidence_ids", "interpretation"],
+                 "required": ["index", "interpretation"],
                  "properties": {
-                     "observation_id": {"type": "string", "const": item.finding_id},
-                     "evidence_ids": {"type": "array", "items": {"type": "string"},
-                                      "const": list(item.evidence_ids)},
+                     "index": {"type": "integer", "const": index},
                      "interpretation": {"enum": [None, *interpretations_for(item)]},
-                 }} for item in observations]}
+                 }} for index,item in enumerate(observations)]}
         return schema
+
+    @classmethod
+    def parse_grounded_reply(cls, text, observations):
+        """Expand a batch-local index into immutable, fully cited API annotations.
+
+        The model chooses only a known row and an interpretation; it cannot
+        supply or change that row's evidence set. Legacy adapters remain valid
+        and undergo the same exact-reference validation in the agent.
+        """
+        import json
+        value=json.loads(text)
+        if isinstance(value,dict) and isinstance(value.get("annotations"),list):
+            expanded=[]
+            for item in value["annotations"]:
+                if isinstance(item,dict) and "index" in item:
+                    index=item["index"]
+                    if (set(item)!={"index","interpretation"} or type(index) is not int
+                            or not 0<=index<len(observations)):
+                        raise ValueError("invalid batch observation index")
+                    observation=observations[index]
+                    item={"observation_id":observation.finding_id,"evidence_ids":list(observation.evidence_ids),
+                          "interpretation":item["interpretation"]}
+                expanded.append(item)
+            value["annotations"]=expanded
+        return cls.model_validate_json(json.dumps(value))
 
 
 def interpretations_for(finding: Finding) -> tuple[str, ...]:
