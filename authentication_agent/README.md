@@ -117,8 +117,15 @@ Mandatory retrieval remains deterministic because Qwen3 does not reliably follow
 directed tool plans. Actions use the existing structured JSON protocol with typed arguments paired
 to each tool name; native Ollama function calling is not claimed. The host still
 enforces event scope, budgets and exact evidence references after model parsing.
-The decoder also binds annotations to existing observation/evidence pairs without
-choosing tools or interpretations for the model. Required operations run before
+Prompt v17/configuration v5 exposes a bounded menu of unanswered public query questions. The host builds
+this menu only from request scope, retrieved records and operation receipts. It never probes unavailable
+records or reads evaluation witnesses. The model selects a menu ID or finishes; the host supplies its exact
+validated arguments. A complete initial inventory permits finishing only. A capped prefix offers outcome
+filters, overlapping time tails and known-account histories, excluding equivalent operations already run.
+This is constrained model selection, not unrestricted tool planning. The per-query cap is not a total
+retrieval cap. No useful-retrieval credit is given for host-required operations.
+The decoder also binds indexed annotations to every observation in the current batch without
+choosing interpretations for the model; null remains permitted. Required operations run before
 model inference. Identical operations reuse their prior result; duplicates still
 consume budget and distinct filters/windows remain available. No automatic retries
 or model-generated mandatory plans are accepted.
@@ -156,10 +163,11 @@ It reuses the existing factual checker; the compatibility name
 checks, not independent verification, baseline scoring or detection accuracy.
 Saved artifacts omit personal system specifications.
 
-The [autonomous follow-up report](../docs/AUTHENTICATION_AUTONOMY.md) separates
+The historical [autonomous follow-up report](../docs/AUTHENTICATION_AUTONOMY.md) separates
 factual completion, model-selected retrieval, trusted requirements, and directed
-tool-plan compliance. Useful local-model follow-ups were recorded, but consistent
-selection remains a limitation. The internal bounded decision assessment is not
+tool-plan compliance. Its measurements precede the public-query-menu policy. Current development
+results are recorded in [correctness remediation](../docs/CORRECTNESS_REMEDIATION.md).
+The internal bounded decision assessment is not
 exported in v2 results. The decoder's query limits now agree with the active cap;
 host validation remains authoritative. The runtime defaults are unchanged.
 
@@ -177,3 +185,11 @@ See [orchestrator invocation and result handling](../docs/ORCHESTRATOR_HANDOFF.m
 and [architecture](../docs/ARCHITECTURE.md). Endpoint investigation, incident
 reconstruction and independent verification/evaluation remain separate
 responsibilities. No new EVTX parser, normaliser, query API or storage is added.
+
+Correctness amendment (2026-10-19): configuration v4 adds bounded complete-observation batches when a
+whole prompt cannot fit. Both serialized bytes and the declared token context are checked with space
+reserved for output. The local Qwen2 tokenizer is reconstructed from installed metadata; unsupported
+metadata uses a conservative UTF-8 bound. No event details are clipped. An irreducible observation fails
+explicitly. New evidence restarts review; an unchanged retrieval keeps already reviewed batches.
+Final exact readback still covers every retrieved event. This does not establish useful model autonomy;
+the stricter autonomy evaluation remains a separate development measurement.

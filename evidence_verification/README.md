@@ -24,7 +24,8 @@ python -m incident_reconstruction --corpus out/corpus --llm ollama --mode full -
 
 # Score every written run against the private key:
 python -m evidence_verification.evaluation --corpus out/corpus --runs out/runs `
-    --detections out/detections --out out/evaluation
+    --detections out/detections --out out/evaluation-corrected `
+    --claim-reviews out/review/claim_reviews.json --scoring-contract out/review/scoring_contract.json
 ```
 
 `MAIR_VERIFIER_MODEL` (default `qwen3:8b`), `MAIR_VERIFIER_NUM_CTX` (8192) and `MAIR_VERIFIER_TIMEOUT` (180 s)
@@ -58,22 +59,68 @@ and as described is confirmed.
 ## The model layer can only lower a verdict
 
 `agent.py` adds an independently prompted model, consulted only for claims the deterministic checks confirmed.
-The deterministic checks cannot read a sentence; the model does exactly one job: split the claim into its
-separate assertions and, for each, name the retrieved record that states it and copy the words. A claim's
-embellishments (an intent, a cause, a consequence, an extra detail) are precisely what records fail to state.
+The host partitions the claim into clauses without dropping any non-whitespace text, including causal and
+purpose clauses. The model sees the whole claim and judges every clause against complete source facts.
+Each metadata/event-data value has a host-assigned fact ID bound to its original record. The model selects
+those IDs and gives a short source summary before marking support; it cannot rewrite or omit an inconvenient clause.
+Multiple facts can jointly support arithmetic, chronology and compound observations.
 
-**The model never decides the verdict; code does.** An assertion counts as shown only if the model cites a
-record it was actually shown and quotes words that appear in it. Naming no record, or quoting words the record
-does not contain, leaves it not shown. An assertion the model added that is not about the claim is ignored. Any
-not-shown assertion lowers `confirmed` to `partially_supported`; if none is shown, to `unverified`.
+**Code maps the model's support assessments to verdicts.** All clause keys must occur exactly once;
+supported/partial clauses need valid source fact IDs. Repeated citations add no weight and are normalized
+as a set. Unknown IDs, invented quote fields and missing
+clauses fail validation. Valid provenance does not establish semantic correctness: the model can still
+misjudge a fact's relevance. Any unsupported/partial clause lowers `confirmed` to `partially_supported`;
+if no clause has support, to `unverified`.
 
 Its prompt holds the claim's text, type, stated span, entities and technique IDs plus the records the verifier
 retrieved. It never holds the reconstruction's rationale, its own assessment, its uncertainty notes, detection
 or finding IDs, links, an orchestration trace, agent reasoning or any answer key.
 
 It can never raise a verdict and can never reject, because rejection needs a failed reference or a contradiction
-that code has verified. If the model is unavailable or replies invalidly, the deterministic verdict stands and
-says so. A verifier's judgement is never accepted as its own ground truth.
+that code has verified. If the model is unavailable, its reply is invalid, or complete evidence cannot fit,
+the result is explicitly `unverified` with `verification_incomplete`; this is an operational limitation,
+not evidence that the claim is false. A verifier's judgement is never its own ground truth.
+
+Verifier version 3 defaults to prompt v5 with the indexed-fact reply contract. Every referenced record and every event-data field is retained;
+there is no 14-record cap or field clipping. Event-type labels explain the source IDs without adding
+an attack interpretation. The complete prompt must fit both serialization and token budgets. Historical
+v2/v3/v4 prompt text remains selectable; reproducing historical behavior requires its Git revision too.
+Legacy v4 uses contiguous copied spans. The v5 contract has one format-only repair attempt after an invalid
+reply, with no expected verdict supplied. Runtime/context failures are not retried. Metadata records every
+actual model call and `agent_format_retries`; failed repair is an operational abstention. Independent
+annotations measure semantic judgments separately.
+
+When the ordinary view overflows, v5 first keeps complete in-span records together and groups the context.
+If that cannot fit, it groups all identical field/value pairs with explicit record indices,
+preserving every original value and distinguishing metadata from same-named event-data fields.
+Each group states exactly which records contain that value; absent fields stay absent.
+Exact source computations provide counts and elapsed times for records whose metadata timestamps fall
+inside the claim's stated span, without claim-support labels. Cited records may themselves include context
+outside that span. Activity and its stated span remain distinct from contextual
+records and file-internal timestamps. Overflow after compression still abstains explicitly.
+Compact replies summarize source fields before selecting proof IDs; their decoder requires a nonempty
+proof list for supported/partial assessments. Every format chooses the support label last.
+
+## Corrected comparison workflow
+
+Use `scripts/run-evaluation.ps1 -Out out/corrected-01` to generate fresh A/B/C/D artifacts. The script
+defaults to generation only. Put Dataset & Ground Truth Management's private files under `ground_truth/private/` as described in
+[`ground_truth/README.md`](../ground_truth/README.md), then generate unanswered review forms:
+
+```powershell
+python -m evidence_verification.evaluation.prepare_review --corpus out/corrected-01/corpus `
+    --runs out/corrected-01/runs --ground-truth ground_truth/private --out out/corrected-01/review
+```
+
+An independent reviewer fills each claim's support label, notes, and correct stage IDs after reading the
+original records and lab key. Dataset, detection and evaluation owners complete the scoring contract.
+Neither command invents approvals or labels. Use those files with the scoring command above, pointing it
+at the same corpus/runs/detections. `--allow-partial` is diagnostic only; `--allow-fake` additionally labels
+simulated models as plumbing. Final scoring checks the full scenario/configuration matrix, identical real
+model profiles, corpus and trigger hashes, current implementation, exact artifact contents and reviews.
+
+Evidence overlap is labelled alignment/coverage. Semantic correctness comes only from the separate
+claim reviews. Review and contract fingerprints include the private CSVs and `scoring_exclusions.json`.
 
 An opt-in test measures the layer on 14 synthetic claims that all pass the deterministic checks (6 faithful, 8
 embellished), because only the model layer can catch an embellishment:

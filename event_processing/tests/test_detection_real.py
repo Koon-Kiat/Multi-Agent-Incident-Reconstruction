@@ -24,7 +24,7 @@ from event_processing.detection.rules import RULES
 from event_processing.query import EventStore
 from event_processing.timeutil import iso_to_ticks, ticks_to_iso
 
-CORPUS_MANIFEST_SHA256 = "34c5d0ac01e5a6028cbc2a6deb39197a179007be549971119f83e6000f9069c7"
+CORPUS_MANIFEST_SHA256 = "a5df6be34fa77119f72b2a224a050f9d143fae67129074260aebe727d478f09a"
 
 BASELINE_COUNTS = {
     "S01": {"R-CRED-01": 2, "R-EXEC-01": 6, "R-LOG-01": 1},
@@ -32,18 +32,18 @@ BASELINE_COUNTS = {
     "S03": {"R-AUTH-03": 6, "R-EXEC-01": 4, "R-FILE-01": 3, "R-LOG-01": 1},
 }
 
-# PR #10 plus descriptive schema identifiers. Independent replay against the
-# unchanged upstream commit proves equivalent content after removing namespace
-# metadata. Compared with the prior feature run, only R-EXEC-02 version 1 -> 2
-# changes. The canonical digests pin all detection content, including versions.
+# Correctness amendment 2026-10-19: SourceUser changes the corpus digest;
+# principal grouping changes AUTH versions/params and qualified account rationale.
+# The 38 trigger sets and thresholds remain unchanged on these public exports.
+# Historical digests remain in docs/DETECTION_RULES.md and Git history.
 BASELINE_DIGESTS = {
-    "S01.json": "2222118a463431303380867fd29b9193a4935fa1f2bef92f1c3f4d998e4fe158",
-    "S02.json": "63a6b2e231eac747967171d0291f0e7e73805ae822f2c9a80a9748ddcada04e6",
-    "S03.json": "6ed830c1c52b8448567c8bd6d2e47cfda082b3a040e270e1b51cc66475ffc3c7",
-    "summary.json": "a16836328abd1136bfb21fa573d221a6227c88c237d8544ab0783a645af8395c",
+    "S01.json": "14da0b2a4e1e4dca7f22053ebc6d90af4c2bb38b407d2641c3e9b6a004265d4b",
+    "S02.json": "e7afc76cf8114422aff295f270f9dcbf063eb01827b659d646bc1097e56608ca",
+    "S03.json": "e2ea2ee21e4b0c0bafeb8974b8458628614ae3802b0b465e267ac167e190c138",
+    "summary.json": "5a5712429952c05ab467addac6d362edce767ee92fd13aad837e9fd78aead8aa",
 }
 
-BEHAVIOR_DIGESTS = {'S01.json': '7c67e52703d6099f13bd8ca3a1ee57f84dd1b2cc5141df2000d5ec2d9c9db369', 'S02.json': 'fcca13c0b322c2b73bad625d2b18866f279862332b2c0e463751fbdfead5fea7', 'S03.json': '0f8123efd5dfac765c76bcd5dfb3e709806e1b73154438b337d402f09cdf4fff'}
+BEHAVIOR_DIGESTS = {'S01.json': '763d62fd93e00a9856a240727225f9514cde490c6fe2cf82b7fc5869c490141c', 'S02.json': 'eb77224b88a46aa9e46dafa30144f18ed6d18e4d66d25ea41c458f1b9b492125', 'S03.json': '1c606a8d10d1585811fcb65619f17570d5b587d4a5147ba66eb300108534fa8e'}
 
 RULE_VERSIONS = {rule.spec.rule_id: rule.spec.version for rule in RULES}
 

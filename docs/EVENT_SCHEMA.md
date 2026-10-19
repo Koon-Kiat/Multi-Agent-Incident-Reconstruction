@@ -109,7 +109,8 @@ Notes that matter to consumers:
 | `host` | `System/Computer` verbatim (`None` when the element is absent) |
 | `user` — Security 4624, 4625, 4634, 4647, 4648 | `EventData/TargetUserName` |
 | `user` — any other Security event | `EventData/SubjectUserName` |
-| `user` — Sysmon | `EventData/User` |
+| `user` — Sysmon 10 | `EventData/SourceUser` |
+| `user` — other supported Sysmon events | `EventData/User` |
 | `user` — field absent | `None` + `parse_warnings` entry |
 | `event_data` | every `EventData/Data` pair, values verbatim |
 | `raw_reference` | `evtx://datasets/<scenario>/raw/<file>#EventRecordID=<record_id>` |

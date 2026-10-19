@@ -32,16 +32,16 @@ from .alignment import align_claim
 from .detection import score_detections
 from .groundtruth import load_ground_truth, load_neutral_evidence
 from .scoring import VERDICTS, ALIGNMENTS, score_reconstruction, sum_counts, summarise_support
+from .validation import EvaluationError, validate_run
+from event_processing.metrics import load_detection_runs
+from event_processing.provenance import json_digest, implementation_digest, PACKAGES
+from .independent import load_reviews, semantic_score, validate_contract, key_digests
 
-RESULTS_SCHEMA = "evaluation-results-v1"
+RESULTS_SCHEMA = "evaluation-results-v2"
 MODES = {"single-agent": "B_single_agent", "multi-agent": "C_multi_agent_no_verifier", "full": "D_full_mair"}
 PROTOCOL_PUBLIC = "docs/EVALUATION_PROTOCOL.md"
 PROTOCOL_PRIVATE = "ground_truth/private/EVALUATION_PROTOCOL_PRIVATE.md"
-FROZEN_PATHS = ("evidence_verification", PROTOCOL_PUBLIC)
-
-
-class EvaluationError(RuntimeError):
-    pass
+FROZEN_PATHS = (*PACKAGES, "pyproject.toml", PROTOCOL_PUBLIC)
 
 
 def _sha256(path: Path) -> str | None:
@@ -50,7 +50,7 @@ def _sha256(path: Path) -> str | None:
 
 def _git(repo: Path, *args: str) -> str | None:
     try:
-        done = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, timeout=30)
+        done = subprocess.run(["git", "-c", f"safe.directory={repo.resolve().as_posix()}", "-C", str(repo), *args], capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError):
         return None
     return done.stdout.strip() if done.returncode == 0 else None
@@ -62,6 +62,8 @@ def provenance(repo: Path, hardware_note: str) -> dict:
     return {
         "git_commit": _git(repo, "rev-parse", "HEAD"),
         "verifier_code_clean": status == "" if status is not None else None,
+        "implementation_sha256": implementation_digest(),
+        "implementation_code_clean": status == "" if status is not None else None,
         "verifier_files_sha256": {str(p.relative_to(repo)).replace("\\", "/"): _sha256(p)
                                   for p in sorted(package.rglob("*.py")) if "tests" not in p.parts},
         "protocol_public_sha256": _sha256(repo / PROTOCOL_PUBLIC),
@@ -73,39 +75,57 @@ def provenance(repo: Path, hardware_note: str) -> dict:
     }
 
 
-def _load(path: Path, model):
-    return model.model_validate_json(path.read_text(encoding="utf-8"))
-
-
-def _runtimes(pipeline: dict) -> set[str]:
-    return {str(v.get("runtime")) for v in (pipeline.get("llm") or {}).values() if isinstance(v, dict)}
-
-
 def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detections: Path | None = None,
              allow_fake: bool = False, hardware_note: str = "", repo: Path | None = None,
-             label: str | None = None) -> dict:
+             label: str | None = None, allow_partial: bool = False,
+             claim_reviews: Path | None = None, scoring_contract: Path | None = None) -> dict:
     repo = repo or Path.cwd()
     store = EventStore.load(corpus)
     digest = corpus_manifest_digest(corpus)
     stages_by_scenario = load_ground_truth(ground_truth, store.scenario_ids)
     neutral = load_neutral_evidence(ground_truth)
-    out.mkdir(parents=True, exist_ok=True)
+    known=set(store.evidence_ids)
+    key_ids={i for stages in stages_by_scenario.values() for stage in stages for i in stage.evidence_ids}
+    neutral_ids={i for ids in neutral.values() for i in ids}
+    if not (key_ids|neutral_ids)<=known:
+        raise EvaluationError("ground truth or exclusions reference records absent from this corpus")
+    if set(neutral)-set(store.scenario_ids):
+        raise EvaluationError("exclusions name a scenario outside this comparison")
+    reviews = load_reviews(claim_reviews,digest,ground_truth)
+    contract = validate_contract(scoring_contract,digest,ground_truth)
+    if out.exists():
+        raise EvaluationError("evaluation output already exists; use a new directory to preserve previous results")
+    if detections is None and not allow_partial:
+        raise EvaluationError("configuration A detections are required; --allow-partial is diagnostic only")
+    detection_runs = load_detection_runs(detections) if detections is not None else ()
+    if detection_runs and {r.scenario_id for r in detection_runs} != set(store.scenario_ids):
+        raise EvaluationError("configuration A scenario set differs from the corpus")
+    detection_hashes = {r.scenario_id:json_digest([d.model_dump(mode="json") for d in r.detections]) for r in detection_runs}
+    if any(r.corpus_manifest_sha256 != digest for r in detection_runs):
+        raise EvaluationError("configuration A used a different corpus revision")
 
     per_run: list[dict] = []
     claim_rows: list[dict] = []
     fake = False
+    expected_profile = None
+    missing = False
     for mode, configuration in MODES.items():
         for scenario in store.scenario_ids:
             base = runs / mode / scenario
             reconstruction_path = Path(f"{base}.reconstruction.json")
             if not reconstruction_path.is_file():
+                if not allow_partial:
+                    raise EvaluationError(f"missing configuration {mode}/{scenario}; --allow-partial is diagnostic only")
+                missing = True
                 per_run.append({"configuration": configuration, "scenario_id": scenario, "status": "missing_run"})
                 continue
-            reconstruction = _load(reconstruction_path, Reconstruction)
-            pipeline = json.loads(Path(f"{base}.pipeline.json").read_text(encoding="utf-8"))
-            if reconstruction.corpus_manifest_sha256 != digest:
-                raise EvaluationError(f"{mode}/{scenario} was computed from a different corpus revision")
-            is_fake = "fake" in _runtimes(pipeline)
+            reconstruction,pipeline,report,is_fake,expected_profile = validate_run(
+                base,mode,scenario,digest,allow_fake=allow_fake,allow_partial=allow_partial,
+                expected_profile=expected_profile)
+            if pipeline.get("post_hoc") and not label:
+                raise EvaluationError("post-hoc runs require an explicit --label")
+            if scenario in detection_hashes and pipeline["detection_sha256"] != detection_hashes[scenario]:
+                raise EvaluationError(f"{mode}/{scenario}: detection triggers differ from configuration A")
             fake |= is_fake
             if is_fake and not allow_fake:
                 raise EvaluationError(f"{mode}/{scenario} used a fake model; it checks plumbing only and must not "
@@ -122,7 +142,6 @@ def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detecti
                                                                   deterministic, conflicts, alignments))}
             verification = None
             if mode == "full":
-                report = _load(Path(f"{base}.verification.json"), VerificationReport)
                 pipeline_conflicts = {d.claim_id: d.conflicts for d in report.decisions}
                 support["pipeline"] = asdict(summarise_support(scenario, configuration, "pipeline", report.verdicts(),
                                                                pipeline_conflicts, alignments))
@@ -133,6 +152,14 @@ def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detecti
                         {"claim_id": cid, "deterministic": deterministic[cid], "final": verdict,
                          "alignment": alignments[cid].alignment}
                         for cid, verdict in report.verdicts().items() if verdict != deterministic[cid]]}
+            review = reviews.get((mode,scenario)) if reviews is not None else None
+            incomplete_ids=() if report is None else tuple(d.claim_id for d in report.decisions
+                if any(c.startswith("verification_incomplete") for c in d.conflicts)
+                or d.reason.startswith(("verifier_failed:","no_decision_returned")))
+            semantic = semantic_score(review,reconstruction,stages,
+                                      report.verdicts() if report is not None else deterministic,incomplete_ids)
+            if review is None and not allow_partial:
+                raise EvaluationError(f"{mode}/{scenario}: independent claim reviews are required for final correctness scoring")
             for claim in reconstruction.claims:
                 cid = claim.claim_id
                 claim_rows.append({
@@ -146,28 +173,50 @@ def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detecti
                 "configuration": configuration, "scenario_id": scenario, "status": "scored",
                 "plumbing_only": is_fake, "reconstruction": asdict(reconstruction_score), "support": support,
                 "verification": verification,
+                "semantic_correctness": semantic,
                 "latency": {"total_seconds": pipeline["latency_seconds"], "phases": pipeline["phases"],
                             "model_calls": pipeline["model_calls"], "claims": pipeline["claims"],
                             "llm": pipeline["llm"]},
                 "investigation_gaps": list(reconstruction.investigation_gaps)})
 
+    if contract is None and not allow_partial:
+        raise EvaluationError("approved detection scoring contract is required; --allow-partial is diagnostic only")
+    review_keys = {(mode,scenario) for mode in MODES for scenario in store.scenario_ids}
+    if reviews is not None and set(reviews)-review_keys:
+        raise EvaluationError("independent reviews contain unknown scenarios or configurations")
+    semantic_complete = bool(per_run) and all(r.get("semantic_correctness",{}).get("status")=="independently_reviewed" for r in per_run)
     results = {
         "schema_version": RESULTS_SCHEMA, "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "scored": not fake, "plumbing_only": fake, "label": label,
-        "inputs": {"corpus_manifest_sha256": digest, "runs": str(runs), "scenarios": list(store.scenario_ids)},
+        "scored": not fake and not missing and detections is not None and semantic_complete and contract is not None and not allow_partial,
+        "comparison_complete": not missing and detections is not None,
+        "plumbing_only": fake, "partial_inspection": allow_partial, "label": label,
+        "semantic_review_complete": semantic_complete,
+        "scoring_contract_approved": contract is not None,
+        "metric_definition": "correctness-amendment-4-v2",
+        "inputs": {"corpus_manifest_sha256": digest, "runs": str(runs), "scenarios": list(store.scenario_ids),
+                   "ground_truth_sha256":key_digests(ground_truth),
+                   "claim_reviews_sha256":_sha256(claim_reviews) if claim_reviews else None,
+                   "scoring_contract_sha256":_sha256(scoring_contract) if scoring_contract else None},
         "provenance": provenance(repo, hardware_note),
         "runs": per_run, "totals": _totals(per_run),
     }
-    if detections is not None:
-        results["configuration_A_rules_only"] = score_detections(corpus, detections, out, stages_by_scenario, neutral, store)
+    # Stage output only after every comparison input has passed validation.
+    from tempfile import TemporaryDirectory
+    out.parent.mkdir(parents=True,exist_ok=True)
+    with TemporaryDirectory(prefix=".evaluation-",dir=out.parent) as staging_name:
+        staging = Path(staging_name)
+        if detections is not None:
+            results["configuration_A_rules_only"] = score_detections(corpus,detections,staging,stages_by_scenario,neutral,store)
+            if contract is not None:
+                results["configuration_A_rules_only"]["status"] = "AGREED - versioned owner-approved scoring contract"
 
-    (out / "results.json").write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
-    with (out / "claims.csv").open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(claim_rows[0]) if claim_rows else ["claim_id"])
-        writer.writeheader()
-        writer.writerows(claim_rows)
-    from .report import render
-    (out / "results.md").write_text(render(results), encoding="utf-8")
+        (staging/"results.json").write_text(json.dumps(results,indent=2,ensure_ascii=False),encoding="utf-8")
+        with (staging/"claims.csv").open("w",encoding="utf-8",newline="") as handle:
+            writer=csv.DictWriter(handle,fieldnames=list(claim_rows[0]) if claim_rows else ["claim_id"])
+            writer.writeheader(); writer.writerows(claim_rows)
+        from .report import render
+        (staging/"results.md").write_text(render(results),encoding="utf-8")
+        os.replace(staging,out)
     return results
 
 

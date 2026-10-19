@@ -25,6 +25,9 @@ def _scored(results: dict, configuration: str) -> list[dict]:
 
 def render(results: dict) -> str:
     out: list[str] = ["# MAIR evaluation results", ""]
+    if not results.get("scored"):
+        out += ["> **DIAGNOSTIC ONLY.** This is not a complete independently reviewed final comparison. "
+                "Missing configurations, owner approvals, independent labels or simulated models must be resolved before final scoring.", ""]
     if results.get("label"):
         out += [f"> **{results['label']}.** The original scored run is the primary result; this table must be reported "
                 "beside it, never in place of it.", ""]
@@ -44,9 +47,10 @@ def render(results: dict) -> str:
             f"{prov['hardware']['note'] or 'no hardware note given'}", ""]
 
     totals = results["totals"]
-    out += ["## Reconstruction (unit: ground-truth stage)", "",
+    out += ["## Evidence alignment and coverage (unit: ground-truth stage)", "",
             "Stages matched = stages with at least one claim citing a record the key attributes to them. "
-            "Order counts pairs of matched stages by whether their claims appear in the key's order (ties excluded).", ""]
+            "Order counts pairs of matched stages by whether their claims appear in the key's order (ties excluded). "
+            "These are evidence-overlap diagnostics, not semantic reconstruction accuracy.", ""]
     rows = []
     for configuration in ORDER:
         for run in _scored(results, configuration):
@@ -62,6 +66,25 @@ def render(results: dict) -> str:
                          f"**{t['claims_aligned']}**", f"**{t['claims_neutral']}**", f"**{t['claims_unaligned']}**", ""])
     out += [_table(["Configuration", "Scenario", "Stages matched", "Order concordant",
                     "Claims aligned", "Neutral", "Unaligned", "Mean stage coverage"], rows), ""]
+    out += ["## Independently reviewed reconstruction correctness", "",
+            "Only separate human annotations bound to these exact claims and the private lab key establish correctness. "
+            "The verifier is not its own answer key. Missing review means not measured. "
+            "Operational verification abstentions are separate: they never earn an unsupported-claim catch, "
+            "and abstaining on an unsupported claim remains a miss in recall.", ""]
+    rows = []
+    for configuration in ORDER:
+        for run in _scored(results,configuration):
+            semantic = run.get("semantic_correctness",{})
+            if semantic.get("status") == "independently_reviewed":
+                audit = semantic["unsupported_claim_detection"]
+                rows.append([SHORT[configuration],run["scenario_id"],
+                    f"{semantic['stages_correct']}/{semantic['stages_total']}",semantic["correct_stage_recall"],
+                    audit["tp"],audit["fp"],audit["fn"],audit["tn"],audit["precision"],audit["recall"],
+                    sum(audit.get("operational_abstentions",{}).values())])
+            else:
+                rows.append([SHORT[configuration],run["scenario_id"],"not measured",*([""]*8)])
+    out += [_table(["Configuration","Scenario","Correct stages","Stage recall","Unsupported TP","False alarms",
+                    "Unsupported FN","Supported TN","Audit precision","Audit recall","Operational abstentions"],rows),""]
 
     out += ["## Does the system tell the benign lookalike from the attack? (aligned stages only)", "",
             "`true_flag`/`true_benign` are stages the claims judged as the key labels them; `under_call` is an attack "
@@ -85,7 +108,7 @@ def render(results: dict) -> str:
 
     if "D_full_mair" in totals:
         t = totals["D_full_mair"]
-        out += ["### Full MAIR: the verifier's verdicts against the key", "",
+        out += ["### Full MAIR: verifier verdicts by evidence alignment", "",
                 "Rows are what the key says about the claim; columns are the verdict the pipeline recorded.", ""]
         rows = [[a, *(t["verifier_vs_key"][a][v] for v in VERDICTS)] for a in ALIGNMENTS]
         out += [_table(["Claim vs key", *VERDICTS], rows), "",

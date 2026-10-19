@@ -191,3 +191,12 @@ or the whole investigation. Async callers use `asyncio.to_thread`; orchestration
 whole-run cancellation and cross-source reconstruction remain downstream work.
 See the [provider and orchestrator handoff](../docs/ENDPOINT_PROVIDER_HANDOFF.md)
 and [implementation review](../docs/ENDPOINT_IMPLEMENTATION.md).
+
+Correctness amendment (2026-10-19): prompt/config v3 uses batch-local annotation indices to reduce model
+response overhead. Python expands each valid index to the original immutable finding and evidence IDs;
+unknown, duplicate or mixed references fail validation. All evidence facts and global process links remain
+in the prompt/result. Local installed Qwen2 BPE counting replaces the byte bound when available; unsupported
+tokenizers retain the conservative bound. Unchanged tool results keep completed batches; new evidence
+invalidates prior annotations. The production orchestrator also bounds each call by the task's remaining
+deadline and prevents later calls after expiry. Custom uncooperative providers/extensions still require
+their own cancellation support. See [correctness remediation](../docs/CORRECTNESS_REMEDIATION.md).

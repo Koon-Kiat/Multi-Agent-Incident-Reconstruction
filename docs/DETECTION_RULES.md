@@ -457,3 +457,21 @@ R-EXEC-02 version changes from 1 to 2. Event JSONL, detections, counts, triggers
 and windows remain identical. The current byte and canonical hashes above were
 refreshed only after this comparison; see the
 [integration readback](validation/authentication-pr10-2026-09-23/integration-readback.json).
+
+## Correctness amendment, 2026-10-19
+
+The preceding digests describe historical runs. New code normalizes Sysmon 10 `SourceUser`, changing the
+corpus manifest to `a5df6be34fa77119f72b2a224a050f9d143fae67129074260aebe727d478f09a`.
+Authentication principal correlation retains host/domain/SID with conservative resolution of unknown SIDs;
+R-AUTH-01 is v5 and R-AUTH-02 v6, with `principal_policy=host-domain-sid-v1`. Rationale names retain domains.
+Thresholds are unchanged. The public exports still produce 9, 15 and 14 detections respectively; these are
+reproduction counts, not accuracy scores or a tuning target. Synthetic cases test domain/SID separation.
+
+Corrected output SHA-256 values (separately reproduced by the real-corpus regression):
+
+| File | SHA-256 |
+|---|---|
+| S01.json | `14da0b2a4e1e4dca7f22053ebc6d90af4c2bb38b407d2641c3e9b6a004265d4b` |
+| S02.json | `e7afc76cf8114422aff295f270f9dcbf063eb01827b659d646bc1097e56608ca` |
+| S03.json | `e2ea2ee21e4b0c0bafeb8974b8458628614ae3802b0b465e267ac167e190c138` |
+| summary.json | `5a5712429952c05ab467addac6d362edce767ee92fd13aad837e9fd78aead8aa` |

@@ -2,7 +2,7 @@
 
     $env:MAIR_TEST_VERIFIER_OLLAMA = "1"; python -m pytest evidence_verification/tests/test_agent_live.py -q
 
-Every benchmark case passes the deterministic checks, so only the model layer can catch an embellishment.
+Corrected deterministic checks catch some cases; the remaining embellishments exercise the model layer.
 The thresholds are floors, not targets: they guard against the layer silently losing sensitivity.
 """
 
@@ -33,7 +33,7 @@ def verdicts():
     return result
 
 
-def test_the_model_layer_catches_embellished_claims(verdicts):
+def test_the_combined_verifier_catches_embellished_claims(verdicts):
     caught = [name for name in EMBELLISHED if verdicts[name] != "confirmed"]
     assert len(caught) >= 7, f"caught {len(caught)}/{len(EMBELLISHED)}: {sorted(set(EMBELLISHED) - set(caught))} slipped through"
 

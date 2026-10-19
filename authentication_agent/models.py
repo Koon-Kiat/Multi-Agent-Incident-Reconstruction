@@ -192,6 +192,15 @@ class OperationReceipt(Model):
     error_code: str | None = None
 
 
+class ContextBatch(Model):
+    index: int
+    revision: int
+    observation_ids: tuple[str, ...]
+    evidence_ids: tuple[str, ...]
+    context_bytes: int
+    input_token_upper_bound: int | None = None
+
+
 class _Decision(Model):
     # Require a concise decision summary during structured decoding, while
     # preserving replies from existing adapters/recordings that omit it.
@@ -267,6 +276,7 @@ class ModelReply(RootModel[_ToolReply | _FinishReply]):
 
 
 class RunMetadata(Model):
+    planning_policy: str = "free-tool-v1"
     contract_version: str = "authentication-result-v2"
     prompt_version: str
     configuration_version: str
@@ -276,6 +286,8 @@ class RunMetadata(Model):
     model_calls: int
     operations: tuple[OperationReceipt, ...] = ()
     evidence_readbacks: int = 0
+    context_strategy: str = "whole-snapshot-v1"
+    context_batches: tuple[ContextBatch, ...] = ()
 
 
 class InvestigationResult(Model):

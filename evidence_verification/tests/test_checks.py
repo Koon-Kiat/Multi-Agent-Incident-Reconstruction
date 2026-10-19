@@ -93,7 +93,7 @@ def test_activity_shown_only_by_context_is_partial_not_unverified(store):
     claim = make_claim(evidence_ids=(sec_id(10), sec_id(11)))
     result = assess_one(claim, store)
     assert result.verdict == "partially_supported"
-    assert result.failed[0].name == "claim_type_structure"
+    assert "claim_type_structure" in failed_names(result)
 
 
 # ---------------------------------------------------------------- entities, host, time: partial or reject
@@ -172,6 +172,21 @@ def test_a_file_the_text_names_but_no_record_contains_is_partial(store):
     result = assess_one(claim, store)
     assert "text_files_recorded" in failed_names(result)
     assert "mimikatz.exe" in " ".join(result.conflicts)
+
+
+@pytest.mark.parametrize("ending", [".", ").", "]."])
+@pytest.mark.parametrize("path", [r"C:\Users\analyst\AppData\Local\Temp",
+                                 r"C:\Users\analyst\AppData\Local\Temp\payload.ps1"])
+def test_file_path_sentence_punctuation_is_not_part_of_the_path(store,path,ending):
+    claim=make_claim(claim_type="payload_written",claim_text="A file was created at "+path+ending,
+        evidence_ids=(sys_id(21),),context_evidence_ids=(sys_id(21),),
+        first_utc=iso(6),last_utc=iso(6),entities=ClaimEntities())
+    assert "text_files_recorded" not in failed_names(assess_one(claim,store))
+
+
+def test_stripping_sentence_punctuation_does_not_accept_an_unrecorded_path(store):
+    claim=make_claim(claim_text=r"A file was created at C:\missing\stolen.ps1.")
+    assert "text_files_recorded" in failed_names(assess_one(claim,store))
 
 
 def test_a_timestamp_in_the_text_no_record_carries_is_partial(store):
@@ -284,7 +299,7 @@ OTHER_ID = "SYN-V1"
 
 
 def test_a_shared_account_link_is_confirmed_when_both_claims_name_the_account(store):
-    first, second = _two_claims("shared account analyst")
+    first, second = _two_claims("shared account lab-a\\analyst")
     assert [a.verdict for a in assess(make_reconstruction(first, second), store)] == ["confirmed", "confirmed"]
 
 

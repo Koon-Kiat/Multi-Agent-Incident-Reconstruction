@@ -107,6 +107,8 @@ Known gaps, stated here rather than discovered later:
 
 from __future__ import annotations
 
+from event_processing.identity import AuthenticationPrincipal, authentication_principals
+
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -276,7 +278,7 @@ def detect_failed_logon_then_success(events: Sequence[NormalisedEvent]) -> tuple
                     spec,
                     (*confirming, success),
                     rationale=(
-                        f"{len(confirming)} failed logons for {_describe_account(*account)} inside "
+                        f"{len(confirming)} failed logons for {_describe_account(account.user, account.host)} inside "
                         f"{FAILED_LOGON_WINDOW_SECONDS}s, followed by a successful logon "
                         "for the same account"
                     ),
@@ -306,7 +308,7 @@ def detect_failed_logon_burst(events: Sequence[NormalisedEvent]) -> tuple[Detect
                     spec,
                     segment,
                     rationale=(
-                        f"{len(segment)} failed logons for {_describe_account(*account)} "
+                        f"{len(segment)} failed logons for {_describe_account(account.user, account.host)} "
                         f"(window_span_seconds={_span_seconds_text(segment)}), not "
                         "followed by a qualifying successful logon (R-AUTH-01)"
                     ),
@@ -344,25 +346,27 @@ def _claimed_trigger_ids(events: Sequence[NormalisedEvent]) -> frozenset[str]:
 
 def _failed_logon_accounts(
     events: Sequence[NormalisedEvent],
-) -> tuple[tuple[str | None, str | None], ...]:
-    """Every ``(user, host)`` group holding a failed logon, in a stable group order."""
+) -> tuple[AuthenticationPrincipal, ...]:
+    """Every unambiguous principal holding a failed logon, in stable order."""
+    principals = authentication_principals(events)
     accounts = {
-        _account(event)
+        principals[event.evidence_id]
         for event in events
         if _matches_event_id(event, SECURITY_CHANNEL, SECURITY_FAILED_LOGON)
     }
-    return tuple(sorted(accounts, key=_account_sort_key))
+    return tuple(sorted(accounts, key=lambda principal: principal.key))
 
 
 def _failed_logon_group(
-    events: Sequence[NormalisedEvent], account: tuple[str | None, str | None]
+    events: Sequence[NormalisedEvent], account: AuthenticationPrincipal
 ) -> tuple[list[NormalisedEvent], list[NormalisedEvent]]:
     """One group's failed and successful logons, both in ``(timestamp_ticks, evidence_id)`` order."""
+    principals = authentication_principals(events)
     failures = sorted(
         (
             event
             for event in events
-            if _account(event) == account
+            if principals.get(event.evidence_id) == account
             and _matches_event_id(event, SECURITY_CHANNEL, SECURITY_FAILED_LOGON)
         ),
         key=event_sort_key,
@@ -371,7 +375,7 @@ def _failed_logon_group(
         (
             event
             for event in events
-            if _account(event) == account
+            if principals.get(event.evidence_id) == account
             and _matches_event_id(event, SECURITY_CHANNEL, SECURITY_SUCCESSFUL_LOGON)
         ),
         key=event_sort_key,
@@ -872,7 +876,7 @@ def _ordered(detections: Sequence[Detection]) -> tuple[Detection, ...]:
 _SPECS: tuple[RuleSpec, ...] = (
     RuleSpec(
         rule_id="R-AUTH-01",
-        version="4",
+        version="5",
         description="Failed-logon burst followed by a successful logon for the same account and host",
         attack_technique="T1110",
         severity="high",
@@ -880,11 +884,12 @@ _SPECS: tuple[RuleSpec, ...] = (
             "min_failures": FAILED_LOGON_MIN_EVENTS,
             "window_seconds": FAILED_LOGON_WINDOW_SECONDS,
             "variant": "burst_then_success",
+            "principal_policy": "host-domain-sid-v1",
         },
     ),
     RuleSpec(
         rule_id="R-AUTH-02",
-        version="5",
+        version="6",
         description="Failed-logon burst for the same account and host that no successful logon confirms",
         attack_technique="T1110",
         severity="medium",
@@ -892,6 +897,7 @@ _SPECS: tuple[RuleSpec, ...] = (
             "min_failures": FAILED_LOGON_MIN_EVENTS,
             "window_seconds": FAILED_LOGON_WINDOW_SECONDS,
             "variant": "burst_only",
+            "principal_policy": "host-domain-sid-v1",
         },
     ),
     RuleSpec(

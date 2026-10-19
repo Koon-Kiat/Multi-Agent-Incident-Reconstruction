@@ -7,7 +7,7 @@ from pydantic import Field, field_validator
 
 from .models import Model
 
-CONFIGURATION_VERSION = "authentication-config-v3"
+CONFIGURATION_VERSION = "authentication-config-v5"
 
 
 class Limits(Model):

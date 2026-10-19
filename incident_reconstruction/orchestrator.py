@@ -8,8 +8,9 @@ Contract
   writes into ``datasets/`` or ``ground_truth/`` and never sees an answer key.
 * Agents are called through their published ``investigate`` functions; nothing in an agent is
   reimplemented here. Each call runs in a daemon worker thread with a per-task deadline, because
-  the agents are synchronous and a local model call cannot be cancelled from outside. A task that
-  overruns is recorded as ``timeout`` and the run moves on; its thread is abandoned, not reused.
+  the agents are synchronous. Production transports inherit the remaining task deadline and stop
+  further model calls when it expires. An uncooperative extension that overruns is recorded as
+  ``timeout``; its daemon thread is never reused.
 * An agent's ``failed`` result is kept as-is. An exception, an overrun, a result of the wrong type
   or for the wrong window is an orchestration outcome with no findings. Detections whose every
   window failed are listed as uninvestigated, never as clean.
@@ -22,6 +23,8 @@ from __future__ import annotations
 import json
 import threading
 import time
+import math
+from contextvars import ContextVar
 from collections import deque
 from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
@@ -58,6 +61,7 @@ EXPECTED_RESULT: dict[AgentType, type] = {"authentication": AuthenticationResult
 DEFAULT_MODEL_TOOL_CALLS = 7
 DEFAULT_TASK_TIMEOUT_SECONDS = 900.0
 DEFAULT_MAX_SPLIT_DEPTH = 3
+TASK_DEADLINE = ContextVar("mair_task_deadline",default=None)
 # Agent failures that a smaller window can avoid. Budget, model and provider failures are not
 # retried: a smaller window would not change them.
 SPLITTABLE_ERRORS = frozenset({"context_size_limit"})
@@ -96,11 +100,24 @@ class FinishGuard:
     def metadata(self) -> dict:
         return {**self._inner.metadata(), "finish_guard": "budget_or_repeat"}
 
+    def input_token_upper_bound(self,messages) -> int:
+        counter=getattr(self._inner,"input_token_upper_bound",None)
+        return counter(messages) if counter is not None else sum(len(m["content"].encode()) for m in messages)+256
+
     def complete(self, messages, schema, limits):
+        deadline=TASK_DEADLINE.get()
+        if deadline is not None:
+            remaining=deadline-time.perf_counter()
+            if remaining<=0:
+                raise TimeoutError("task deadline exceeded")
+            limits=limits.model_copy(update={"model_timeout_seconds":min(limits.model_timeout_seconds,max(1,math.ceil(remaining)))})
         if self._should_finish(messages) and "_FinishReply" in schema.get("$defs", {}):
             schema = {"$defs": schema["$defs"], "$ref": "#/$defs/_FinishReply"}
             self.forced_finishes += 1
-        return self._inner.complete(messages, schema, limits)
+        result=self._inner.complete(messages, schema, limits)
+        if deadline is not None and time.perf_counter()>=deadline:
+            raise TimeoutError("task deadline exceeded")
+        return result
 
     @staticmethod
     def _should_finish(messages) -> bool:
@@ -222,10 +239,13 @@ class IncidentOrchestrator:
         box: dict[str, object] = {}
 
         def target() -> None:
+            token=TASK_DEADLINE.set(started+deadline)
             try:
                 box["result"] = self._investigators[plan.agent_type](plan)
             except BaseException as error:  # Recorded as an outcome; never propagated into the run.
                 box["error"] = error
+            finally:
+                TASK_DEADLINE.reset(token)
 
         worker = threading.Thread(target=target, name=f"investigate-{plan.task_id}", daemon=True)
         worker.start()

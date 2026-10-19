@@ -26,7 +26,7 @@ Mapping table
 
 * Domain ``Security`` event 4624, 4625, 4634, 4647 or 4648 -> ``EventData/TargetUserName``
 * any other ``Security`` event -> ``EventData/SubjectUserName``
-* Sysmon -> ``EventData/User``
+* Sysmon ProcessAccess (10) -> ``EventData/SourceUser``; other Sysmon -> ``EventData/User``
 * field absent -> ``None`` and a ``parse_warnings`` entry
 
 A present but empty field stays ``""``: "no value" and "absent" are different facts, and the
@@ -57,7 +57,7 @@ def user_field_for(channel: str, event_id: int) -> str:
     if channel == "Security":
         return "TargetUserName" if event_id in LOGON_EVENT_IDS else SECURITY_FALLBACK_USER_FIELD
     if channel == "Microsoft-Windows-Sysmon/Operational":
-        return SYSMON_USER_FIELD
+        return "SourceUser" if event_id == 10 else SYSMON_USER_FIELD
     raise ValueError(f"unsupported channel {channel!r}")
 
 
