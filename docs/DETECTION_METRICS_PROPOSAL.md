@@ -89,7 +89,9 @@ The metrics, each reported with its raw counts and its denominator:
 
 A metric with a zero denominator is reported as `null` (**undefined, not zero**): a rule that
 flagged nothing has no precision, and a label file with no positives has no recall. Reporting `0`
-for either would look like a measured failure instead of an absent measurement. Results are
+for either would look like a measured failure instead of an absent measurement. F1 is `null` when
+precision or recall is `null`, and `0.0` when both are defined zeros (section 12 item 6,
+`detection-score-v2`). Results are
 reported **overall**, **per scenario** and **per rule**; an event two rules both flag is one
 flagged event overall (the deduplicated figure is the headline), and it is attributed to each of
 the rules that flagged it in the per-rule table. The per-rule TPs therefore do not sum to the
@@ -241,9 +243,10 @@ excluded-event tallies and the undefined-metric cases.
 ## What the engine will not do
 
 **2026-10-19 implementation amendment:** corrected runs use `detection-score-v2`, where F1 is 0.0 if both
-precision and recall are defined zeros. Undefined precision or recall still yields undefined F1. The discussion
-above records the historical v1 convention. This implementation change does not imply a joint scoring agreement;
-new final comparisons require the owner-approved contract in EVALUATION_PROTOCOL Amendment 4.
+precision and recall are defined zeros. Undefined precision or recall still yields undefined F1. The engine
+confirmed this convention as section 12 item 6 the same day ([Agreed so far](#agreed-so-far)). Confirming one
+item is not the joint scoring agreement: new final comparisons still require the owner-approved contract in
+EVALUATION_PROTOCOL Amendment 4.
 
 * The engine will **not** locate, request or open the answer key or a private label file. It reads the
   label file it is given and nothing else.
