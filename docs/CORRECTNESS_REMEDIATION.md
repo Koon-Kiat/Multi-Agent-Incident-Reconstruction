@@ -153,6 +153,10 @@ The following are explicit follow-ups, not claims that all model behavior or fin
   need independent semantic review; template generation is not an independent truth label. Model judgments
   remain fallible, and repeated development runs varied. This is nonblocking for reviewing the implementation
   improvements, but prevents claiming the verifier's real-world accuracy is established.
+  **Reviewed 2026-10-20** in [`SEMANTIC_CLAIM_REVIEW.md`](SEMANTIC_CLAIM_REVIEW.md), a disclosed model review
+  rather than a human one. S01-CLM-02 and S02-CLM-06 are justified downgrades, because neither shows the
+  claimed enumeration burst. S02-CLM-03 and S03-CLM-06 are false alarms. One confirmed claim, S03-CLM-04, is
+  not fully supported, so the 13 confirmations hold 12 correct claims. This is not an accuracy estimate.
 * **Query efficiency.** Useful capped-prefix authentication runs used all seven optional calls. Useful selection
   is demonstrated in these cases; optimal stopping and general unrestricted autonomy are not established.
 * **Final project evaluation.** Original private lab keys/runbooks, independent claim/stage reviews and owner

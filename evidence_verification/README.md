@@ -139,7 +139,9 @@ claim text and cited/context records, an unanswered label form and a sealed code
 shows claim IDs or verdicts. After a named reviewer has labelled every assertion and claim, `score` checks
 that the claims, corpus and packet are unchanged. It then unblinds the codes and compares each label with the
 verifier's recorded verdict, using outcome rules printed in the packet before labelling: justified, false
-alarm, correct, missed or unresolved.
+alarm, correct, missed or unresolved. A human labelling blind records `blind_human_review`. A model other than
+the verifier's records `model_review` and must disclose what it knew beforehand. The 2026-10-20 review of the
+real-corpus template claims is a model review: [`docs/SEMANTIC_CLAIM_REVIEW.md`](../docs/SEMANTIC_CLAIM_REVIEW.md).
 
 ```powershell
 python -m evidence_verification.evaluation.component_review prepare --corpus <corpus> --runs <runs> --out out/semantic-review

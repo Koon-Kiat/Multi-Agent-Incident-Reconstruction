@@ -89,6 +89,7 @@ will not establish:
 
 ## Related
 
-* The verifier's lowered real-corpus claims have a separate blind review, which is not part of the A/B/C/D
-  score: `component_review` in `evidence_verification/evaluation/`.
+* [`SEMANTIC_CLAIM_REVIEW.md`](SEMANTIC_CLAIM_REVIEW.md) covers the verifier's four lowered real-corpus
+  claims. It is a separate model review made with `evidence_verification.evaluation.component_review`, and not
+  part of the A/B/C/D score.
 * `ground_truth/README.md` and `runbooks/README.md`: where the private inputs go and who may read them.
