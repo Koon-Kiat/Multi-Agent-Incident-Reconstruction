@@ -59,12 +59,16 @@ binding, model mismatch, missing configurations, independent reviews, abstention
 A search including ignored/hidden files across the entire project found only the review's synthetic CSV.
 No real scenario CSVs or private runbooks were available. Place the original package under
 `ground_truth/private/` and `runbooks/private/`, or pass its actual path. See `ground_truth/README.md`.
+**Update 2026-10-20:** Dataset & Ground Truth Management has since delivered the package privately. It validates
+against the corpus; see [`FINAL_EVALUATION_HANDOFF.md`](FINAL_EVALUATION_HANDOFF.md).
 
 After fresh A/B/C/D runs, `evidence_verification.evaluation.prepare_review` generates unanswered forms.
 An independent reviewer completes claim support/stage annotations against original records and the lab
 key; dataset/detection/evaluation owners complete the scoring contract. Then score into a new directory.
 `scripts/run-evaluation.ps1` documents these stages. Missing inputs, incomplete matrices and simulated
-models cannot become a final score.
+models cannot become a final score. [`FINAL_EVALUATION_HANDOFF.md`](FINAL_EVALUATION_HANDOFF.md) lists each
+remaining input, its owner and the order of work; `evidence_verification.evaluation.readiness` reports which
+are still missing.
 
 The initial fixes left unreliable authentication follow-up selection and verifier false alarms. The
 follow-up below addresses these implementation/behavior issues. No real A-D accuracy or owner approval
@@ -151,6 +155,10 @@ The following are explicit follow-ups, not claims that all model behavior or fin
   need independent semantic review; template generation is not an independent truth label. Model judgments
   remain fallible, and repeated development runs varied. This is nonblocking for reviewing the implementation
   improvements, but prevents claiming the verifier's real-world accuracy is established.
+  **Reviewed 2026-10-20** in [`SEMANTIC_CLAIM_REVIEW.md`](SEMANTIC_CLAIM_REVIEW.md), a disclosed model review
+  rather than a human one. S01-CLM-02 and S02-CLM-06 are justified downgrades, because neither shows the
+  claimed enumeration burst. S02-CLM-03 and S03-CLM-06 are false alarms. One confirmed claim, S03-CLM-04, is
+  not fully supported, so the 13 confirmations hold 12 correct claims. This is not an accuracy estimate.
 * **Query efficiency.** Useful capped-prefix authentication runs used all seven optional calls. Useful selection
   is demonstrated in these cases; optimal stopping and general unrestricted autonomy are not established.
 * **Final project evaluation.** Original private lab keys/runbooks, independent claim/stage reviews and owner

@@ -122,6 +122,33 @@ model profiles, corpus and trigger hashes, current implementation, exact artifac
 Evidence overlap is labelled alignment/coverage. Semantic correctness comes only from the separate
 claim reviews. Review and contract fingerprints include the private CSVs and `scoring_exclusions.json`.
 
+To see every input that is still missing, with its owner, before scoring:
+
+```powershell
+python -m evidence_verification.evaluation.readiness --root out/corrected-01
+```
+
+It reports READY only after the scorer itself has accepted the inputs in a throwaway directory. The
+remaining inputs and their order are in [`docs/FINAL_EVALUATION_HANDOFF.md`](../docs/FINAL_EVALUATION_HANDOFF.md).
+
+### Blind review of a component run
+
+`component_review` checks a set of claims, such as the real-corpus template claims, without the answer key and
+outside the A/B/C/D score. `prepare` shuffles every claim under a neutral code. It writes a reading packet of
+claim text and cited/context records, an unanswered label form and a sealed code-to-claim mapping. It never
+shows claim IDs or verdicts. After a named reviewer has labelled every assertion and claim, `score` checks
+that the claims, corpus and packet are unchanged. It then unblinds the codes and compares each label with the
+verifier's recorded verdict, using outcome rules printed in the packet before labelling: justified, false
+alarm, correct, missed or unresolved. A human labelling blind records `blind_human_review`. A model other than
+the verifier's records `model_review` and must disclose what it knew beforehand. The 2026-10-20 review of the
+real-corpus template claims is a model review: [`docs/SEMANTIC_CLAIM_REVIEW.md`](../docs/SEMANTIC_CLAIM_REVIEW.md).
+
+```powershell
+python -m evidence_verification.evaluation.component_review prepare --corpus <corpus> --runs <runs> --out out/semantic-review
+python -m evidence_verification.evaluation.component_review score --packet out/semantic-review --corpus <corpus> `
+    --runs <runs> --verdicts docs/validation/correctness-2026-10-20.json --out out/semantic-review-result
+```
+
 An opt-in test measures the layer on 14 synthetic claims that all pass the deterministic checks (6 faithful, 8
 embellished), because only the model layer can catch an embellishment:
 
