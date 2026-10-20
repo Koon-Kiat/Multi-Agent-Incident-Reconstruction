@@ -59,6 +59,8 @@ binding, model mismatch, missing configurations, independent reviews, abstention
 A search including ignored/hidden files across the entire project found only the review's synthetic CSV.
 No real scenario CSVs or private runbooks were available. Place the original package under
 `ground_truth/private/` and `runbooks/private/`, or pass its actual path. See `ground_truth/README.md`.
+**Update 2026-10-20:** Dataset & Ground Truth Management has since delivered the package privately. It validates
+against the corpus; see [`FINAL_EVALUATION_HANDOFF.md`](FINAL_EVALUATION_HANDOFF.md).
 
 After fresh A/B/C/D runs, `evidence_verification.evaluation.prepare_review` generates unanswered forms.
 An independent reviewer completes claim support/stage annotations against original records and the lab

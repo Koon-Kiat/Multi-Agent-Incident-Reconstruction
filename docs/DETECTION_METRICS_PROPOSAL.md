@@ -1,32 +1,33 @@
-# Event Processing & Detection Engine Detection Metrics Proposal (partly agreed)
+# Event Processing & Detection Engine Detection Metrics Proposal (definitions agreed)
 
-> **Partly agreed. The baseline must not be scored until the remaining items are agreed.**
+> **Definitions agreed. A final baseline score still needs the signed scoring contract.**
 >
 > The engine owns the scoring *code*, not the definitions. The unit, the positive label and the excluded
 > category below are the engine's proposal for a joint call with Dataset & Ground Truth Management and Evidence Verification & Evaluation that
 > `docs/EVIDENCE_QUERY_REQUIREMENTS.md` item 5 asks for. The agreements themselves are recorded in
-> `docs/EVALUATION_PROTOCOL.md` section 12, not here. On 2026-10-19 the engine confirmed its side of items 1,
-> 3, 5, 6 and 7 there ([Agreed so far](#agreed-so-far)). Until Dataset & Ground Truth Management confirms its
-> items and the scoring exclusions (`docs/EVIDENCE_ACCEPTANCE.md` A3) are agreed, no result of
-> `python -m event_processing score` is a reportable number: the code is implemented and tested
-> (`event_processing/metrics.py`, `event_processing/tests/test_metrics.py`), the real baseline is **not** scored, and task
-> T4.3 in `task_plan.md` stays BLOCKED.
+> `docs/EVALUATION_PROTOCOL.md` section 12, not here. The engine confirmed its side of items 1, 3, 5, 6 and 7
+> on 2026-10-19, and Dataset & Ground Truth Management confirmed items 1, 2, 4 and 9 on 2026-10-20
+> ([Agreed so far](#agreed-so-far)). The handoff contained no scoring-exclusions file
+> (`docs/EVIDENCE_ACCEPTANCE.md` A3), and the dataset, detection and evaluation owners have not yet signed the
+> contract of `EVALUATION_PROTOCOL.md` Amendment 4. Until both are settled, a detection score is a labelled
+> diagnostic rather than a final result. The code is implemented and tested (`event_processing/metrics.py`,
+> `event_processing/tests/test_metrics.py`).
 
-Owner: Event Processing & Detection Engine. Status: the engine's positions are confirmed (2026-10-19); awaiting Dataset & Ground Truth Management on `EVALUATION_PROTOCOL.md` section 12 items 1, 2, 4 and 9, and the scoring exclusions (A3).
+Owner: Event Processing & Detection Engine. Status: section 12 items 1 to 7 and 9 agreed (2026-10-20); open are confirmation that no contextual exclusions apply (A3) and the signed scoring contract.
 Related: [`DETECTION_RULES.md`](DETECTION_RULES.md) (the baseline and its counts),
 [`EVIDENCE_QUERY_REQUIREMENTS.md`](EVIDENCE_QUERY_REQUIREMENTS.md) item 5 (Evidence Verification & Evaluation's ask and its two corpus
 observations).
 
 ## Agreed so far
 
-Recorded 2026-10-19. "Confirmed" means the engine has confirmed the position in
+Recorded 2026-10-19 and updated 2026-10-20. "Confirmed" means the owner has confirmed the position in
 `docs/EVALUATION_PROTOCOL.md` section 12; a row is agreed only when every owner named there has confirmed it.
 
 | Question below | Section 12 item | Position | Engine | Still needs |
 |---|---|---|---|---|
-| 1. Security + Sysmon views | 1, unit | The evidence ID; one action on two channels counts twice. A once-per-action view is the stage-level reconstruction score, not this metric. | Confirmed (its own proposal) | Dataset & Ground Truth Management |
+| 1. Security + Sysmon views | 1, unit | The evidence ID; one action on two channels counts twice. A once-per-action view is the stage-level reconstruction score, not this metric. | Confirmed (its own proposal) | — (Dataset & Ground Truth Management confirmed 2026-10-20) |
 | 2. Benign-lookalike scenario | 3 | Scored in the same precision pool, and also reported per scenario (the score report already has a per-scenario scope). | Confirmed | — |
-| 3. S01 labels | 4 | In scope with its own labels; designated contextual records excluded, not negative. | Not the engine's item | Dataset & Ground Truth Management |
+| 3. S01 labels | 4 | In scope with its own labels; designated contextual records excluded, not negative. | Not the engine's item | — (Dataset & Ground Truth Management confirmed 2026-10-20; no exclusions file delivered) |
 | 4. Scaffolding | 5 | Headline view excludes and tallies it separately; a strict view counts it as false positives. Both are reported. | Confirmed (both views implemented) | — |
 | 5. F1 when P = R = 0 | 6 | F1 is **0.0** when precision and recall are both defined and both 0; `null` only when precision or recall itself is undefined. | Confirmed; **code changed** (`detection-score-v2`) | — |
 | 6. Per-rule recall | 7 | Measured against all positives; per-rule figures are not additive and not a partition. | Confirmed (unchanged behaviour) | — |
