@@ -113,7 +113,7 @@ def test_uncertain_labels_stay_unresolved(lowered):
 
 
 @pytest.mark.parametrize("overrides", [
-    {"reviewer": " "}, {"review_date": ""}, {"independent_of_verifier": False}, {"method": "model_review"}])
+    {"reviewer": " "}, {"review_date": ""}, {"independent_of_verifier": False}, {"method": "verifier_self_review"}])
 def test_unattested_reviews_are_refused(component, overrides):
     complete(component, **overrides)
     with pytest.raises(EvaluationError, match="named reviewer"):
@@ -166,3 +166,12 @@ def test_cli_prepare_reports_invalid_input(tmp_path, capsys):
     with pytest.raises(SystemExit) as raised:
         main(["prepare", "--corpus", str(tmp_path/"missing"), "--runs", str(tmp_path), "--out", str(tmp_path/"p")])
     assert raised.value.code == 2 and "error:" in capsys.readouterr().err
+
+
+def test_a_model_review_is_recorded_as_such_and_must_disclose(component):
+    complete(component, method="model_review", reviewer="Example model", disclosures="")
+    with pytest.raises(EvaluationError, match="must disclose"):
+        run_score(component)
+    complete(component, method="model_review", reviewer="Example model", disclosures="Knew the lowered IDs.")
+    result = run_score(component)
+    assert result["method"] == "model_review" and result["disclosures"] == "Knew the lowered IDs."

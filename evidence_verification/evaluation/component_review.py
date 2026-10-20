@@ -1,14 +1,16 @@
-"""Blind human review of a component run's claims against their cited records.
+"""Independent review of a component run's claims against their cited records.
 
 ``prepare`` shuffles every claim of the given reconstructions under a neutral code (R01, R02, ...) and
 writes a reading packet, an unanswered label form and a sealed code-to-claim mapping. The packet shows
 the claim text and the recorded fields of the records the verifier was given. It never shows a claim
 ID, a verifier verdict, a deterministic check result, the orchestrator's rationale or any answer key.
 
-``score`` runs only after a named reviewer has completed every label. It checks that the claims, the
-corpus and the packet are unchanged, unblinds the codes and joins each label to the verifier verdict
-recorded for that claim. The outcome rules are fixed below and printed in the packet before anyone
-labels, so they cannot be chosen after the verdicts are seen. Labels are never inferred.
+``score`` runs only after a named reviewer has completed every label. A human labelling blind from the
+packet records ``blind_human_review``. A model other than the verifier's records ``model_review`` and
+must disclose what it knew beforehand; its labels are never presented as a human's. ``score`` checks
+that the claims, corpus and packet are unchanged, unblinds the codes and joins each label to the
+verifier verdict recorded for that claim. The outcome rules are fixed below and printed in the packet
+before anyone labels, so they cannot be chosen after the verdicts are seen. Labels are never inferred.
 
     python -m evidence_verification.evaluation.component_review prepare \\
         --corpus out/c/corpus --runs out/c/runs --out out/semantic-review
@@ -36,6 +38,8 @@ LABELS_SCHEMA = "blind-claim-review-labels-v1"
 MAPPING_SCHEMA = "blind-claim-review-mapping-v1"
 RESULT_SCHEMA = "blind-claim-review-result-v1"
 METHOD = "blind_human_review"
+# A different model than the verifier's, labelling openly; it must disclose what it knew beforehand.
+MODEL_METHOD = "model_review"
 ASSERTION_SUPPORT = ("supported", "unsupported", "uncertain")
 # (verifier lowered the claim, reviewer's overall label) -> outcome. "Not fully supported" means
 # partially_supported or unsupported: either justifies a lowered verdict.
@@ -165,11 +169,13 @@ def _read(path):
 
 
 def _checked_labels(labels, codes):
-    if (labels.get("schema_version") != LABELS_SCHEMA or labels.get("method") != METHOD
+    if (labels.get("schema_version") != LABELS_SCHEMA or labels.get("method") not in (METHOD, MODEL_METHOD)
             or labels.get("independent_of_verifier") is not True
             or any(not isinstance(labels.get(k), str) or not labels[k].strip() for k in ("reviewer", "review_date"))
             or not isinstance(labels.get("disclosures"), str) or not isinstance(labels.get("claims"), list)):
         raise EvaluationError("labels need a named reviewer, a date and an attested blind, independent review")
+    if labels["method"] == MODEL_METHOD and not labels["disclosures"].strip():
+        raise EvaluationError("a model review must disclose what the reviewer knew before labelling")
     by_code = {}
     for item in labels["claims"]:
         code = item.get("code") if isinstance(item, dict) else None
@@ -238,7 +244,7 @@ def score(packet, corpus, runs, verdicts, out):
             "verifier_verdict": verdict, "outcome": OUTCOMES[(verdict != "confirmed", label["support"])]})
     tally = {o: sum(r["outcome"] == o for r in rows) for o in sorted(set(OUTCOMES.values()))}
     tp, fp, fn, tn = tally["justified"], tally["false_alarm"], tally["missed"], tally["correct"]
-    result = {"schema_version": RESULT_SCHEMA, "method": METHOD, "reviewer": labels["reviewer"],
+    result = {"schema_version": RESULT_SCHEMA, "method": labels["method"], "reviewer": labels["reviewer"],
         "review_date": labels["review_date"], "independent_of_verifier": True, "disclosures": labels["disclosures"],
         "corpus_manifest_sha256": digest, "mode": mapping["mode"],
         "claims_implementation_sha256": mapping.get("implementation_sha256"), "packet_sha256": packet_sha,
