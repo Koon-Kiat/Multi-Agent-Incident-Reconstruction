@@ -1,0 +1,465 @@
+{
+  "schema_version": "blind-claim-review-result-v1",
+  "method": "model_review",
+  "reviewer": "Claude (Anthropic model claude-opus-5-5)",
+  "review_date": "2026-10-20",
+  "independent_of_verifier": true,
+  "disclosures": "A model review, not a human review. The reviewer is a different model from the verifier's qwen3:8b. Not blind: the request named the four claims the verifier lowered, and the reviewer read the sealed mapping to record labels by claim ID. Rule-category wording ('enumeration burst', 'payload', 'documented suspicious access mask') was judged against that rule's definition in docs/DETECTION_RULES.md. Cited records outside a claim's stated span were treated as context, not as part of what it asserts.",
+  "corpus_manifest_sha256": "a5df6be34fa77119f72b2a224a050f9d143fae67129074260aebe727d478f09a",
+  "mode": "multi-agent",
+  "claims_implementation_sha256": "3bb47bd8389e9e37fdeb9f8695ce59debce0ee471dd7272c7d5b0cd8da72f0ef",
+  "packet_sha256": "03dd5b1ea13eef7d7cd2c118b17a94ef7fcd0fffbd9b6190d41162c0454afc50",
+  "labels_sha256": "1da7f10f348ddef578733b2c0b98d5d7b5b04d1a79485ba487d27e97e64f9d71",
+  "verdict_source": {
+    "file": "correctness-2026-10-20.json",
+    "sha256": "226ea00e24c6d9badca70dae2bce8e5500bc7cd9b0e46fbad29578f525857894"
+  },
+  "claims": [
+    {
+      "code": "R01",
+      "scenario_id": "S01",
+      "claim_id": "S01-CLM-01",
+      "claim_sha256": "89b82b6a1452febba908cab00914809c59f944013d42c14298a56024f864040b",
+      "claim_text": "Security audit log cleared (Security 1102) observed from 2022-08-31T17:46:43.7290708Z to 2022-08-31T17:46:43.7290708Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Security audit log cleared (Security 1102)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2022-08-31T17:46:43.7290708Z to 2022-08-31T17:46:43.7290708Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "One Security 1102 record (S01-SEC-31212963) at exactly the stated time; event 1102 records that the Security audit log was cleared.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R02",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-03",
+      "claim_sha256": "bbb203085260439ca46fc484f574793cc05aede498bd35a60dc606b12d98a704",
+      "claim_text": "Failed-logon burst followed by a successful logon for the same account and host observed from 2026-09-21T02:05:11.0102219Z to 2026-09-21T02:05:30.0430374Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Failed-logon burst followed by a successful logon for the same account and host",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:05:11.0102219Z to 2026-09-21T02:05:30.0430374Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Five Security 4625 failures for MAIR-WIN11-LAB\\mair_user on MAIR-WIN11-LAB (S02-SEC-43571, 43573, 43575, 43578, 43580; logon type 2, status 0xc000006d) from 02:05:11.010 to 02:05:25.623, then 4624 success S02-SEC-43584 for the same account and host at 02:05:30.043. Five failures in 14.6 s is a burst under R-AUTH-01 (at least three in 300 s). The stated start and end are the timestamps of the first and last in-span cited records.",
+      "verifier_verdict": "unverified",
+      "outcome": "false_alarm"
+    },
+    {
+      "code": "R03",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-01",
+      "claim_sha256": "5d4a17d830d8e8a021b115f2db0df4bf3f3030441ed423070d78253e9a02c028",
+      "claim_text": "Security audit log cleared (Security 1102) observed from 2026-09-21T02:03:50.1343100Z to 2026-09-21T02:03:50.1343100Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Security audit log cleared (Security 1102)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:03:50.1343100Z to 2026-09-21T02:03:50.1343100Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "One Security 1102 record (S02-SEC-43483) at exactly the stated time; event 1102 records that the Security audit log was cleared.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R04",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-06",
+      "claim_sha256": "699770791ea24a29d724b9091a80a3aca2c542d0e07345c29029d06213bde404",
+      "claim_text": "Discovery tooling: an enumeration burst, plus single hits observed from 2026-09-21T02:05:58.7173986Z to 2026-09-21T02:05:59.9266970Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Discovery tooling: an enumeration burst, plus single hits",
+          "support": "unsupported",
+          "note": "No enumeration burst: fewer than three distinct discovery binaries."
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:05:58.7173986Z to 2026-09-21T02:05:59.9266970Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "partially_supported",
+      "notes": "Discovery tooling and single hits are supported: whoami.exe and ipconfig.exe ran once each from PowerShell, each logged as Security 4688 and Sysmon 1. The enumeration burst is not: only two distinct discovery binaries ran. R-EXEC-01 defines an enumeration burst as at least three distinct discovery binaries by one account within 120 s, and the engine labelled each of these detections a single hit outside any enumeration burst. The cited PowerShell start at 02:05:47 is context outside the span. The stated start and end are the timestamps of the first and last in-span cited records.",
+      "verifier_verdict": "partially_supported",
+      "outcome": "justified"
+    },
+    {
+      "code": "R05",
+      "scenario_id": "S03",
+      "claim_id": "S03-CLM-06",
+      "claim_sha256": "20d3c2b0e52167fc475653181b31b18672e6ac37e01e518e3a1f49f56934ce3f",
+      "claim_text": "Executable or script payload written under a user-writable directory (Sysmon 11) observed from 2026-09-21T02:27:06.0433320Z to 2026-09-21T02:27:44.6557823Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Executable or script payload written under a user-writable directory (Sysmon 11)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:27:06.0433320Z to 2026-09-21T02:27:44.6557823Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Sysmon 11 records S03-SYS-26062 and S03-SYS-26356: powershell.exe wrote two .ps1 files under C:\\Users\\mair_admin\\AppData\\Local\\Temp at exactly the stated start and end. Other cited records outside the span are context. 'Payload' is read as R-FILE-01's own category, an executable or script file. The names are PowerShell execution-policy test scripts; the records do not show malicious content and the claim does not assert any.",
+      "verifier_verdict": "unverified",
+      "outcome": "false_alarm"
+    },
+    {
+      "code": "R06",
+      "scenario_id": "S03",
+      "claim_id": "S03-CLM-05",
+      "claim_sha256": "3048dfc4dbc5c19a426f061041fa1dcbb26bbfe432876f398d78760c33426e28",
+      "claim_text": "Explicit-credential logon (Security 4648) observed from 2026-09-21T02:26:46.6769035Z to 2026-09-21T02:26:52.7380211Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Explicit-credential logon (Security 4648)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:26:46.6769035Z to 2026-09-21T02:26:52.7380211Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Three Security 4648 records (S03-SEC-43677, S03-SEC-43681, S03-SEC-43696); the first and last are the stated start and end.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R07",
+      "scenario_id": "S03",
+      "claim_id": "S03-CLM-01",
+      "claim_sha256": "e285b50cf6afa390698c4cd4205bac682537385f965dfb41b22ffdaae09f9d74",
+      "claim_text": "Security audit log cleared (Security 1102) observed from 2026-09-21T02:24:22.8718622Z to 2026-09-21T02:24:22.8718622Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Security audit log cleared (Security 1102)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:24:22.8718622Z to 2026-09-21T02:24:22.8718622Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "One Security 1102 record (S03-SEC-43466) at exactly the stated time; event 1102 records that the Security audit log was cleared.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R08",
+      "scenario_id": "S03",
+      "claim_id": "S03-CLM-02",
+      "claim_sha256": "3a05d3b10227c6652f2b9927fb4b22734a5304d3f0fbbbb00477678b11da73f9",
+      "claim_text": "Explicit-credential logon (Security 4648) observed from 2026-09-21T02:24:57.9286686Z to 2026-09-21T02:25:13.5737802Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Explicit-credential logon (Security 4648)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:24:57.9286686Z to 2026-09-21T02:25:13.5737802Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Three Security 4648 records (S03-SEC-43522, S03-SEC-43526, S03-SEC-43548); the first and last are the stated start and end.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R09",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-02",
+      "claim_sha256": "b8461a3b67a077a8b00254f226fc9d58f3dbbcfa2a872cfc2c5ddadb0c751d87",
+      "claim_text": "Explicit-credential logon (Security 4648) observed from 2026-09-21T02:05:05.2257872Z to 2026-09-21T02:05:05.3066774Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Explicit-credential logon (Security 4648)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:05:05.2257872Z to 2026-09-21T02:05:05.3066774Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Two Security 4648 explicit-credential logon records (S02-SEC-43553, S02-SEC-43557) at exactly the stated start and end. Their targets are winlogon's UMFD-2 and DWM-2 virtual accounts; the claim asserts nothing about the account or intent.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R10",
+      "scenario_id": "S03",
+      "claim_id": "S03-CLM-04",
+      "claim_sha256": "03c3b9c26afd3e227646748f188471e2c977de7eb9cc106ddc13752695ec4d43",
+      "claim_text": "Discovery tooling: an enumeration burst, plus single hits observed from 2026-09-21T02:25:50.3777414Z to 2026-09-21T02:25:50.6027858Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Discovery tooling: an enumeration burst, plus single hits",
+          "support": "unsupported",
+          "note": "No enumeration burst: fewer than three distinct discovery binaries."
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:25:50.3777414Z to 2026-09-21T02:25:50.6027858Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "partially_supported",
+      "notes": "Discovery tooling and single hits are supported: whoami.exe and ipconfig.exe ran once each from PowerShell, each logged as Security 4688 and Sysmon 1. The enumeration burst is not: only two distinct discovery binaries ran. R-EXEC-01 defines an enumeration burst as at least three distinct discovery binaries by one account within 120 s, and the engine labelled each of these detections a single hit outside any enumeration burst. The cited PowerShell start at 02:25:26 is context outside the span. The stated start and end are the timestamps of the first and last in-span cited records.",
+      "verifier_verdict": "confirmed",
+      "outcome": "missed"
+    },
+    {
+      "code": "R11",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-04",
+      "claim_sha256": "0ac94070b019e8bcdb9c30ecec143dc698b693e7ea8012a063952660a0569511",
+      "claim_text": "Explicit-credential logon (Security 4648) observed from 2026-09-21T02:05:30.0430077Z to 2026-09-21T02:05:30.0430077Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Explicit-credential logon (Security 4648)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:05:30.0430077Z to 2026-09-21T02:05:30.0430077Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "One Security 4648 record (S02-SEC-43583, target mair_user) at exactly the stated time.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R12",
+      "scenario_id": "S01",
+      "claim_id": "S01-CLM-02",
+      "claim_sha256": "abe47a5425062976fae3d699047f1b6bad3fae013734e84cd20d9fcd3e2cd2fe",
+      "claim_text": "Discovery tooling: an enumeration burst, plus single hits observed from 2022-08-31T17:46:46.5665551Z to 2022-08-31T17:47:01.8176301Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Discovery tooling: an enumeration burst, plus single hits",
+          "support": "unsupported",
+          "note": "No enumeration burst: fewer than three distinct discovery binaries."
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2022-08-31T17:46:46.5665551Z to 2022-08-31T17:47:01.8176301Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "partially_supported",
+      "notes": "Discovery tooling and single hits are supported: whoami.exe ran three times from PowerShell, each logged as Security 4688 and Sysmon 1. The enumeration burst is not: only one distinct discovery binary ran. R-EXEC-01 defines an enumeration burst as at least three distinct discovery binaries by one account within 120 s, and the engine labelled each of these detections a single hit outside any enumeration burst. The stated start and end are the timestamps of the first and last in-span cited records.",
+      "verifier_verdict": "partially_supported",
+      "outcome": "justified"
+    },
+    {
+      "code": "R13",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-08",
+      "claim_sha256": "77aa145ddfeff7d0ca349e0c9093ec53e76d936a0f1db17907700fbaa8e4f3d5",
+      "claim_text": "Executable or script payload written under a user-writable directory (Sysmon 11) observed from 2026-09-21T02:07:49.3811368Z to 2026-09-21T02:08:03.4742843Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Executable or script payload written under a user-writable directory (Sysmon 11)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:07:49.3811368Z to 2026-09-21T02:08:03.4742843Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Sysmon 11 records S02-SYS-26413 and S02-SYS-26474: powershell.exe wrote two .ps1 files under C:\\Users\\mair_admin\\AppData\\Local\\Temp at exactly the stated start and end. 'Payload' is read as R-FILE-01's own category, an executable or script file. The names are PowerShell execution-policy test scripts; the records do not show malicious content and the claim does not assert any.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R14",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-05",
+      "claim_sha256": "fd806b73f6f1a7c5eedcbb51779c1bc07cc3427cf22d2ea0dff0945349204889",
+      "claim_text": "Executable or script payload written under a user-writable directory (Sysmon 11) observed from 2026-09-21T02:05:49.3314065Z to 2026-09-21T02:05:49.3314065Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Executable or script payload written under a user-writable directory (Sysmon 11)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:05:49.3314065Z to 2026-09-21T02:05:49.3314065Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Sysmon 11 record S02-SYS-25660: powershell.exe wrote __PSScriptPolicyTest_0mf3farz.oi5.ps1 under C:\\Users\\mair_user\\AppData\\Local\\Temp at exactly the stated time. 'Payload' is read as R-FILE-01's own category, an executable or script file. The names are PowerShell execution-policy test scripts; the records do not show malicious content and the claim does not assert any.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R15",
+      "scenario_id": "S03",
+      "claim_id": "S03-CLM-03",
+      "claim_sha256": "318f359a08830e7a15724d62179c768412da955e6cd116208bee27a29d91034e",
+      "claim_text": "Executable or script payload written under a user-writable directory (Sysmon 11) observed from 2026-09-21T02:25:28.4786640Z to 2026-09-21T02:25:28.4786640Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Executable or script payload written under a user-writable directory (Sysmon 11)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:25:28.4786640Z to 2026-09-21T02:25:28.4786640Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Sysmon 11 record S03-SYS-25459: powershell.exe wrote __PSScriptPolicyTest_czytwyzq.b3e.ps1 under C:\\Users\\mair_user\\AppData\\Local\\Temp at exactly the stated time. 'Payload' is read as R-FILE-01's own category, an executable or script file. The names are PowerShell execution-policy test scripts; the records do not show malicious content and the claim does not assert any.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R16",
+      "scenario_id": "S01",
+      "claim_id": "S01-CLM-03",
+      "claim_sha256": "f4379799a800c4cba6bac09d486eb757b7404e7dbbb4c2d3ec05e6de5ceb25c5",
+      "claim_text": "Sysmon 10 access to lsass.exe with a documented suspicious access mask observed from 2022-08-31T17:48:41.7422157Z to 2022-08-31T17:48:43.6798308Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Sysmon 10 access to lsass.exe with a documented suspicious access mask",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2022-08-31T17:48:41.7422157Z to 2022-08-31T17:48:43.6798308Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Sysmon 10 records S01-SYS-35812243 and S01-SYS-35812333 show wmiprvse.exe opening lsass.exe with GrantedAccess 0x00001410, one of the seven masks R-CRED-01 documents, at exactly the stated start and end. The other cited records are the same process opening other targets in that span.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    },
+    {
+      "code": "R17",
+      "scenario_id": "S02",
+      "claim_id": "S02-CLM-07",
+      "claim_sha256": "315b1c00966b12ac506528517b2f2a702e465c11eb7323ee643b99ee5b928998",
+      "claim_text": "Explicit-credential logon (Security 4648) observed from 2026-09-21T02:07:24.3108899Z to 2026-09-21T02:07:30.3590389Z.",
+      "assertions": [
+        {
+          "id": "A1",
+          "text": "The recorded activity is: Explicit-credential logon (Security 4648)",
+          "support": "supported",
+          "note": ""
+        },
+        {
+          "id": "A2",
+          "text": "It was observed from 2026-09-21T02:07:24.3108899Z to 2026-09-21T02:07:30.3590389Z",
+          "support": "supported",
+          "note": ""
+        }
+      ],
+      "support": "supported",
+      "notes": "Three Security 4648 records (S02-SEC-43719, S02-SEC-43722, S02-SEC-43738); the first and last are the stated start and end.",
+      "verifier_verdict": "confirmed",
+      "outcome": "correct"
+    }
+  ],
+  "outcomes": {
+    "correct": 12,
+    "false_alarm": 2,
+    "justified": 2,
+    "missed": 1,
+    "unresolved": 0
+  },
+  "lowered_claim_review": {
+    "lowered": 4,
+    "justified": 2,
+    "false_alarm": 2,
+    "unresolved": 0
+  },
+  "not_fully_supported_detection": {
+    "tp": 2,
+    "fp": 2,
+    "fn": 1,
+    "tn": 12,
+    "precision": 0.5,
+    "recall": 0.6667
+  }
+}

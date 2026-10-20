@@ -254,22 +254,30 @@ cannot validate a fix for them. No conclusion about the model layer's real preci
 
 Recorded 2026-10-18. This table lists every definition the evaluation depends on that is not yet agreed by the
 other owners it concerns. **Proposed** means Evidence Verification & Evaluation's position; it is not an agreement
-until the named owner confirms it here. Nothing below has been confirmed by anyone other than its proposer.
+until the named owner confirms it here. Confirmations are recorded in the Status column with the confirming owner and date.
 
 | # | Item | Proposed position (Evidence Verification & Evaluation) | Needs | Status |
 |---|---|---|---|---|
-| 1 | Unit of detection scoring | The evidence ID. One action seen on two channels counts twice at event level; a once-per-action view is the stage-level reconstruction score, not this metric. | Event Processing & Detection Engine, Dataset & Ground Truth Management | Proposed |
-| 2 | Positive label | An event cited by a malicious ground-truth stage. An event cited only by a benign stage is explicitly negative; an event cited by both is positive. | Dataset & Ground Truth Management | Proposed; implemented as the label file the harness writes |
-| 3 | Benign-lookalike scenario | Scored in the same precision pool, and also reported per scenario. Its false positives are the reason it exists. | Event Processing & Detection Engine | Proposed |
-| 4 | First scenario | In scope with its own labels. Records Dataset & Ground Truth Management designated contextual are excluded, not negative. | Dataset & Ground Truth Management | Proposed; the exclusion list is private |
-| 5 | Scaffolding | Headline view excludes records outside the declared scenario window and the contextual records, tallying them separately; a strict view counts them as false positives. Both are always reported. | Event Processing & Detection Engine | Proposed; both views are implemented |
-| 6 | F1 when precision and recall are both defined but zero | 0.0, not undefined. Undefined only when precision or recall itself has a zero denominator. The engine currently reports undefined; this is a request to change that convention. | Event Processing & Detection Engine | **Disputed**: differs from the engine's current behaviour |
-| 7 | Per-rule recall | Measured against all positives, so per-rule figures are not additive and are not a partition. No per-rule expected population is invented. | Event Processing & Detection Engine | Proposed (matches the engine's current behaviour) |
+| 1 | Unit of detection scoring | The evidence ID. One action seen on two channels counts twice at event level; a once-per-action view is the stage-level reconstruction score, not this metric. | Event Processing & Detection Engine, Dataset & Ground Truth Management | **Agreed**: confirmed by Event Processing & Detection Engine (2026-10-19) and Dataset & Ground Truth Management (2026-10-20) |
+| 2 | Positive label | An event cited by a malicious ground-truth stage. An event cited only by a benign stage is explicitly negative; an event cited by both is positive. | Dataset & Ground Truth Management | **Agreed**: confirmed by Dataset & Ground Truth Management (2026-10-20); implemented as the label file the harness writes |
+| 3 | Benign-lookalike scenario | Scored in the same precision pool, and also reported per scenario. Its false positives are the reason it exists. | Event Processing & Detection Engine | **Agreed**: confirmed by Event Processing & Detection Engine (2026-10-19); the score report already has a per-scenario scope |
+| 4 | First scenario | In scope with its own labels. Records Dataset & Ground Truth Management designated contextual are excluded, not negative. | Dataset & Ground Truth Management | **Agreed**: confirmed by Dataset & Ground Truth Management (2026-10-20); any exclusion list is private, and none was delivered (see below) |
+| 5 | Scaffolding | Headline view excludes records outside the declared scenario window and the contextual records, tallying them separately; a strict view counts them as false positives. Both are always reported. | Event Processing & Detection Engine | **Agreed**: confirmed by Event Processing & Detection Engine (2026-10-19); both views are implemented |
+| 6 | F1 when precision and recall are both defined but zero | 0.0, not undefined. Undefined only when precision or recall itself has a zero denominator. The engine reported undefined before `detection-score-v2`. | Event Processing & Detection Engine | **Agreed**: confirmed by Event Processing & Detection Engine (2026-10-19); implemented in the scorer, report schema `detection-score-v2` |
+| 7 | Per-rule recall | Measured against all positives, so per-rule figures are not additive and are not a partition. No per-rule expected population is invented. | Event Processing & Detection Engine | **Agreed**: confirmed by Event Processing & Detection Engine (2026-10-19); matches the engine's behaviour |
 | 8 | Single-agent tool budget | 16 calls, the orchestrator default. The scored run used it; the baseline used 3 to 5 of the 16, so the budget did not bind. | Incident Reconstruction Orchestrator | **Awaiting confirmation**; evidence from the scored run supports it being adequate |
-| 9 | Non-person session records as neutral claims | Claims resting only on service and virtual-session logons are neutral in claim scoring. Not assumed for detection scoring. | Dataset & Ground Truth Management | Proposed |
+| 9 | Non-person session records as neutral claims | Claims resting only on service and virtual-session logons are neutral in claim scoring. Not assumed for detection scoring. | Dataset & Ground Truth Management | **Agreed**: confirmed by Dataset & Ground Truth Management (2026-10-20) |
 
 Until items 1 to 7 are confirmed, every detection figure is labelled provisional. Until item 8 is confirmed, the
-single-agent configuration is reported with its budget stated. A disagreement on any item is resolved by amending
+single-agent configuration is reported with its budget stated.
+
+**Status on 2026-10-20.** Dataset & Ground Truth Management's written confirmation of items 1, 2, 4 and 9 arrived
+with the private ground-truth handoff. It reviewed this file as merged in PR #18 (blob `a15967ae`). Items 1 to 7
+and 9 are now agreed by every owner named, so the definitions are no longer provisional. Item 8 is still awaiting
+confirmation. The handoff contained no `scoring_exclusions.json`; the scorer therefore applies no owner-designated
+contextual exclusions, only the out-of-window scaffolding of item 5. Dataset & Ground Truth Management should confirm
+that no contextual exclusions are intended (`EVIDENCE_ACCEPTANCE.md` A3). Final scoring still requires the signed
+contract of Amendment 4. A disagreement on any item is resolved by amending
 this section and, where a definition changes, by a labelled re-scoring beside the original (section 7).
 
 ## 13. Amendment 4: corrected-code comparisons
