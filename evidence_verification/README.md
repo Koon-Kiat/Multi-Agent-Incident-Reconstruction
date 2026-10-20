@@ -122,6 +122,15 @@ model profiles, corpus and trigger hashes, current implementation, exact artifac
 Evidence overlap is labelled alignment/coverage. Semantic correctness comes only from the separate
 claim reviews. Review and contract fingerprints include the private CSVs and `scoring_exclusions.json`.
 
+To see every input that is still missing, with its owner, before scoring:
+
+```powershell
+python -m evidence_verification.evaluation.readiness --root out/corrected-01
+```
+
+It reports READY only after the scorer itself has accepted the inputs in a throwaway directory. The
+remaining inputs and their order are in [`docs/FINAL_EVALUATION_HANDOFF.md`](../docs/FINAL_EVALUATION_HANDOFF.md).
+
 ### Blind review of a component run
 
 `component_review` checks a set of claims, such as the real-corpus template claims, without the answer key and

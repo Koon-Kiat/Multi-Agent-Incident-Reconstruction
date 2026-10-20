@@ -64,7 +64,9 @@ After fresh A/B/C/D runs, `evidence_verification.evaluation.prepare_review` gene
 An independent reviewer completes claim support/stage annotations against original records and the lab
 key; dataset/detection/evaluation owners complete the scoring contract. Then score into a new directory.
 `scripts/run-evaluation.ps1` documents these stages. Missing inputs, incomplete matrices and simulated
-models cannot become a final score.
+models cannot become a final score. [`FINAL_EVALUATION_HANDOFF.md`](FINAL_EVALUATION_HANDOFF.md) lists each
+remaining input, its owner and the order of work; `evidence_verification.evaluation.readiness` reports which
+are still missing.
 
 The initial fixes left unreliable authentication follow-up selection and verifier false alarms. The
 follow-up below addresses these implementation/behavior issues. No real A-D accuracy or owner approval
