@@ -122,6 +122,22 @@ model profiles, corpus and trigger hashes, current implementation, exact artifac
 Evidence overlap is labelled alignment/coverage. Semantic correctness comes only from the separate
 claim reviews. Review and contract fingerprints include the private CSVs and `scoring_exclusions.json`.
 
+### Blind review of a component run
+
+`component_review` checks a set of claims, such as the real-corpus template claims, without the answer key and
+outside the A/B/C/D score. `prepare` shuffles every claim under a neutral code. It writes a reading packet of
+claim text and cited/context records, an unanswered label form and a sealed code-to-claim mapping. It never
+shows claim IDs or verdicts. After a named reviewer has labelled every assertion and claim, `score` checks
+that the claims, corpus and packet are unchanged. It then unblinds the codes and compares each label with the
+verifier's recorded verdict, using outcome rules printed in the packet before labelling: justified, false
+alarm, correct, missed or unresolved.
+
+```powershell
+python -m evidence_verification.evaluation.component_review prepare --corpus <corpus> --runs <runs> --out out/semantic-review
+python -m evidence_verification.evaluation.component_review score --packet out/semantic-review --corpus <corpus> `
+    --runs <runs> --verdicts docs/validation/correctness-2026-10-20.json --out out/semantic-review-result
+```
+
 An opt-in test measures the layer on 14 synthetic claims that all pass the deterministic checks (6 faithful, 8
 embellished), because only the model layer can catch an embellishment:
 
