@@ -174,7 +174,7 @@ def _report(output: PipelineOutput, out: Path) -> bool:
     print(f"{line} -> {out / summary.mode}")
     incomplete = bool(run and run.unresolved_task_ids())
     incomplete |= bool(output.verification and output.verification.integrity_notes)
-    incomplete |= summary.mode == "single-agent" and any("ended without" in gap
+    incomplete |= summary.mode == "single-agent" and any("ended without" in gap or "context capacity reached" in gap
                                                           for gap in output.reconstruction.investigation_gaps)
     return incomplete
 
