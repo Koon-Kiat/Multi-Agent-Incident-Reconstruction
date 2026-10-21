@@ -26,6 +26,8 @@ import time
 from pydantic import ValidationError
 
 from authentication_agent.config import Limits
+from authentication_agent.context import context_measure
+from authentication_agent.errors import InvestigationError
 from authentication_agent.models import QueryRequest as AuthenticationQuery
 from endpoint_agent.models import QueryRequest as EndpointQuery
 from event_processing.adapters.authentication_provider import CorpusAuthenticationProvider
@@ -40,13 +42,14 @@ from .claims import AttackMapping, Claim, ClaimEntities, Reconstruction
 from .narrative import ASSESSMENTS, _FORBIDDEN, _clip
 from .stages import ACCOUNT_FIELDS, RULE_DESCRIPTIONS, TRIGGER_FIELDS
 
-PROMPT_VERSION = "single-agent-prompt-v2"
+PROMPT_VERSION = "single-agent-prompt-v3"
 DEFAULT_TOOL_CALLS = 16
 CONTEXT_SECONDS = 60
 MAX_EVENTS_SHOWN = 40
 MAX_CLAIMS = 15
 MAX_CITED = 20
-MAX_CONVERSATION_BYTES = 24000
+TOOL_OUTPUT_TOKENS = 1024
+MIN_FINAL_OUTPUT_TOKENS = 2048
 # The final turn writes the whole timeline in one reply, so it needs more room than one stage.
 SINGLE_AGENT_LIMITS = Limits(model_timeout_seconds=300, max_output_tokens=4096)
 ACTIONS = ("query_authentication", "query_endpoint", "get_event", "finish")
@@ -65,6 +68,9 @@ Tools (one per reply, set unused arguments to null):
 - finish: stop investigating; you will then be asked for the timeline.
 
 While investigating, leave "claims" empty. In the final turn, return the timeline as claims.
+Repeated records are referenced by previously_shown_evidence_ids; their earlier fields still apply.
+context_omitted_events counts records that could not be shown within the context limit. They are
+unseen evidence, cannot be cited, and must not be interpreted as absent or benign activity.
 Each claim: claim_type (snake_case label), claim_text (what was observed: who, what, where, when),
 rationale (why the cited records belong together; what they do not show), assessment
 ("requires_review" | "benign_possible" | "insufficient_evidence"), cited_evidence_ids (only IDs you
@@ -104,21 +110,35 @@ class SingleAgentInvestigator:
             "trigger_events": [_event_facts(event) for event in retrieved.values()],
         }
         messages = [{"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": json.dumps(initial, ensure_ascii=False)}]
+                    {"role": "user", "content": _json(initial)}]
         used = model_calls = 0
         claims: list[dict] = []
+        admissions: list[dict] = []
         final = False
         # Two phases: investigation turns may only query or signal "finish" (no claims), then one
         # final turn may only return claims. Allowing claims on every turn let the model write the
         # whole timeline alongside its first tool call and run out of output tokens.
         while window is not None:
-            if not final and (used >= self._tool_calls or _size(messages) > MAX_CONVERSATION_BYTES):
+            if not final and used >= self._tool_calls:
                 final = True
                 messages.append({"role": "user", "content": FINAL_TURN})
             schema = reply_schema(tuple(retrieved), finish_only=final)
             try:
+                # Admit the final timeline before spending a turn on investigation.
+                if not final and self._call_limits(messages + [{"role": "user", "content": FINAL_TURN}],
+                                                  reply_schema(tuple(retrieved), finish_only=True), final=True) is None:
+                    raise InvestigationError("context_size_limit")
+                call_limits = self._call_limits(messages, schema, final=final)
+                if call_limits is None:
+                    raise InvestigationError("context_size_limit")
+                _, size, upper = context_measure(messages, schema, self._llm.metadata(), call_limits,
+                                                getattr(self._llm, "input_token_upper_bound", None))
+                admissions.append({"phase": "final" if final else "investigation",
+                                   "input_token_upper_bound": upper, "serialized_context_bytes": size,
+                                   "reserved_output_tokens": call_limits.max_output_tokens})
                 model_calls += 1
-                text = self._llm.complete(messages, schema, self._model_limits)
+                text = self._llm.complete(messages, schema, call_limits)
+                admissions[-1]["response_metrics"] = dict(getattr(self._llm, "last_response_metrics", {}))
             except Exception as error:  # Message text is never kept.
                 code = getattr(error, "code", None)
                 gaps.append(f"model call failed ({code if isinstance(code, str) else type(error).__name__}); "
@@ -137,12 +157,24 @@ class SingleAgentInvestigator:
                 break
             if action == "finish":
                 final = True
-                messages += [{"role": "assistant", "content": text}, {"role": "user", "content": FINAL_TURN}]
+                # The finish action contains no evidence; omit its redundant echo.
+                messages.append({"role": "user", "content": FINAL_TURN})
                 continue
             used += 1
-            result = self._run_tool(action, reply.get("arguments") or {}, scenario_id, window, retrieved)
-            messages += [{"role": "assistant", "content": text},
-                         {"role": "user", "content": json.dumps(result, ensure_ascii=False)}]
+            candidate = dict(retrieved)
+            result = self._run_tool(action, reply.get("arguments") or {}, scenario_id, window, candidate)
+            try:
+                messages, retrieved, overflow, omitted = self._bounded_result(
+                    messages, reply, result, retrieved, candidate)
+            except Exception as error:
+                code = getattr(error, "code", type(error).__name__)
+                gaps.append(f"context admission failed ({code}); investigation ended without a final timeline")
+                break
+            if overflow:
+                gaps.append(f"context capacity reached; {omitted} new tool-result records were not shown; "
+                            "investigation ended early")
+                final = True
+                messages.append({"role": "user", "content": FINAL_TURN})
         if window is None:
             gaps.append("no detection triggers; nothing was investigated")
 
@@ -151,13 +183,69 @@ class SingleAgentInvestigator:
             prompt_version=PROMPT_VERSION,
             scenario_id=scenario_id,
             corpus_manifest_sha256=corpus_manifest_sha256,
-            llm=self._llm.metadata() if self._llm is not None else {"runtime": "none"},
+            llm={**self._llm.metadata(), "context_admissions": admissions} if self._llm is not None else {"runtime": "none"},
             claims=tuple(_claims(scenario_id, claims, retrieved, detections)),
             unlinked_findings={},
             investigation_gaps=(*gaps, f"tool calls used: {used} of {self._tool_calls}"),
             model_calls=model_calls,
             latency_seconds=round(time.perf_counter() - started, 3),
         )
+
+    def _call_limits(self, messages, schema, *, final):
+        """Use the transport's own counter; never enlarge context or configured output."""
+        output = min(self._model_limits.max_output_tokens,
+                     MIN_FINAL_OUTPUT_TOKENS if final else TOOL_OUTPUT_TOKENS)
+        limits = self._model_limits.model_copy(update={"max_output_tokens": output})
+        metadata = self._llm.metadata()
+        fits, _, upper = context_measure(messages, schema, metadata, limits,
+                                        getattr(self._llm, "input_token_upper_bound", None))
+        if not fits:
+            return None
+        if final:
+            config = metadata.get("configuration", metadata)
+            available = config["num_ctx"] - upper if upper is not None else self._model_limits.max_output_tokens
+            limits = limits.model_copy(update={"max_output_tokens": min(self._model_limits.max_output_tokens, available)})
+        return limits
+
+    def _bounded_result(self, messages, reply, result, shown, candidate):
+        """Deduplicate exact IDs and admit a consecutive result prefix with final space.
+
+        Do not make provider-fetched but unpresented records eligible for citations.
+        An overflow is an explicit operational gap, never a successful full review.
+        """
+        new = [event for event in result.get("events", []) if event["evidence_id"] not in shown]
+        repeated = [event["evidence_id"] for event in result.get("events", []) if event["evidence_id"] in shown]
+        base = {key: value for key, value in result.items() if key != "events"}
+        if "events" in result:
+            base.update(events=[], previously_shown_evidence_ids=repeated)
+        request = {"role": "assistant", "content": _json(reply)}
+
+        def proposed(events, omitted):
+            body = dict(base)
+            if "events" in result:
+                body["events"] = events
+            if omitted:
+                body["context_omitted_events"] = omitted
+            visible = {**shown, **{e["evidence_id"]: candidate[e["evidence_id"]] for e in events}}
+            conversation = messages + [request, {"role": "user", "content": _json(body)}]
+            fits = self._call_limits(conversation + [{"role": "user", "content": FINAL_TURN}],
+                                    reply_schema(tuple(visible), finish_only=True), final=True) is not None
+            return conversation, visible, fits
+
+        conversation, visible, fits = proposed(new, 0)
+        if fits:
+            return conversation, visible, False, 0
+        conversation, visible, fits = proposed([], len(new))
+        if not fits:
+            return messages, shown, True, len(new)
+        accepted = []
+        for event in new:
+            trial, records, fits = proposed(accepted + [event], len(new) - len(accepted) - 1)
+            if not fits:
+                break
+            accepted.append(event)
+            conversation, visible = trial, records
+        return conversation, visible, True, len(new) - len(accepted)
 
     def _run_tool(self, action: str, arguments: dict, scenario_id: str, window: tuple[str, str],
                   retrieved: dict[str, object]) -> dict:
@@ -321,8 +409,8 @@ def _event_facts(event) -> dict:
             "timestamp_utc": event.timestamp_utc, "host": event.host, "user": event.user, "fields": data}
 
 
-def _size(messages) -> int:
-    return sum(len(message["content"].encode()) for message in messages)
+def _json(value) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
 
 
 class FakeSingleAgentLLM:
