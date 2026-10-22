@@ -96,12 +96,12 @@ Until the verifier is connected, `PendingVerifier` marks every claim `unverified
 
 | `--mode` | Configuration | Phases timed |
 | --- | --- | --- |
-| *(Event Processing & Detection Engine `detect`)* | A: rules only | — |
-| `single-agent` | B: one generalist model | detection, single_agent |
-| `multi-agent` | C: specialists + reconstruction, no verifier | detection, investigation, reconstruction |
-| `full` | D: C + verification | detection, investigation, reconstruction, verification |
+| *(Event Processing & Detection Engine `detect`)* | Rules-only Detection Baseline | — |
+| `single-agent` | Single-Agent Generalist Baseline | detection, single_agent |
+| `multi-agent` | Specialist-Agent Incident Reconstruction | detection, investigation, reconstruction |
+| `full` | Specialist-Agent Incident Reconstruction with Independent Evidence Verification | detection, investigation, reconstruction, verification |
 
-Held constant across B–D: corpus revision (`corpus_manifest_sha256` in every file), the
+Held constant across the generalist and both specialist approaches: corpus revision (`corpus_manifest_sha256` in every file), the
 detection triggers, the read-only providers and limits, the local model and its settings
 (temperature 0, seed 0, context 8192, thinking off), and the timing points. The clock starts
 immediately before triggers are read and stops after the last phase. The single-agent baseline

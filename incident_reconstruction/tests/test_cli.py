@@ -70,7 +70,8 @@ def test_all_modes_run_end_to_end_and_write_reports(corpus, tmp_path, capsys):
     index = (out / "index.html").read_text(encoding="utf-8")
     assert all(f"{mode}/{SCENARIO}.report.html" in index for mode in expected)
     stdout = capsys.readouterr().out
-    assert f"{SCENARIO} [full]:" in stdout and "verdicts {'unverified':" in stdout
+    from incident_reconstruction.terminology import MODE_LABELS
+    assert f"{SCENARIO} [{MODE_LABELS['full']}]:" in stdout and "verdicts {'unverified':" in stdout
 
 
 def test_detections_reach_every_expected_stage(corpus, tmp_path):

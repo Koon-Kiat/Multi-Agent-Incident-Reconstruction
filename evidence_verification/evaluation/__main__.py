@@ -14,13 +14,14 @@ from pathlib import Path
 
 from .groundtruth import GroundTruthError
 from .runner import EvaluationError, evaluate
+from incident_reconstruction.terminology import EVALUATION_NAMES
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--corpus", type=Path, required=True)
     parser.add_argument("--runs", type=Path, required=True, help="root holding single-agent/, multi-agent/ and full/")
-    parser.add_argument("--detections", type=Path, help="output of `python -m event_processing detect` (configuration A)")
+    parser.add_argument("--detections", type=Path, help="output of `python -m event_processing detect` (Rules-only Detection Baseline)")
     parser.add_argument("--ground-truth", type=Path, default=Path("ground_truth/private"))
     parser.add_argument("--out", type=Path, default=Path("out/evaluation"))
     parser.add_argument("--allow-fake", action="store_true", help="inspect plumbing runs; results are labelled")
@@ -42,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     qualification = "FINAL SCORE" if results["scored"] else ("PLUMBING ONLY" if results["plumbing_only"] else "DIAGNOSTIC ONLY")
     print(f"{scored} run(s) analysed ({qualification}) -> {args.out}")
     for configuration, totals in results["totals"].items():
-        print(f"  {configuration}: stages {totals['stages_matched']}/{totals['stages_total']}, "
+        print(f"  {EVALUATION_NAMES[configuration]}: stages {totals['stages_matched']}/{totals['stages_total']}, "
               f"claims aligned/neutral/unaligned {totals['claims_aligned']}/{totals['claims_neutral']}/"
               f"{totals['claims_unaligned']}, verdicts {totals['support_scoring_pass']}")
     return 0

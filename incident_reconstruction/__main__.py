@@ -1,7 +1,9 @@
 """Run MAIR over a normalised corpus in one evaluation configuration.
 
-Modes: single-agent (configuration B), multi-agent (C: specialist agents + reconstruction, no
-verifier) and full (D: C + independent verification). Each scenario writes to <out>/<mode>/:
+Modes: single-agent (Single-Agent Generalist Baseline),
+multi-agent (Specialist-Agent Incident Reconstruction) and
+full (Specialist-Agent Incident Reconstruction with Independent Evidence Verification).
+Each scenario writes to <out>/<mode>/:
 <scenario>.pipeline.json (timing and counts), <scenario>.reconstruction.json (claims) and, where
 produced, <scenario>.orchestration.json and <scenario>.verification.json.
 
@@ -36,6 +38,7 @@ from .orchestrator import (
     corpus_investigators,
 )
 from .pipeline import MODES, Pipeline, PipelineOutput
+from .terminology import MODE_LABELS
 from .reconstruction import reconstruct
 from .report import write_reports
 from .single_agent import DEFAULT_TOOL_CALLS, FakeSingleAgentLLM, SingleAgentInvestigator
@@ -164,7 +167,7 @@ def _report(output: PipelineOutput, out: Path) -> bool:
     summary, run = output.summary, output.orchestration
     phases = ", ".join(f"{p.phase} {p.seconds}s" for p in summary.phases)
     sources = [claim.narrative_source for claim in output.reconstruction.claims]
-    line = (f"{summary.scenario_id} [{summary.mode}]: {summary.detections} detections, {summary.claims} claims "
+    line = (f"{summary.scenario_id} [{MODE_LABELS[summary.mode]}]: {summary.detections} detections, {summary.claims} claims "
             f"({sources.count('template')} template), {summary.model_calls} model calls, {summary.latency_seconds}s "
             f"({phases})")
     if run is not None:

@@ -29,7 +29,7 @@ verification are outside this component's ownership.
 ## Pre-PR audit and acceptance status
 
 Reviewed against base commit `7c43011` on 2026-09-24. The component is ready
-for code and interface review, not an assertion that the whole endpoint assignment
+for code and interface review, not an assertion that the whole endpoint component
 has received team acceptance. The PDF explicitly calls itself a proposed team
 agreement (p. 1); its cross-component acknowledgement cannot be supplied by
 automated tests or by this implementation alone.

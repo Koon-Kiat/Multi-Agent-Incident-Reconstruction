@@ -1,4 +1,4 @@
-"""Report every prerequisite of the final A/B/C/D score at once; never score, never invent an input.
+"""Report every prerequisite of the final four-approach comparison at once; never score, never invent an input.
 
 The scorer stops at the first missing input. This lists them all, so each owner can see what is still
 theirs to supply. It reuses the scorer's own validators, and when every gate passes it runs the scorer
@@ -27,8 +27,8 @@ from .validation import validate_run
 OWNERS = {
     "answer key": "Dataset & Ground Truth Management",
     "runbooks": "Dataset & Ground Truth Management",
-    "configuration A": "whoever runs the comparison",
-    "runs B/C/D": "whoever runs the comparison",
+    "Rules-only Detection Baseline": "whoever runs the comparison",
+    "Generalist and specialist reconstruction runs": "whoever runs the comparison",
     "claim reviews": "the independent reviewer",
     "scoring contract": "the dataset, detection and evaluation owners",
 }
@@ -80,7 +80,7 @@ def check(root, *, ground_truth=Path("ground_truth/private"), runbooks=Path("run
 
     triggers = {}
     if store is None:
-        gate("configuration A", "blocked", "needs the corpus")
+        gate("Rules-only Detection Baseline", "blocked", "needs the corpus")
     else:
         try:
             found = load_detection_runs(detections)
@@ -88,12 +88,12 @@ def check(root, *, ground_truth=Path("ground_truth/private"), runbooks=Path("run
                     r.corpus_manifest_sha256 != digest for r in found):
                 raise ValueError("detections cover different scenarios or a different corpus revision")
             triggers = {r.scenario_id: json_digest([d.model_dump(mode="json") for d in r.detections]) for r in found}
-            gate("configuration A", "ready", f"{sum(len(r.detections) for r in found)} detections")
+            gate("Rules-only Detection Baseline", "ready", f"{sum(len(r.detections) for r in found)} detections")
         except (ValueError, OSError) as error:
-            gate("configuration A", "missing", f"{detections}: {_problem(error)}")
+            gate("Rules-only Detection Baseline", "missing", f"{detections}: {_problem(error)}")
 
     if store is None:
-        gate("runs B/C/D", "blocked", "needs the corpus")
+        gate("Generalist and specialist reconstruction runs", "blocked", "needs the corpus")
     else:
         problems, profile, valid = [], None, 0
         for mode in MODES:
@@ -105,12 +105,12 @@ def check(root, *, ground_truth=Path("ground_truth/private"), runbooks=Path("run
                 try:
                     _, pipeline, _, _, profile = validate_run(base, mode, scenario, digest, expected_profile=profile)
                     if scenario in triggers and pipeline["detection_sha256"] != triggers[scenario]:
-                        raise ValueError(f"{mode}/{scenario}: detection triggers differ from configuration A")
+                        raise ValueError(f"{mode}/{scenario}: detection triggers differ from Rules-only Detection Baseline")
                     valid += 1
                 except (ValueError, OSError) as error:
                     problems.append(_problem(error))
         total = len(MODES) * len(store.scenario_ids)
-        gate("runs B/C/D", "ready" if not problems else "missing" if valid == 0 else "invalid",
+        gate("Generalist and specialist reconstruction runs", "ready" if not problems else "missing" if valid == 0 else "invalid",
              f"{valid}/{total} valid, one shared model profile" if not problems
              else f"{valid}/{total} valid; " + "; ".join(problems))
 

@@ -1,0 +1,46 @@
+{
+  "full_suite": {
+    "command": ".venv/Scripts/python.exe -m pytest -q --basetemp=.test-tmp-terminology-final",
+    "exit_code": 0,
+    "passed": 1301,
+    "skipped": 7,
+    "seconds": 317.62,
+    "skips": {
+      "opt_in_live_model_tests": 5,
+      "symlinks_unavailable": 2
+    }
+  },
+  "focused_components": {
+    "passed": 306,
+    "skipped": 3
+  },
+  "final_contract_cli_powershell": {
+    "passed": 45,
+    "skipped": 0
+  },
+  "build_and_isolated_install": {
+    "success": true,
+    "wheel": "mair_incident_reconstruction-0.2.0-py3-none-any.whl",
+    "sha256": "eafc3f221f9f010e0ba8cc0ae1f5a20e37cadfd17279b7db3d14f98b81a131c9",
+    "imports_from_installed_target": true,
+    "installed_fingerprint_matches_source": true
+  },
+  "cli_help": {
+    "pipeline_exit": 0,
+    "evaluation_exit": 0
+  },
+  "missing_input_readiness": {
+    "exit_code": 1,
+    "expected": true,
+    "descriptive_labels": true,
+    "final_score_gate": "blocked"
+  },
+  "synthetic_report": {
+    "generated": true,
+    "all_four_names_present": true,
+    "real_model_execution": false,
+    "private_ground_truth_used": false
+  },
+  "git_diff_check": "passed",
+  "private_evaluation_accuracy_claimed": false
+}

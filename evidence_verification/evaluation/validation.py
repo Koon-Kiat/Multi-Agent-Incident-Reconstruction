@@ -95,7 +95,7 @@ def validate_run(base: Path, mode: str, scenario: str, digest: str, *, allow_fak
         if len(report.decisions)!=len(rec.claims) or set(report.verdicts()) != {c.claim_id for c in rec.claims}:
             raise EvaluationError(f"{mode}/{scenario}: verification claim set mismatch")
         if report.verifier.get("mode") != "deterministic_and_agent":
-            raise EvaluationError(f"{mode}/{scenario}: independent model verifier is required for configuration D")
+            raise EvaluationError(f"{mode}/{scenario}: independent model verifier is required for Specialist-Agent Incident Reconstruction with Independent Evidence Verification")
         models.append(("verifier",report.verifier.get("model")))
         for decision in report.decisions:
             claim = next(c for c in rec.claims if c.claim_id == decision.claim_id)

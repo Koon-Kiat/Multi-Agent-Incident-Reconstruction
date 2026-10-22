@@ -1,0 +1,79 @@
+{
+  "base_revision": "852168c29584e7d839cc2202d5f7eab13d31f95e",
+  "base_implementation_sha256": "7f68e2289bb848eaf857885d9413f0d1d7107872369204106a5f5918d34bfa71",
+  "new_implementation_sha256": "5d0dcc60fbd8615365914fd1f1bef85ea1717a79cde46c42690e7318d1b9c377",
+  "fingerprint_sources_changed": [
+    {
+      "path": "evidence_verification/evaluation/__main__.py",
+      "before_sha256": "af74b84939d2c1ce8acd1ef61ae08f275a56b52b5d39251d301ac96b20773af9",
+      "after_sha256": "aed58796361b310e9cf78bc641d1a6666036877e73efadaeead29352da330429"
+    },
+    {
+      "path": "evidence_verification/evaluation/detection.py",
+      "before_sha256": "c7178b3938d27b992ddbcaded106d3d7e80c73ecf1a941b351759efd8ce6ccf3",
+      "after_sha256": "1a922e8ae9ffd10dd3d14ef025f737811b12020a27fb2331cf1185a1b91a82b7"
+    },
+    {
+      "path": "evidence_verification/evaluation/legacy.py",
+      "before_sha256": null,
+      "after_sha256": "f512096f22a47c9d7899c18c7579050739ca5ddd31149219aaaa0ac38c6d44b1"
+    },
+    {
+      "path": "evidence_verification/evaluation/readiness.py",
+      "before_sha256": "4e0781b7780a1c9bf3b077723a9c82fa65b61e957bdcc8d73842fd4839275423",
+      "after_sha256": "9d948d821faa9e21645aae8bac212ac5032641fefa887ed86cc10c0055828975"
+    },
+    {
+      "path": "evidence_verification/evaluation/report.py",
+      "before_sha256": "09f82223b797a8ba9a37552644b67827929085968653a470f77e0c91d32169e4",
+      "after_sha256": "074f20a00a17f47d8b8561d485ddaf42cefb5b64f61cd9c341d567ce8b30b9b8"
+    },
+    {
+      "path": "evidence_verification/evaluation/runner.py",
+      "before_sha256": "16904a251b0bc482b0e6ad402370c551c1ef1d52e81af08459d79e5bda1d50cf",
+      "after_sha256": "6963e3a17c7d06257f9026705f8b31f68f666dbc7dcd79c24dc9801673f8917f"
+    },
+    {
+      "path": "evidence_verification/evaluation/validation.py",
+      "before_sha256": "9be28b3483fa582e2844ee505f70823bbaca6dc06bfaef5b31d75e9d032618e3",
+      "after_sha256": "5837d46dfe9e1cada824c2e568592d57b0bb793e4fba955c4dbe5d441aecea1e"
+    },
+    {
+      "path": "incident_reconstruction/__main__.py",
+      "before_sha256": "bbca63846f0ff887056a347a20533848565dcec230e9be0cf0bb0c9a34f974d2",
+      "after_sha256": "5e20b4996b79815dfbd38bf3c747975018cc0a9f95ae4e714b4b215927386215"
+    },
+    {
+      "path": "incident_reconstruction/claims.py",
+      "before_sha256": "98bbdba4f915c494bf2328df433080ded91456ecaf8e7faa38a6c4c21d8ad7b4",
+      "after_sha256": "a5e6ec91b1099e3b395ce39f814cd72d13f515a8804c27eae013239b1629ed26"
+    },
+    {
+      "path": "incident_reconstruction/pipeline.py",
+      "before_sha256": "2cf1ee7f6a2ef6292d871c0cddf5ad781f4b2b340f04c9bb7965d67af2cb2ea4",
+      "after_sha256": "14c6d1bc1c7e021f09d31a6557c1258b418ffb9d0b0cdd08c03b5f7545757e91"
+    },
+    {
+      "path": "incident_reconstruction/report.py",
+      "before_sha256": "4ca11f3a8fb653446cbd312f4e883afea8c464f51ea6651b0ca56707fcdd96f8",
+      "after_sha256": "e0178beec56adbefe8442b9815f1016bd3a4350e4cef4a25060366c229eb8de7"
+    },
+    {
+      "path": "incident_reconstruction/single_agent.py",
+      "before_sha256": "21d42f2428be9738baaabc8c3945041796ae640521d4e41eef7f3cbef92e876f",
+      "after_sha256": "5efa031179e7e951211d5dc88fa587e9bc65fc604194358db304a8fc09c8bd37"
+    },
+    {
+      "path": "incident_reconstruction/terminology.py",
+      "before_sha256": null,
+      "after_sha256": "da978aa3682644901acb203ea4cf37cee151de87413789bf152b08e3fe5e6998"
+    },
+    {
+      "path": "incident_reconstruction/verification.py",
+      "before_sha256": "f3a09f6ed51179e60b82fbbd39502c6a593edf2f93fd21e57f4d4abe5b22f0ea",
+      "after_sha256": "29bf7c82d0aadf7902a951e180eeccd83b80a8098e4485a93da5f84cbb1efae6"
+    }
+  ],
+  "protocol_before_sha256": "8dae3d5b652d6be9e1a402aadb03f6a7101912a018a47b3e714bfe555451ce68",
+  "protocol_after_sha256": "d9aa549d26e0e6ce7f74b331e952da002e5d6ef4ae3ebb8796b84fa37e6bcd19"
+}

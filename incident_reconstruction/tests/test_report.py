@@ -96,8 +96,12 @@ def test_reports_and_index_cover_every_saved_run(store, engine, factory, tmp_pat
         f"full/{SCENARIO}.report.html", "index.html",
         f"multi-agent/{SCENARIO}.report.html", f"single-agent/{SCENARIO}.report.html"]
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
+    from incident_reconstruction.terminology import MODE_LABELS
     for mode in ("single-agent", "multi-agent", "full"):
         assert f'href="{mode}/{SCENARIO}.report.html"' in index
+        assert MODE_LABELS[mode] in index
+        page = (tmp_path / mode / f"{SCENARIO}.report.html").read_text(encoding="utf-8")
+        assert MODE_LABELS[mode] in page
     claim_ids = re.findall(r'<li class=claim id="([^"]+)"', (tmp_path / "full" / f"{SCENARIO}.report.html").read_text(encoding="utf-8"))
     assert claim_ids == [f"{SCENARIO}-CLM-0{i}" for i in range(1, len(claim_ids) + 1)]
 
