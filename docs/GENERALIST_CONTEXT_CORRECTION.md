@@ -40,7 +40,7 @@ admission checks that reject before invocation are not model calls.
 The experiment keeps the authorized Ollama 0.40.6 / qwen3:8b digest, context
 8,192, temperature zero, seed zero, thinking disabled, 16-tool generalist budget,
 provider limits, scenario boundaries and existing timeouts. A fresh corpus and
-all nine B/C/D investigations must use the frozen corrected implementation.
+all nine generalist, specialist-agent, and verified-specialist investigations must use the frozen corrected implementation.
 Record the base commit, source patch and implementation fingerprint.
 Regenerate hash-bound review forms afterwards.
 Human annotations and owner approvals remain prerequisites for official scoring.

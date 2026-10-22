@@ -9,7 +9,7 @@ Use a new output folder; historical results are never overwritten.
       -ClaimReviews out/corrected-01/review/claim_reviews.json `
       -ScoringContract out/corrected-01/review/scoring_contract.json
 
-The default runs prep,B,C,D. Review and score do not start or require Ollama.
+The default runs prep, generalist, specialist and verified-specialist. Review and score do not start or require Ollama.
 -AllowPartial produces explicitly diagnostic output and never a final score.
 #>
 param(
@@ -22,13 +22,16 @@ param(
     [string]$GroundTruthDir = "ground_truth/private",
     [string]$ClaimReviews,
     [string]$ScoringContract,
-    [string[]]$Only = @("prep", "B", "C", "D"),
+    [string[]]$Only = @("prep", "generalist", "specialist", "verified-specialist"),
     [switch]$AllowDirty,
     [switch]$AllowPartial
 )
 $ErrorActionPreference = "Stop"
 $Only = @($Only | ForEach-Object { $_ -split "," } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-$unknown = @($Only | Where-Object { @("prep", "B", "C", "D", "review", "score") -notcontains $_ })
+# Compatibility aliases for existing automation; normalize before dispatch and display.
+$aliases = @{ B = "generalist"; C = "specialist"; D = "verified-specialist" }
+$Only = @($Only | ForEach-Object { if ($aliases.ContainsKey($_)) { $aliases[$_] } else { $_ } } | Select-Object -Unique)
+$unknown = @($Only | Where-Object { @("prep", "generalist", "specialist", "verified-specialist", "review", "score") -notcontains $_ })
 if ($unknown) { throw "unknown stage(s): $($unknown -join ', ')" }
 $repo = Split-Path -Parent $PSScriptRoot
 Set-Location $repo
@@ -38,8 +41,8 @@ $logs = Join-Path $Out "logs"
 if ($Only -contains "prep" -and (Test-Path -LiteralPath "$Out/detections")) { throw "refusing to overwrite $Out/detections" }
 foreach ($stage in $Only) {
     $target = switch ($stage) {
-        prep { $corpus }; B { "$Out/runs/single-agent" }; C { "$Out/runs/multi-agent" }
-        D { "$Out/runs/full" }; review { "$Out/review" }; score { "$Out/evaluation" }
+        prep { $corpus }; generalist { "$Out/runs/single-agent" }; specialist { "$Out/runs/multi-agent" }
+        "verified-specialist" { "$Out/runs/full" }; review { "$Out/review" }; score { "$Out/evaluation" }
     }
     if (Test-Path -LiteralPath $target) { throw "refusing to overwrite $target; select a new output folder or stage" }
 }
@@ -59,7 +62,7 @@ $endpoint = "http://127.0.0.1:11434"
 function Test-Ollama { try { Invoke-RestMethod "$endpoint/api/version" -TimeoutSec 3 | Out-Null; $true } catch { $false } }
 $server = $null
 try {
-    if (@($Only | Where-Object { @("B", "C", "D") -contains $_ }).Count) {
+    if (@($Only | Where-Object { @("generalist", "specialist", "verified-specialist") -contains $_ }).Count) {
         if (-not (Test-Ollama)) {
             if (-not (Test-Path -LiteralPath $OllamaExe)) { throw "local Ollama executable not found: $OllamaExe" }
             $env:OLLAMA_HOST = "127.0.0.1:11434"
@@ -74,16 +77,16 @@ try {
     }
     if ($Only -contains "prep") {
         Step "Normalise fresh corpus" { & $py -m event_processing normalise --datasets datasets --out $corpus *>&1 | Tee-Object -FilePath "$logs/normalise.log" }
-        Step "Configuration A: detect" { & $py -m event_processing detect --corpus $corpus --out "$Out/detections" *>&1 | Tee-Object -FilePath "$logs/detect.log" }
+        Step "Rules-only Detection Baseline" { & $py -m event_processing detect --corpus $corpus --out "$Out/detections" *>&1 | Tee-Object -FilePath "$logs/detect.log" }
     }
     # Only the pipeline's documented exit 1 (written but incomplete) is accepted.
-    if ($Only -contains "B") { Step "Configuration B" { & $py -m incident_reconstruction @common @scenarioArgs --mode single-agent *>&1 | Tee-Object -FilePath "$logs/B.log" } @(0,1) }
-    if ($Only -contains "C") { Step "Configuration C" { & $py -m incident_reconstruction @common @scenarioArgs --mode multi-agent *>&1 | Tee-Object -FilePath "$logs/C.log" } @(0,1) }
-    if ($Only -contains "D") {
+    if ($Only -contains "generalist") { Step "Single-Agent Generalist Baseline" { & $py -m incident_reconstruction @common @scenarioArgs --mode single-agent *>&1 | Tee-Object -FilePath "$logs/generalist.log" } @(0,1) }
+    if ($Only -contains "specialist") { Step "Specialist-Agent Incident Reconstruction" { & $py -m incident_reconstruction @common @scenarioArgs --mode multi-agent *>&1 | Tee-Object -FilePath "$logs/specialist.log" } @(0,1) }
+    if ($Only -contains "verified-specialist") {
         $env:MAIR_VERIFIER_LLM = "ollama"
         $env:MAIR_VERIFIER_MODEL = $Model
         $env:MAIR_VERIFIER_TIMEOUT = $VerifierTimeout
-        Step "Configuration D" { & $py -m incident_reconstruction @common @scenarioArgs --mode full --verifier evidence_verification.agent:make_agent_verifier *>&1 | Tee-Object -FilePath "$logs/D.log" } @(0,1)
+        Step "Specialist-Agent Incident Reconstruction with Independent Evidence Verification" { & $py -m incident_reconstruction @common @scenarioArgs --mode full --verifier evidence_verification.agent:make_agent_verifier *>&1 | Tee-Object -FilePath "$logs/verified-specialist.log" } @(0,1)
     }
     if ($Only -contains "review") {
         Step "Prepare unanswered independent review forms" { & $py -m evidence_verification.evaluation.prepare_review --corpus $corpus --runs "$Out/runs" --ground-truth $GroundTruthDir --out "$Out/review" *>&1 | Tee-Object -FilePath "$logs/review.log" }

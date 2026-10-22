@@ -90,6 +90,53 @@ def test_complete_bound_approved_comparison_is_accepted(experiment):
         evaluate(**experiment)
 
 
+def test_descriptive_results_round_trip_and_legacy_display_preserve_measurements(experiment):
+    import csv
+    from evidence_verification.evaluation.legacy import LEGACY_CONFIGURATIONS, LEGACY_RULES_ONLY
+    from evidence_verification.evaluation.report import render
+    from incident_reconstruction.terminology import EVALUATION_CONFIGURATIONS, EVALUATION_NAMES, RULES_ONLY
+
+    result = evaluate(**experiment)
+    assert result["schema_version"] == "evaluation-results-v3"
+    saved = json.loads((experiment["out"] / "results.json").read_text(encoding="utf8"))
+    assert saved == result
+    assert {run["configuration"] for run in saved["runs"]} == set(EVALUATION_CONFIGURATIONS.values())
+    with (experiment["out"] / "claims.csv").open(encoding="utf8", newline="") as handle:
+        assert {row["configuration"] for row in csv.DictReader(handle)} == set(EVALUATION_CONFIGURATIONS.values())
+    markdown = (experiment["out"] / "results.md").read_text(encoding="utf8")
+    for label in EVALUATION_NAMES.values():
+        assert label in markdown
+    assert not any(old in markdown for old in LEGACY_CONFIGURATIONS)
+
+    # Build an old-format synthetic result; display adaptation cannot rescore or
+    # change original bytes, measurements, status, or recorded provenance.
+    legacy = deepcopy(result)
+    reverse = {value: key for key, value in LEGACY_CONFIGURATIONS.items()}
+    for run in legacy["runs"]:
+        run["configuration"] = reverse[run["configuration"]]
+    legacy["totals"] = {reverse[key]: value for key, value in legacy["totals"].items()}
+    legacy[LEGACY_RULES_ONLY] = legacy.pop(RULES_ONLY)
+    for schema in ("evaluation-results-v1", "evaluation-results-v2"):
+        legacy["schema_version"] = schema
+        before = json.dumps(legacy, sort_keys=True)
+        assert render(legacy) == markdown
+        assert json.dumps(legacy, sort_keys=True) == before
+
+
+def test_evaluation_cli_prints_names_instead_of_serialized_identifiers(experiment, capsys):
+    from evidence_verification.evaluation.__main__ import main
+    from incident_reconstruction.terminology import EVALUATION_CONFIGURATIONS, EVALUATION_NAMES
+
+    arguments = []
+    for key in ("corpus", "runs", "ground_truth", "out", "detections", "claim_reviews", "scoring_contract"):
+        arguments.extend(["--" + key.replace("_", "-"), str(experiment[key])])
+    assert main(arguments + ["--label", "SYNTHETIC UNIT TEST ONLY"]) == 0
+    output = capsys.readouterr().out
+    for identifier in EVALUATION_CONFIGURATIONS.values():
+        assert EVALUATION_NAMES[identifier] in output
+        assert identifier not in output
+
+
 def test_fake_verifier_is_refused_even_with_real_pipeline_metadata(experiment):
     mutate_run(experiment,"full","verification",lambda d:d["verifier"].update(model={"runtime":"fake"}),seal=True)
     with pytest.raises(EvaluationError,match="fake"):
@@ -127,9 +174,9 @@ def test_missing_run_is_not_a_successfully_scored_experiment(experiment):
     assert not result["scored"] and not result["comparison_complete"]
 
 
-def test_configuration_a_is_required_for_final_comparison(experiment):
+def test_rules_only_baseline_is_required_for_final_comparison(experiment):
     experiment["detections"]=None
-    with pytest.raises(EvaluationError,match="configuration A"): evaluate(**experiment)
+    with pytest.raises(EvaluationError,match="Rules-only Detection Baseline"): evaluate(**experiment)
 
 
 def test_missing_independent_labels_and_unapproved_contract_cannot_be_final(experiment):
@@ -215,7 +262,7 @@ def test_operational_failure_does_not_earn_an_unsupported_claim_catch(experiment
     full["claims"][0].update(support=support,correct_stage_ids=["stage1"] if support=="supported" else [])
     experiment["claim_reviews"].write_text(json.dumps(reviews),encoding="utf8")
     result=evaluate(**experiment)
-    audit=next(r for r in result["runs"] if r["configuration"]=="D_full_mair")["semantic_correctness"]["unsupported_claim_detection"]
+    audit=next(r for r in result["runs"] if r["configuration"]=="specialist_agent_incident_reconstruction_with_independent_evidence_verification")["semantic_correctness"]["unsupported_claim_detection"]
     assert audit["tp"]==audit["fp"]==audit["tn"]==0
     assert audit["fn"]==(support=="unsupported")
     assert audit["operational_abstentions"][support]==1 and audit["decision_coverage"]==0.0

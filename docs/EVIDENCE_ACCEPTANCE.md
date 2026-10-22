@@ -77,8 +77,8 @@ powershell -ExecutionPolicy Bypass -File scripts/verify-ground-truth.ps1
 ### 3. Scenario set is sufficient for evaluation - MET, with recommendations
 
 The set satisfies the agreed scope of two multi-stage incidents plus one benign
-lookalike, and all four evaluation configurations (A rules-only, B single-agent,
-C multi-agent without verifier, D complete MAIR) can run against it unchanged.
+lookalike, and all four evaluation configurations (Rules-only Detection Baseline, Single-Agent Generalist Baseline,
+Specialist-Agent Incident Reconstruction, and Specialist-Agent Incident Reconstruction with Independent Evidence Verification) can run against it unchanged.
 
 Both telemetry channels are present and parseable in all three scenarios.
 One scenario exercises the Authentication Agent and the Endpoint Agent jointly,
@@ -155,7 +155,7 @@ Recorded now, before any results exist, so they cannot be rationalised later.
 
 **L1 - Conventional baseline may saturate.** The malicious lab scenario and its
 benign lookalike are separable by a single trivial threshold on one countable
-field. Configuration A is therefore likely to score at or near ceiling on
+field. The Rules-only Detection Baseline is therefore likely to score at or near ceiling on
 scenario-level classification, leaving no headroom to demonstrate added value
 from agent specialisation. Scenario-level classification accuracy must not be
 the headline metric. Stage-level reconstruction accuracy and claim-level

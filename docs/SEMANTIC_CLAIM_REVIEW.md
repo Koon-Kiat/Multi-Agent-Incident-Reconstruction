@@ -10,7 +10,7 @@ whether the four downgrades are justified or false alarms and whether the 13 con
 **Who reviewed.** A **model review**, not a human one: Claude (Anthropic model `claude-opus-5-5`), a different
 model from the verifier's `qwen3:8b`. It was **not blind**: the request named the four lowered claims. Each label
 and its reasoning are recorded with the cited evidence IDs so any reader can check them against the records. The
-A/B/C/D scorer requires `independent_human_review` and does not accept this review in its place.
+four-configuration scorer requires `independent_human_review` and does not accept this review in its place.
 
 ## Result
 
@@ -87,7 +87,7 @@ not in the repository. This review therefore does not attribute a cause.
   separate generations gave identical claim hashes. The claim IDs and types match the validation audit. The
   audit records no claim hashes, though, so this does not prove the claims are byte-identical to those the
   verifier saw.
-* It is a disclosed model review. The final A/B/C/D comparison still needs independent human claim reviews
+* It is a disclosed model review. The final four-configuration comparison still needs independent human claim reviews
   (`FINAL_EVALUATION_HANDOFF.md`).
 
 ## Reproduce

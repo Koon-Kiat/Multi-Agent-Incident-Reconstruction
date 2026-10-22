@@ -155,7 +155,7 @@ def test_a_fabricated_reference_can_never_be_neutral(stages, store_with_scaffold
 
 def _score(claims, stages, store, neutral=frozenset()):
     alignments = {c.claim_id: AL.align_claim(c, stages, neutral, store) for c in claims}
-    return SC.score_reconstruction(SCENARIO, "D_full_mair", tuple(claims), stages, alignments)
+    return SC.score_reconstruction(SCENARIO, "specialist_agent_incident_reconstruction_with_independent_evidence_verification", tuple(claims), stages, alignments)
 
 
 def _claims():
@@ -226,14 +226,14 @@ def test_support_counts_verdicts_and_crosstabs_them_against_the_key(stages, stor
     alignments = {c.claim_id: AL.align_claim(c, stages, frozenset(), store_with_scaffolding) for c in claims}
     verdicts = {"C1": "confirmed", "C2": "partially_supported", "C3": "confirmed", "C4": "rejected"}
     conflicts = {"C4": ("unresolved_reference: SYN-V1-SEC-9 does not exist",)}
-    s = SC.summarise_support(SCENARIO, "D_full_mair", "pipeline", verdicts, conflicts, alignments)
+    s = SC.summarise_support(SCENARIO, "specialist_agent_incident_reconstruction_with_independent_evidence_verification", "pipeline", verdicts, conflicts, alignments)
     assert s.verdicts == {"confirmed": 2, "partially_supported": 1, "unverified": 0, "rejected": 1}
     assert s.fabricated_reference_claims == 1 and s.confirmed_rate == 0.5
     assert s.by_alignment["unaligned"]["confirmed"] == 1, "a well-grounded claim the key does not cover"
     assert s.by_alignment["aligned"] == {"confirmed": 1, "partially_supported": 1, "unverified": 0, "rejected": 0}
 
 
-# ---------------------------------------------------------------- detection labels (Configuration A)
+# ---------------------------------------------------------------- detection labels (Rules-only Detection Baseline)
 
 def test_label_files_load_in_the_engines_own_loader_and_follow_the_two_views(tmp_path, stages, store_with_scaffolding):
     primary = tmp_path / "primary.csv"

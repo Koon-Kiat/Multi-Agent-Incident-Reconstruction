@@ -2,7 +2,7 @@
 
 Recorded 2026-10-19 on `fix/evidence-evaluation-correctness`, based on upstream
 `da189892a48cb872808b6d6df2206100fb722ef8`. A subsequent fetch confirmed the same upstream revision.
-The proposal, coursework and responsibility boundaries informed the original review. Historical results
+The original requirements, evaluation protocol and component responsibility boundaries informed the review. Historical results
 remain unchanged; corrected development artifacts are separate under `out/correctness-fix-validation/`.
 
 ## Changes against the review
@@ -11,7 +11,7 @@ remain unchanged; corrected development artifacts are separate under `out/correc
 |---|---|
 | R1: invented quote accepted through a shared token | Require contiguous recorded spans with word boundaries and coverage of claim assertions. Incomplete review is unverified. A genuine quote establishes provenance; its semantic relationship still requires validation. |
 | R2: incorrect failure/success ordering | Check strict sequence chronology and explicit logon-order wording independently. Check explicit two-failure separation and exaggerated plural counts against source times/counts. |
-| R3: mixed, incomplete or stale comparisons | Validate typed artifacts, complete A/B/C/D scenario coverage, identical real model profiles, corpus/triggers, implementation/artifact hashes and report-to-reconstruction binding. Fake/partial inspection stays diagnostic. Verifier call totals are per invocation and included in pipeline totals. Post-hoc outputs are separate and staged atomically. |
+| R3: mixed, incomplete or stale comparisons | Validate typed artifacts, complete four-configuration scenario coverage, identical real model profiles, corpus/triggers, implementation/artifact hashes and report-to-reconstruction binding. Fake/partial inspection stays diagnostic. Verifier call totals are per invocation and included in pipeline totals. Post-hoc outputs are separate and staged atomically. |
 | R4: distinct principals conflated | Detection, authentication observations and verification share conservative host/domain/SID correlation. Resolve NULL SID only through an unambiguous exact alias. Account links retain domains. |
 | R5: Sysmon process-access account filter lost SourceUser | Normalize Sysmon 10 SourceUser; retain User for other supported Sysmon types. Rebuild the corpus and verify the exact account filter. |
 | R6: byte limits did not bound authentication model tokens | Batch complete observations with byte/token guards and output/template reserves. Reconstruct local Qwen2 BPE from installed metadata; use a conservative UTF-8 fallback. Reject unexpected runtime prompt counts. Never clip facts to fit. |
@@ -39,7 +39,7 @@ binding, model mismatch, missing configurations, independent reviews, abstention
   Corrected live runs completed those windows in 81.674/91.558 seconds with complete retrieval and
   exact 125/117 readbacks. Independent anchor-set checks equal the original source-window record sets.
   The corrected authentication smoke completed with 12 exact readbacks in 62.061 seconds. These are
-  component smokes, not a fresh real-model A-D comparison.
+  component smokes, not a fresh real-model four-configuration comparison.
 * Fake CLI runs exercise all three modes/scenarios and HTML reports, using the actual full-mode verifier
   factory with its explicitly fake adapter. These validate plumbing only.
 * Editable installation, dependency consistency, PowerShell parsing and the evaluation wrapper's fresh
@@ -62,7 +62,7 @@ No real scenario CSVs or private runbooks were available. Place the original pac
 **Update 2026-10-20:** Dataset & Ground Truth Management has since delivered the package privately. It validates
 against the corpus; see [`FINAL_EVALUATION_HANDOFF.md`](FINAL_EVALUATION_HANDOFF.md).
 
-After fresh A/B/C/D runs, `evidence_verification.evaluation.prepare_review` generates unanswered forms.
+After fresh four-configuration runs, `evidence_verification.evaluation.prepare_review` generates unanswered forms.
 An independent reviewer completes claim support/stage annotations against original records and the lab
 key; dataset/detection/evaluation owners complete the scoring contract. Then score into a new directory.
 `scripts/run-evaluation.ps1` documents these stages. Missing inputs, incomplete matrices and simulated
@@ -71,7 +71,7 @@ remaining input, its owner and the order of work; `evidence_verification.evaluat
 are still missing.
 
 The initial fixes left unreliable authentication follow-up selection and verifier false alarms. The
-follow-up below addresses these implementation/behavior issues. No real A-D accuracy or owner approval
+follow-up below addresses these implementation/behavior issues. No real four-configuration accuracy or owner approval
 is claimed; deterministic extraction and mandatory operations never establish autonomous reasoning.
 
 ## Follow-up: retrieval and semantic verification
@@ -162,7 +162,7 @@ The following are explicit follow-ups, not claims that all model behavior or fin
 * **Query efficiency.** Useful capped-prefix authentication runs used all seven optional calls. Useful selection
   is demonstrated in these cases; optimal stopping and general unrestricted autonomy are not established.
 * **Final project evaluation.** Original private lab keys/runbooks, independent claim/stage reviews and owner
-  agreement on the scoring contract remain required before a defensible A-D comparison. These are external
+  agreement on the scoring contract remain required before a defensible four-configuration comparison. These are external
   evaluation prerequisites, not values the implementation can invent. The current PR supplies the checks/forms;
   it does not replace the missing package or approvals.
 

@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from .scoring import ALIGNMENTS, VERDICTS
 
-ORDER = ("B_single_agent", "C_multi_agent_no_verifier", "D_full_mair")
-SHORT = {"B_single_agent": "B single-agent", "C_multi_agent_no_verifier": "C multi-agent, no verifier",
-         "D_full_mair": "D full MAIR"}
+from incident_reconstruction.terminology import (
+    EVALUATION_CONFIGURATIONS, EVALUATION_NAMES, RULES_ONLY, VERIFIED_SPECIALIST,
+)
+from .legacy import display_results
+
+ORDER = tuple(EVALUATION_CONFIGURATIONS.values())
+SHORT = EVALUATION_NAMES
 
 
 def _n(value) -> str:
@@ -24,6 +28,7 @@ def _scored(results: dict, configuration: str) -> list[dict]:
 
 
 def render(results: dict) -> str:
+    results = display_results(results)
     out: list[str] = ["# MAIR evaluation results", ""]
     if not results.get("scored"):
         out += ["> **DIAGNOSTIC ONLY.** This is not a complete independently reviewed final comparison. "
@@ -106,9 +111,9 @@ def render(results: dict) -> str:
                          t["fabricated_reference_claims"]])
     out += [_table(["Configuration", "Claims", *VERDICTS, "Fabricated-reference claims"], rows), ""]
 
-    if "D_full_mair" in totals:
-        t = totals["D_full_mair"]
-        out += ["### Full MAIR: verifier verdicts by evidence alignment", "",
+    if VERIFIED_SPECIALIST in totals:
+        t = totals[VERIFIED_SPECIALIST]
+        out += [f"### {SHORT[VERIFIED_SPECIALIST]}: verifier verdicts by evidence alignment", "",
                 "Rows are what the key says about the claim; columns are the verdict the pipeline recorded.", ""]
         rows = [[a, *(t["verifier_vs_key"][a][v] for v in VERDICTS)] for a in ALIGNMENTS]
         out += [_table(["Claim vs key", *VERDICTS], rows), "",
@@ -127,9 +132,9 @@ def render(results: dict) -> str:
     out += [_table(["Configuration", "Scenario", "Total s", "Investigation s", "Reconstruction s", "Verification s",
                     "Model calls"], rows), ""]
 
-    a = results.get("configuration_A_rules_only")
+    a = results.get(RULES_ONLY)
     if a:
-        out += ["## Configuration A: rules only (unit: evidence ID)", "", f"**{a['status']}.**", ""]
+        out += ["## Rules-only Detection Baseline (unit: evidence ID)", "", f"**{a['status']}.**", ""]
         rows = []
         for view in ("primary", "strict"):
             overall = a[view]["report"]["overall"]

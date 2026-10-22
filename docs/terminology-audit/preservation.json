@@ -1,0 +1,30 @@
+{
+  "unchanged_evidence_fixture_and_historical_files": 873,
+  "all_bytes_unchanged": true,
+  "existing_scenario_evidence_token_changes": [],
+  "private_inputs_read_or_modified": false,
+  "original_pr_changed_files": [
+    "README.md",
+    "docs/AUTHENTICATION_CLOSEOUT_AUDIT.md",
+    "docs/COMPONENT_NAMING.md",
+    "docs/CORRECTNESS_REMEDIATION.md",
+    "docs/EVALUATION_PROTOCOL.md",
+    "docs/EVIDENCE_ACCEPTANCE.md",
+    "docs/FINAL_EVALUATION_HANDOFF.md",
+    "docs/GENERALIST_CONTEXT_CORRECTION.md",
+    "docs/SEMANTIC_CLAIM_REVIEW.md",
+    "evidence_verification/README.md",
+    "incident_reconstruction/README.md",
+    "scripts/run-evaluation.ps1"
+  ],
+  "reverted_python_files": [
+    "evidence_verification/evaluation/__main__.py",
+    "evidence_verification/evaluation/detection.py",
+    "evidence_verification/evaluation/report.py",
+    "incident_reconstruction/__main__.py",
+    "incident_reconstruction/claims.py",
+    "incident_reconstruction/pipeline.py",
+    "incident_reconstruction/single_agent.py",
+    "incident_reconstruction/verification.py"
+  ]
+}
