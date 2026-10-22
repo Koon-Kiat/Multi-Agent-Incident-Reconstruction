@@ -37,8 +37,10 @@ from event_processing.metrics import load_detection_runs
 from event_processing.provenance import json_digest, implementation_digest, PACKAGES
 from .independent import load_reviews, semantic_score, validate_contract, key_digests
 
-RESULTS_SCHEMA = "evaluation-results-v2"
-MODES = {"single-agent": "B_single_agent", "multi-agent": "C_multi_agent_no_verifier", "full": "D_full_mair"}
+from incident_reconstruction.terminology import EVALUATION_CONFIGURATIONS, RULES_ONLY, VERIFIED_SPECIALIST
+
+RESULTS_SCHEMA = "evaluation-results-v3"
+MODES = EVALUATION_CONFIGURATIONS
 PROTOCOL_PUBLIC = "docs/EVALUATION_PROTOCOL.md"
 PROTOCOL_PRIVATE = "ground_truth/private/EVALUATION_PROTOCOL_PRIVATE.md"
 FROZEN_PATHS = (*PACKAGES, "pyproject.toml", PROTOCOL_PUBLIC)
@@ -96,13 +98,13 @@ def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detecti
     if out.exists():
         raise EvaluationError("evaluation output already exists; use a new directory to preserve previous results")
     if detections is None and not allow_partial:
-        raise EvaluationError("configuration A detections are required; --allow-partial is diagnostic only")
+        raise EvaluationError("Rules-only Detection Baseline detections are required; --allow-partial is diagnostic only")
     detection_runs = load_detection_runs(detections) if detections is not None else ()
     if detection_runs and {r.scenario_id for r in detection_runs} != set(store.scenario_ids):
-        raise EvaluationError("configuration A scenario set differs from the corpus")
+        raise EvaluationError("Rules-only Detection Baseline scenario set differs from the corpus")
     detection_hashes = {r.scenario_id:json_digest([d.model_dump(mode="json") for d in r.detections]) for r in detection_runs}
     if any(r.corpus_manifest_sha256 != digest for r in detection_runs):
-        raise EvaluationError("configuration A used a different corpus revision")
+        raise EvaluationError("Rules-only Detection Baseline used a different corpus revision")
 
     per_run: list[dict] = []
     claim_rows: list[dict] = []
@@ -125,7 +127,7 @@ def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detecti
             if pipeline.get("post_hoc") and not label:
                 raise EvaluationError("post-hoc runs require an explicit --label")
             if scenario in detection_hashes and pipeline["detection_sha256"] != detection_hashes[scenario]:
-                raise EvaluationError(f"{mode}/{scenario}: detection triggers differ from configuration A")
+                raise EvaluationError(f"{mode}/{scenario}: detection triggers differ from Rules-only Detection Baseline")
             fake |= is_fake
             if is_fake and not allow_fake:
                 raise EvaluationError(f"{mode}/{scenario} used a fake model; it checks plumbing only and must not "
@@ -206,9 +208,9 @@ def evaluate(*, corpus: Path, runs: Path, ground_truth: Path, out: Path, detecti
     with TemporaryDirectory(prefix=".evaluation-",dir=out.parent) as staging_name:
         staging = Path(staging_name)
         if detections is not None:
-            results["configuration_A_rules_only"] = score_detections(corpus,detections,staging,stages_by_scenario,neutral,store)
+            results[RULES_ONLY] = score_detections(corpus,detections,staging,stages_by_scenario,neutral,store)
             if contract is not None:
-                results["configuration_A_rules_only"]["status"] = "AGREED - versioned owner-approved scoring contract"
+                results[RULES_ONLY]["status"] = "AGREED - versioned owner-approved scoring contract"
 
         (staging/"results.json").write_text(json.dumps(results,indent=2,ensure_ascii=False),encoding="utf-8")
         with (staging/"claims.csv").open("w",encoding="utf-8",newline="") as handle:
@@ -248,7 +250,7 @@ def _totals(per_run: list[dict]) -> dict:
             "latency_total_seconds": round(sum(r["latency"]["total_seconds"] for r in scored), 3),
             "model_calls": sum(r["latency"]["model_calls"] for r in scored),
         }
-        if configuration == "D_full_mair":
+        if configuration == VERIFIED_SPECIALIST:
             entry["support_pipeline"] = {v: sum(r["support"]["pipeline"]["verdicts"][v] for r in scored) for v in VERDICTS}
             entry["verifier_vs_key"] = {a: {v: sum(r["support"]["pipeline"]["by_alignment"][a][v] for r in scored)
                                             for v in VERDICTS} for a in ALIGNMENTS}

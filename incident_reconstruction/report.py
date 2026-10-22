@@ -28,8 +28,7 @@ from .verification import VerificationDecision, VerificationReport
 
 MAX_VALUE_CHARS = 300
 EVIDENCE_FIELDS = (*TRIGGER_FIELDS, "ProcessGuid", "ParentProcessGuid")
-MODE_LABELS = {"single-agent": "Single agent (B)", "multi-agent": "Multi-agent, no verifier (C)",
-               "full": "Full MAIR (D)"}
+from .terminology import MODE_LABELS
 
 
 def write_reports(runs_dir: Path | str, store: EventStore) -> tuple[Path, ...]:

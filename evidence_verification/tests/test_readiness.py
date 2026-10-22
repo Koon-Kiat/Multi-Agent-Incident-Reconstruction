@@ -38,12 +38,12 @@ def test_a_missing_answer_key_blocks_the_review_and_contract(experiment, tmp_pat
     found = statuses(run_check(experiment, ground_truth=tmp_path/"absent"))
     assert found["answer key"] == "missing"
     assert found["claim reviews"] == found["scoring contract"] == found["final score gate"] == "blocked"
-    assert found["runs B/C/D"] == "ready"
+    assert found["Generalist and specialist reconstruction runs"] == "ready"
 
 
 def test_a_missing_configuration_is_named(experiment):
     (experiment["runs"]/"full"/f"{SCENARIO}.reconstruction.json").unlink()
-    gate = next(g for g in run_check(experiment) if g["gate"] == "runs B/C/D")
+    gate = next(g for g in run_check(experiment) if g["gate"] == "Generalist and specialist reconstruction runs")
     assert gate["status"] == "invalid" and f"full/{SCENARIO} not run" in gate["detail"]
 
 

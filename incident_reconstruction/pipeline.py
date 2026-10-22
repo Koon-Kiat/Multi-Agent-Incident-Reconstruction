@@ -3,14 +3,14 @@
 ========================  ============================================================
 mode                      phases (each timed separately, in this order)
 ========================  ============================================================
-``single-agent`` (B)      detection -> single_agent
-``multi-agent`` (C)       detection -> investigation -> reconstruction
-``full`` (D)              detection -> investigation -> reconstruction -> verification
+``single-agent``      detection -> single_agent
+``multi-agent``       detection -> investigation -> reconstruction
+``full``              detection -> investigation -> reconstruction -> verification
 ========================  ============================================================
 
 Every mode starts its clock immediately before the conventional triggers are read and stops it
 after its last phase, on the same corpus, triggers, providers, limits and local model, so the
-latency columns of a comparison measure the same span. Configuration A (rules only) is the Event
+latency columns of a comparison measure the same span. Rules-only Detection Baseline is the Event
 Processing & Detection Engine's own baseline and is not run here.
 
 Outputs per scenario go to ``<out>/<mode>/``: ``<scenario>.pipeline.json`` (this summary),

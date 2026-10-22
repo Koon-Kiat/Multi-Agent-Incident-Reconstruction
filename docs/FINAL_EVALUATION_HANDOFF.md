@@ -15,7 +15,7 @@ python -m evidence_verification.evaluation.readiness --root out/final-01
 owner, and says READY only after the scorer itself has accepted every input in a throwaway directory. Its
 latest result, on 2026-10-20 after the answer key arrived:
 
-* Ready: corpus (6,661 events), answer key (13 stages, 5/4/4), runbooks (3 files) and rules-only detection baseline
+* Ready: corpus (6,661 events), answer key (13 stages, 5/4/4), runbooks (3 files) and Rules-only Detection Baseline
   (38 detections).
 * Missing: the nine generalist, specialist-agent, and independently verified specialist-agent runs, the claim reviews and the scoring contract.
 
@@ -28,7 +28,7 @@ latest result, on 2026-10-20 after the answer key arrived:
 | 3 | `EVALUATION_PROTOCOL.md` section 12 items 1, 2, 4 and 9, and the scoring exclusions | Dataset & Ground Truth Management | **Agreed** 2026-10-20. Still to confirm: that no contextual exclusions apply (A3) |
 | 4 | Section 12 items 3, 5, 6 and 7 | Event Processing & Detection Engine | **Agreed** 2026-10-19 |
 | 5 | Section 12 item 8, the single-agent tool budget | Incident Reconstruction Orchestrator | Awaiting confirmation |
-| 6 | Fresh runs of the rules-only, single-agent generalist, specialist-agent reconstruction, and verified specialist-agent reconstruction configurations on one model profile | Whoever runs the comparison | Not run on the current implementation |
+| 6 | Fresh runs of the rules-only, single-agent generalist, Specialist-Agent Incident Reconstruction, and Specialist-Agent Incident Reconstruction with Independent Evidence Verification configurations on one model profile | Whoever runs the comparison | Not run on the current implementation |
 | 7 | Independent claim support and stage annotations for every claim of each single-agent, specialist-agent and verified-specialist run | An independent reviewer | Not started; needs 1 and 6 |
 | 8 | Scoring contract with `negative_population_reviewed` and all three approvals | Dataset, detection and evaluation owners | Not started; the form is generated after the generalist, specialist-agent, and independently verified specialist-agent runs exist (step 4) |
 
@@ -41,10 +41,10 @@ against a fresh corpus:
 * 13 stages (S01 5, S02 4, S03 4) citing 34 records. Every record resolves to exactly one event.
 * Every stage time is a cited record's time, hosts match, stage order is chronological and every record lies
   inside its scenario window.
-* Rules-only rules-only detection baseline, scored against it as a labelled diagnostic, reproduces the provisional result of
+* Rules-only Detection Baseline, scored against it as a labelled diagnostic, reproduces the provisional result of
   the 2026-10-17 scored run, as given in the group report, exactly: primary precision 0.357, recall 0.455, F1 0.400 (TP 10, FP 18, FN 12, 15 flagged records
   excluded as out-of-window); strict precision 0.233, F1 0.308. This is the same key the scored run used, and
-  PR #18's detection changes did not alter rules-only detection baseline on this corpus. Under `detection-score-v2`, S01's
+  PR #18's detection changes did not alter Rules-only Detection Baseline on this corpus. Under `detection-score-v2`, S01's
   F1 is 0.0 (TP 0), where v1 reported it undefined.
 
 | File | SHA-256 |

@@ -290,7 +290,7 @@ is needed (`orchestrator.py:22–35,120–145,224–269`).
 | Cold start/latency variability | Medium; fail-closed investigation rather than findings | Start and warm the agreed service operationally, retain failed attempts and timing; runtime/orchestration owner |
 | Large prompts exceed token capacity | Medium potential; model may see incomplete context | Restrict evaluated windows; test token-aware admission/splitting before broader claims; authentication owner |
 | Directed-plan failures mistaken for broken tools | Medium reporting risk | Separate model decisions from tested dispatch and trusted required operations; evaluation owner |
-| Overstated academic result | High reporting risk | Do not equate factual consistency with accuracy, autonomous reliability, or comparative improvement; report authors/evaluation owner |
+| Overstated evaluation result | High reporting risk | Do not equate factual consistency with accuracy, autonomous reliability, or comparative improvement; report authors/evaluation owner |
 
 Formal team sign-off, final release packaging and end-to-end comparative scores
 remain outside this component verdict. They are not silently assigned to the

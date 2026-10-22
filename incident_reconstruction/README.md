@@ -52,11 +52,11 @@ setup failed. `mair-orchestrate` is the installed script name.
 
 | `--mode` | Evaluation configuration | Phases (timed separately) | Files in `<out>/<mode>/` |
 | --- | --- | --- | --- |
-| `single-agent` | B: one generalist LLM | detection, single_agent | `pipeline`, `reconstruction` |
-| `multi-agent` | C: specialists + reconstruction, no verifier | detection, investigation, reconstruction | + `orchestration` |
-| `full` | D: C + independent verification | ... + verification | + `verification` |
+| `single-agent` | Single-Agent Generalist Baseline | detection, single_agent | `pipeline`, `reconstruction` |
+| `multi-agent` | Specialist-Agent Incident Reconstruction | detection, investigation, reconstruction | + `orchestration` |
+| `full` | Specialist-Agent Incident Reconstruction with Independent Evidence Verification | ... + verification | + `verification` |
 
-The rules-only detection baseline is the Event Processing & Detection Engine's `detect` baseline.
+The Rules-only Detection Baseline is the Event Processing & Detection Engine's `detect` baseline.
 Every mode reads the same triggers from `DetectionEngine`, uses the same providers, limits and
 local model, and starts and stops its clock at the same points; `<scenario>.pipeline.json`
 (`pipeline-run-v1`) records the mode, per-phase seconds, total latency, model calls, claim count

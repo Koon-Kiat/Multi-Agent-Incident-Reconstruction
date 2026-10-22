@@ -1,4 +1,4 @@
-"""Connection point for Evidence Verification & Evaluation (full MAIR, configuration D).
+"""Connection point for Evidence Verification & Evaluation (Specialist-Agent Incident Reconstruction with Independent Evidence Verification).
 
 This module does not judge claims. It defines what the pipeline hands a verifier and what it
 accepts back, and records the decisions **unchanged** in a separate ``verification-report-v1``

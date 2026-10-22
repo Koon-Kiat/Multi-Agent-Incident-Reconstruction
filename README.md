@@ -1,8 +1,8 @@
 # Multi-Agent Incident Reconstruction (MAIR)
 
-MAIR is a local-first security incident reconstruction framework that analyzes Windows Security and Sysmon telemetry using deterministic detection, bounded specialist investigations, evidence-grounded timeline generation, and independent claim verification. Local Ollama models assist interpretation while read-only source records and explicit uncertainty remain authoritative.
+MAIR is a local-first, multi-agent security incident reconstruction and evidence verification framework that analyzes Windows Security and Sysmon telemetry using deterministic detection, bounded specialist investigations, evidence-grounded timeline generation, and independent claim verification. Local Ollama models assist interpretation while read-only source records and explicit uncertainty remain authoritative.
 
-The framework provides a rules-only detection baseline, a single-agent generalist baseline, specialist-agent incident reconstruction, and specialist-agent reconstruction with independent evidence verification. Each approach can be evaluated against separately maintained ground truth. The evaluation protocol distinguishes detection, evidence alignment, independently reviewed correctness, and runtime; incomplete investigations are reported rather than treated as benign. This is an experimental research implementation, not a production SIEM.
+The framework provides a Rules-only Detection Baseline, a Single-Agent Generalist Baseline, Specialist-Agent Incident Reconstruction, and Specialist-Agent Incident Reconstruction with Independent Evidence Verification. Each approach can be evaluated against separately maintained ground truth. The evaluation protocol distinguishes detection, evidence alignment, independently reviewed correctness, and runtime; incomplete investigations are reported rather than treated as benign. This is an experimental research implementation, not a production SIEM.
 
 ## Components
 
