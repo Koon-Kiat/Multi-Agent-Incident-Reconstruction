@@ -20,7 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--corpus", type=Path, required=True)
     parser.add_argument("--runs", type=Path, required=True, help="root holding single-agent/, multi-agent/ and full/")
-    parser.add_argument("--detections", type=Path, help="output of `python -m event_processing detect` (configuration A)")
+    parser.add_argument("--detections", type=Path, help="output of `python -m event_processing detect` (rules-only detection baseline)")
     parser.add_argument("--ground-truth", type=Path, default=Path("ground_truth/private"))
     parser.add_argument("--out", type=Path, default=Path("out/evaluation"))
     parser.add_argument("--allow-fake", action="store_true", help="inspect plumbing runs; results are labelled")

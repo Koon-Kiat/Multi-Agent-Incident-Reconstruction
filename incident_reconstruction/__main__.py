@@ -1,6 +1,6 @@
 """Run MAIR over a normalised corpus in one evaluation configuration.
 
-Modes: single-agent (configuration B), multi-agent (C: specialist agents + reconstruction, no
+Modes: single-agent (generalist baseline), multi-agent (specialist agents + reconstruction, no
 verifier) and full (D: C + independent verification). Each scenario writes to <out>/<mode>/:
 <scenario>.pipeline.json (timing and counts), <scenario>.reconstruction.json (claims) and, where
 produced, <scenario>.orchestration.json and <scenario>.verification.json.

@@ -155,7 +155,7 @@ Recorded now, before any results exist, so they cannot be rationalised later.
 
 **L1 - Conventional baseline may saturate.** The malicious lab scenario and its
 benign lookalike are separable by a single trivial threshold on one countable
-field. Configuration A is therefore likely to score at or near ceiling on
+field. The rules-only detection baseline is therefore likely to score at or near ceiling on
 scenario-level classification, leaving no headroom to demonstrate added value
 from agent specialisation. Scenario-level classification accuracy must not be
 the headline metric. Stage-level reconstruction accuracy and claim-level

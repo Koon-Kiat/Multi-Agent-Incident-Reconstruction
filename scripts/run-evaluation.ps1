@@ -74,16 +74,16 @@ try {
     }
     if ($Only -contains "prep") {
         Step "Normalise fresh corpus" { & $py -m event_processing normalise --datasets datasets --out $corpus *>&1 | Tee-Object -FilePath "$logs/normalise.log" }
-        Step "Configuration A: detect" { & $py -m event_processing detect --corpus $corpus --out "$Out/detections" *>&1 | Tee-Object -FilePath "$logs/detect.log" }
+        Step "Rules-only detection baseline" { & $py -m event_processing detect --corpus $corpus --out "$Out/detections" *>&1 | Tee-Object -FilePath "$logs/detect.log" }
     }
     # Only the pipeline's documented exit 1 (written but incomplete) is accepted.
-    if ($Only -contains "B") { Step "Configuration B" { & $py -m incident_reconstruction @common @scenarioArgs --mode single-agent *>&1 | Tee-Object -FilePath "$logs/B.log" } @(0,1) }
-    if ($Only -contains "C") { Step "Configuration C" { & $py -m incident_reconstruction @common @scenarioArgs --mode multi-agent *>&1 | Tee-Object -FilePath "$logs/C.log" } @(0,1) }
+    if ($Only -contains "B") { Step "Single-agent generalist baseline" { & $py -m incident_reconstruction @common @scenarioArgs --mode single-agent *>&1 | Tee-Object -FilePath "$logs/B.log" } @(0,1) }
+    if ($Only -contains "C") { Step "Specialist-agent reconstruction" { & $py -m incident_reconstruction @common @scenarioArgs --mode multi-agent *>&1 | Tee-Object -FilePath "$logs/C.log" } @(0,1) }
     if ($Only -contains "D") {
         $env:MAIR_VERIFIER_LLM = "ollama"
         $env:MAIR_VERIFIER_MODEL = $Model
         $env:MAIR_VERIFIER_TIMEOUT = $VerifierTimeout
-        Step "Configuration D" { & $py -m incident_reconstruction @common @scenarioArgs --mode full --verifier evidence_verification.agent:make_agent_verifier *>&1 | Tee-Object -FilePath "$logs/D.log" } @(0,1)
+        Step "Specialist-agent reconstruction with evidence verification" { & $py -m incident_reconstruction @common @scenarioArgs --mode full --verifier evidence_verification.agent:make_agent_verifier *>&1 | Tee-Object -FilePath "$logs/D.log" } @(0,1)
     }
     if ($Only -contains "review") {
         Step "Prepare unanswered independent review forms" { & $py -m evidence_verification.evaluation.prepare_review --corpus $corpus --runs "$Out/runs" --ground-truth $GroundTruthDir --out "$Out/review" *>&1 | Tee-Object -FilePath "$logs/review.log" }

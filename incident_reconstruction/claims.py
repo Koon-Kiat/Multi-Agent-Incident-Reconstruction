@@ -33,7 +33,7 @@ from .attack import MappingStatus
 RECONSTRUCTION_SCHEMA_VERSION = "reconstruction-v1"
 
 Assessment = Literal["requires_review", "benign_possible", "insufficient_evidence"]
-# single-agent: evaluation configuration B; multi-agent: C (no verifier); full: D (with verifier).
+# single-agent: generalist baseline; multi-agent: specialist reconstruction (no verifier); full: verified specialist reconstruction.
 Mode = Literal["single-agent", "multi-agent", "full"]
 
 

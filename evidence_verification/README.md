@@ -103,7 +103,7 @@ proof list for supported/partial assessments. Every format chooses the support l
 
 ## Corrected comparison workflow
 
-Use `scripts/run-evaluation.ps1 -Out out/corrected-01` to generate fresh A/B/C/D artifacts. The script
+Use `scripts/run-evaluation.ps1 -Out out/corrected-01` to generate fresh four-configuration artifacts. The script
 defaults to generation only. Put Dataset & Ground Truth Management's private files under `ground_truth/private/` as described in
 [`ground_truth/README.md`](../ground_truth/README.md), then generate unanswered review forms:
 
@@ -134,7 +134,7 @@ remaining inputs and their order are in [`docs/FINAL_EVALUATION_HANDOFF.md`](../
 ### Blind review of a component run
 
 `component_review` checks a set of claims, such as the real-corpus template claims, without the answer key and
-outside the A/B/C/D score. `prepare` shuffles every claim under a neutral code. It writes a reading packet of
+outside the four-configuration score. `prepare` shuffles every claim under a neutral code. It writes a reading packet of
 claim text and cited/context records, an unanswered label form and a sealed code-to-claim mapping. It never
 shows claim IDs or verdicts. After a named reviewer has labelled every assertion and claim, `score` checks
 that the claims, corpus and packet are unchanged. It then unblinds the codes and compares each label with the

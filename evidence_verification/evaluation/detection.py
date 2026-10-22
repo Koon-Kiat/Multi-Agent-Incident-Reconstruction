@@ -1,4 +1,4 @@
-"""Configuration A (rules only): turns the key into an event-level label file and scores it with the Event Processing &
+"""Rules-only detection baseline: turns the key into an event-level label file and scores it with the Event Processing &
 Detection Engine's scorer.
 
 The Event Processing & Detection Engine owns the scoring arithmetic and its metric definitions are a

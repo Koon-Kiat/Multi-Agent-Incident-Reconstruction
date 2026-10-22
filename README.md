@@ -1,17 +1,8 @@
 # Multi-Agent Incident Reconstruction (MAIR)
 
-ICT3214 Security Analytics project. The Authentication Investigation Agent now
-uses the Event Processing & Detection Engine's verified S01–S03 normalised
-corpus through the existing read-only provider. Synthetic development remains
-available. The Incident Reconstruction Orchestrator and Reconstruction Agent now
-connect detection, both investigation agents and an ordered claim timeline end to
-end, in three evaluation run modes; see [Run the full pipeline](#run-the-full-pipeline).
+MAIR is a local-first security incident reconstruction framework that analyzes Windows Security and Sysmon telemetry using deterministic detection, bounded specialist investigations, evidence-grounded timeline generation, and independent claim verification. Local Ollama models assist interpretation while read-only source records and explicit uncertainty remain authoritative.
 
-The Endpoint Investigation Agent now consumes the same verified corpus through
-a separate Sysmon provider and returns typed process/evidence findings. Its fake
-mode and corpus tests run without a model. Local Qwen3:8b integration smoke tests
-also passed on small S01-S03 windows; see the
-[validation scope and limitations](docs/ENDPOINT_IMPLEMENTATION.md#validation-scope).
+The framework provides a rules-only detection baseline, a single-agent generalist baseline, specialist-agent incident reconstruction, and specialist-agent reconstruction with independent evidence verification. Each approach can be evaluated against separately maintained ground truth. The evaluation protocol distinguishes detection, evidence alignment, independently reviewed correctness, and runtime; incomplete investigations are reported rather than treated as benign. This is an experimental research implementation, not a production SIEM.
 
 ## Components
 

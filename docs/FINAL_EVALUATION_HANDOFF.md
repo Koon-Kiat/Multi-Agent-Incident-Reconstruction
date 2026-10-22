@@ -1,4 +1,4 @@
-# Final A/B/C/D evaluation: handoff checklist
+# Final incident-reconstruction evaluation: handoff checklist
 
 Recorded 2026-10-20. **No final score exists.** This document lists every remaining input, who supplies it and
 the order of work. It does not supply or assume any of them: no answer key, review label or owner approval is
@@ -15,9 +15,9 @@ python -m evidence_verification.evaluation.readiness --root out/final-01
 owner, and says READY only after the scorer itself has accepted every input in a throwaway directory. Its
 latest result, on 2026-10-20 after the answer key arrived:
 
-* Ready: corpus (6,661 events), answer key (13 stages, 5/4/4), runbooks (3 files) and configuration A
+* Ready: corpus (6,661 events), answer key (13 stages, 5/4/4), runbooks (3 files) and rules-only detection baseline
   (38 detections).
-* Missing: the nine B/C/D runs, the claim reviews and the scoring contract.
+* Missing: the nine generalist, specialist-agent, and independently verified specialist-agent runs, the claim reviews and the scoring contract.
 
 ## Inputs and owners
 
@@ -28,9 +28,9 @@ latest result, on 2026-10-20 after the answer key arrived:
 | 3 | `EVALUATION_PROTOCOL.md` section 12 items 1, 2, 4 and 9, and the scoring exclusions | Dataset & Ground Truth Management | **Agreed** 2026-10-20. Still to confirm: that no contextual exclusions apply (A3) |
 | 4 | Section 12 items 3, 5, 6 and 7 | Event Processing & Detection Engine | **Agreed** 2026-10-19 |
 | 5 | Section 12 item 8, the single-agent tool budget | Incident Reconstruction Orchestrator | Awaiting confirmation |
-| 6 | Fresh runs of configurations A, B, C and D on one model profile | Whoever runs the comparison | Not run on the current implementation |
+| 6 | Fresh runs of the rules-only, single-agent generalist, specialist-agent reconstruction, and verified specialist-agent reconstruction configurations on one model profile | Whoever runs the comparison | Not run on the current implementation |
 | 7 | Independent claim support and stage annotations for every claim of every B/C/D run | An independent reviewer | Not started; needs 1 and 6 |
-| 8 | Scoring contract with `negative_population_reviewed` and all three approvals | Dataset, detection and evaluation owners | Not started; the form is generated after the B/C/D runs exist (step 4) |
+| 8 | Scoring contract with `negative_population_reviewed` and all three approvals | Dataset, detection and evaluation owners | Not started; the form is generated after the generalist, specialist-agent, and independently verified specialist-agent runs exist (step 4) |
 
 ## The delivered answer key
 
@@ -41,10 +41,10 @@ against a fresh corpus:
 * 13 stages (S01 5, S02 4, S03 4) citing 34 records. Every record resolves to exactly one event.
 * Every stage time is a cited record's time, hosts match, stage order is chronological and every record lies
   inside its scenario window.
-* Rules-only configuration A, scored against it as a labelled diagnostic, reproduces the provisional result of
+* Rules-only rules-only detection baseline, scored against it as a labelled diagnostic, reproduces the provisional result of
   the 2026-10-17 scored run, as given in the group report, exactly: primary precision 0.357, recall 0.455, F1 0.400 (TP 10, FP 18, FN 12, 15 flagged records
   excluded as out-of-window); strict precision 0.233, F1 0.308. This is the same key the scored run used, and
-  PR #18's detection changes did not alter configuration A on this corpus. Under `detection-score-v2`, S01's
+  PR #18's detection changes did not alter rules-only detection baseline on this corpus. Under `detection-score-v2`, S01's
   F1 is 0.0 (TP 0), where v1 reported it undefined.
 
 | File | SHA-256 |
@@ -58,7 +58,7 @@ against a fresh corpus:
 1. **Freeze the implementation.** Merge every pending code change first. The scorer binds each run to the
    implementation fingerprint, so any later change to `event_processing`, the agents, `incident_reconstruction`
    or `evidence_verification` makes existing runs stale and forces a rerun.
-2. **Run A/B/C/D** on the merged commit with a clean tree, without `-AllowDirty`. Use the same machine, Ollama
+2. **Run four-configuration** on the merged commit with a clean tree, without `-AllowDirty`. Use the same machine, Ollama
    installation and model as the corrected-code development runs: Ollama 0.34.4, `qwen3:8b` digest
    `500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41`, context 8192, temperature 0, seed 0,
    thinking off. The script never downloads weights.
@@ -116,5 +116,5 @@ will not establish:
 
 * [`SEMANTIC_CLAIM_REVIEW.md`](SEMANTIC_CLAIM_REVIEW.md) covers the verifier's four lowered real-corpus
   claims. It is a separate model review made with `evidence_verification.evaluation.component_review`, and not
-  part of the A/B/C/D score.
+  part of the four-configuration score.
 * `ground_truth/README.md` and `runbooks/README.md`: where the private inputs go and who may read them.
