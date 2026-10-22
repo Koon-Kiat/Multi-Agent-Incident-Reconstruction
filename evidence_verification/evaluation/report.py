@@ -5,8 +5,8 @@ from __future__ import annotations
 from .scoring import ALIGNMENTS, VERDICTS
 
 ORDER = ("B_single_agent", "C_multi_agent_no_verifier", "D_full_mair")
-SHORT = {"B_single_agent": "Single-agent generalist", "C_multi_agent_no_verifier": "Specialist-agent reconstruction",
-         "D_full_mair": "Verified specialist-agent reconstruction"}
+SHORT = {"B_single_agent": "B single-agent", "C_multi_agent_no_verifier": "C multi-agent, no verifier",
+         "D_full_mair": "D full MAIR"}
 
 
 def _n(value) -> str:
@@ -108,7 +108,7 @@ def render(results: dict) -> str:
 
     if "D_full_mair" in totals:
         t = totals["D_full_mair"]
-        out += ["### Verified specialist-agent reconstruction: verifier verdicts by evidence alignment", "",
+        out += ["### Full MAIR: verifier verdicts by evidence alignment", "",
                 "Rows are what the key says about the claim; columns are the verdict the pipeline recorded.", ""]
         rows = [[a, *(t["verifier_vs_key"][a][v] for v in VERDICTS)] for a in ALIGNMENTS]
         out += [_table(["Claim vs key", *VERDICTS], rows), "",
@@ -129,7 +129,7 @@ def render(results: dict) -> str:
 
     a = results.get("configuration_A_rules_only")
     if a:
-        out += ["## Rules-only detection baseline (unit: evidence ID)", "", f"**{a['status']}.**", ""]
+        out += ["## Configuration A: rules only (unit: evidence ID)", "", f"**{a['status']}.**", ""]
         rows = []
         for view in ("primary", "strict"):
             overall = a[view]["report"]["overall"]

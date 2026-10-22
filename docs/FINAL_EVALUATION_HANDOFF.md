@@ -29,7 +29,7 @@ latest result, on 2026-10-20 after the answer key arrived:
 | 4 | Section 12 items 3, 5, 6 and 7 | Event Processing & Detection Engine | **Agreed** 2026-10-19 |
 | 5 | Section 12 item 8, the single-agent tool budget | Incident Reconstruction Orchestrator | Awaiting confirmation |
 | 6 | Fresh runs of the rules-only, single-agent generalist, specialist-agent reconstruction, and verified specialist-agent reconstruction configurations on one model profile | Whoever runs the comparison | Not run on the current implementation |
-| 7 | Independent claim support and stage annotations for every claim of every B/C/D run | An independent reviewer | Not started; needs 1 and 6 |
+| 7 | Independent claim support and stage annotations for every claim of each single-agent, specialist-agent and verified-specialist run | An independent reviewer | Not started; needs 1 and 6 |
 | 8 | Scoring contract with `negative_population_reviewed` and all three approvals | Dataset, detection and evaluation owners | Not started; the form is generated after the generalist, specialist-agent, and independently verified specialist-agent runs exist (step 4) |
 
 ## The delivered answer key
@@ -68,7 +68,7 @@ against a fresh corpus:
    ```
 
    This needs no answer key and can run before it arrives. The script is Windows-only; elsewhere, run the
-   `python -m` commands it lists with identical arguments. Every active role across B, C and D must share one
+   `python -m` commands it lists with identical arguments. Every active LLM role in the generalist, specialist-agent and verified-specialist runs must share one
    model profile, or the scorer refuses the set.
 3. **Copy the answer key and runbooks** (inputs 1 and 2) to the machine that generates the forms and scores,
    under `ground_truth/private/` and `runbooks/private/`. The reviews and the contract bind the exact CSV bytes,

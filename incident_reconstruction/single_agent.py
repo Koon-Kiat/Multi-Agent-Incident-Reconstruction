@@ -1,4 +1,4 @@
-"""Single-agent baseline (generalist evaluation baseline): one generalist model, same evidence access.
+"""Single-agent baseline (evaluation configuration B): one generalist model, same evidence access.
 
 The baseline answers the question "what does specialisation and deterministic reconstruction
 add?" so it gets exactly the inputs the multi-agent pipeline gets and nothing it lacks:
