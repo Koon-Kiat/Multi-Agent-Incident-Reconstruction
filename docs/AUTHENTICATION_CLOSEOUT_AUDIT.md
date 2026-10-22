@@ -36,7 +36,7 @@ Pages 1 and 13 explicitly identify the document as a proposed team agreement,
 not instructor-issued role allocation. Technical closure is not evidence of
 named-owner acceptance or team sign-off.
 
-The supplied **Coursework 1 AY2026.pdf**, pages 1–3, requires an implemented
+The project requirements call for an implemented
 security-analysis PoC, technical quality, evaluation and comparison; page 4
 requires verification of AI-assisted work and transparent disclosure. It does
 not specify Qwen3, a per-component retrieval threshold, or guaranteed autonomous
@@ -308,7 +308,7 @@ authentication developer, nor treated as proof of authentication failure.
 | Failed cases individually analyzed? | Yes: all eight autonomy failures and ten directed failures are enumerated with exact recordings; valid stopping is separated from missed opportunities. |
 | Reasonable fixes attempted fairly? | Broken local environment repaired; stale connection documentation corrected. Current dispatch and follow-up propagation verified. No speculative production rewrite or score-forcing change was justified. |
 | Remaining limitations reproducible? | Yes: commands, model digest/profile, source hashes, actual responses, receipts and individual checks retained. Runtime-version and cache variability explicitly limit exact replay. |
-| Would an examiner accept it? | The bounded component claim is technically defensible against agreement p. 5, with quantitative limitations suitable for coursework Evaluation. Examiner judgment, innovation marks and whole-project adequacy cannot be guaranteed by this audit. |
+| What does this audit establish? | The bounded authentication component has documented checks and limitations against the written requirements. Whole-system performance and independent reconstruction accuracy are not established by this component audit. |
 
 ## IEEE report-ready limitations paragraph
 
@@ -352,7 +352,7 @@ The [evidence directory](validation/authentication-closeout-2026-10-18/) contain
 four raw matrices, manifests, test logs, environment package list, `summary.json`,
 `case-review.json`, the reproducible summary script, audit metadata and artifact
 hashes. Corpus/source digests in the raw manifests identify the actual inputs.
-Hardware raw logs, extracted coursework text and rendered reference pages stay
+Hardware logs, extracted requirements notes and rendered reference pages remain
 in the ignored local output directory. No historical result or frozen score was
 replaced. At audit completion, the changes were local and unpublished. Subsequent
 delivery through a pull request does not change the recorded validation baseline.

@@ -13,12 +13,12 @@ those stay in `ground_truth/private/`, which no investigation component reads.
 
 ## 1. What is compared
 
-| | Configuration | Produced by |
+| Evaluation approach | Description | Produced by |
 |---|---|---|
-| A | Rules/statistics only | `python -m event_processing detect` |
-| B | Single generalist LLM | `python -m incident_reconstruction --mode single-agent` |
-| C | Specialist agents + reconstruction, no verification | `--mode multi-agent` |
-| D | C + independent verification | `--mode full --verifier evidence_verification.agent:make_agent_verifier` |
+| Rules-only detection baseline | Deterministic detection rules and statistics | `python -m event_processing detect` |
+| Single-agent generalist baseline | One generalist local model | `python -m incident_reconstruction --mode single-agent` |
+| Specialist-agent reconstruction | Specialist agents and timeline reconstruction, without an independent verifier | `--mode multi-agent` |
+| Verified specialist-agent reconstruction | Specialist agents, timeline reconstruction and independent claim verification | `--mode full --verifier evidence_verification.agent:make_agent_verifier` |
 
 ```powershell
 python -m event_processing normalise --datasets datasets --out out/corpus
@@ -91,7 +91,7 @@ All are raw counts with their denominators. A rate with a zero denominator is un
   scenario.
 * **S3 support versus key:** verdicts cross-tabulated against alignment, because a claim can be fully supported
   by real records and still describe activity the key does not attribute to any stage. Support is not correctness.
-* **S4 comparability:** one deterministic verifier scores every configuration's claims, so B, C and D are
+* **S4 comparability:** one deterministic verifier scores every configuration's claims, so the three model-assisted approaches are
   compared on the same rule. For D the pipeline's own verdicts (including the model layer) are reported beside it.
 * **V1 verifier model layer:** how many verdicts it lowered, and how those claims sit against the key.
 * **L1 latency:** total and per-phase seconds; D's verification time is its added cost.
@@ -150,7 +150,7 @@ Verification & Evaluation. Every D1 figure is labelled provisional until that ag
 Each amendment is dated and recorded before any scored run. None changes a definition or parameter above.
 
 **Amendment 1 (2026-10-17): detection triggers bound what any configuration can reconstruct.**
-Configurations B, C and D take their triggers and windows from the same detection rules as configuration A.
+The generalist baseline, specialist-agent reconstruction, and verified specialist-agent reconstruction take their triggers and windows from the same detection rules as the rules-only detection baseline.
 The harness exercise with deterministic fake models (never scored) showed that, for at least one scenario, none
 of the records the key attributes to its stages is a detection trigger. Activity no rule flags is never put in
 front of the specialist agents or the reconstruction, so a low stage-match count there describes the rule
@@ -184,14 +184,14 @@ definition, a parameter, the verifier or a scored result. A correction to anythi
 as a labelled post-hoc re-run beside the original, never in its place (section 7).
 
 **Finding 1: the single-agent baseline was downgraded only by the ATT&CK check.** Every claim the deterministic
-verifier lowered in configuration B was lowered because a technique the single-agent model attached is not
+verifier lowered in the single-agent generalist baseline was lowered because a technique the single-agent model attached is not
 indicated by that claim's own cited records. No claim failed on a reference, entity, time or stated event type.
 The multi-agent configurations pass the technique check largely by construction, since the orchestrator derives a
 claim's techniques from the detection rule that fired. The comparison on this check therefore measures a design
 difference (rule-derived versus freely chosen mappings) as much as model quality, and the technique check is
 stricter than anything a claim's text asserts.
 
-**Finding 2: the model layer produced false alarms on real claims.** Of the claims it lowered in configuration D,
+**Finding 2: the model layer produced false alarms on real claims.** Of the claims it lowered in the verified specialist-agent reconstruction approach,
 at least two were demonstrably supported: one asserted a duration that follows by arithmetic from the records'
 timestamps, and in another the model had been shown the supporting records and still found the claim not stated.
 The "0 of 6 false alarms" in Amendment 2 came from a small synthetic benchmark that was also used to choose the
@@ -310,14 +310,14 @@ explicitly labelled corrected-code runs. It does not assert owner approval or in
 * The detection scoring contract identifies dataset/detection/evaluation owners, fixes positive/exclusion/F1
   policies and confirms review of the negative population. Both forms bind CSVs and the exclusions file.
   `prepare_review` produces unanswered forms only. Existing disagreements remain pending until completed.
-* Final evaluation requires A plus every B/C/D scenario, the same installed model name/digest/runtime and
+* Final evaluation requires the rules-only detection baseline plus every model-assisted evaluation scenario, the same installed model name/digest/runtime and
   temperature/seed/context/thinking profile across active roles, matching corpus/triggers, current implementation
   fingerprint, and matching artifact hashes. A fake verifier, stale report or missing run cannot be a final
   comparison. Verifier calls are included in totals and counted per invocation, not cumulatively across scenarios.
 * Use a new output directory. `--allow-partial` and `--allow-fake` produce clearly labelled diagnostics only.
   Post-hoc verification stays separately labelled and cannot become a fresh complete corrected-code experiment.
 
-This change addresses implementation correctness. It does not establish real A-D accuracy without Dataset & Ground Truth Management's
+This change addresses implementation correctness. It does not establish real four-approach accuracy without Dataset & Ground Truth Management's
 private key/runbooks, completed independent reviews and the scoring agreement. Development benchmarks already
 used while debugging are in-sample regression evidence, not a new held-out quality estimate.
 

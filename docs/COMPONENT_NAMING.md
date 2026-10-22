@@ -57,13 +57,13 @@ and end-to-end reconstruction are now in `incident_reconstruction/`, adding
 
 ## Evaluation terminology
 
-Use descriptive experiment names in READMEs, reports and narrative findings rather than single-letter labels:
+Documentation and generated reports use meaningful experiment names:
 
-| Historical evaluation identifier | Descriptive experiment name | Stable command or mode |
-| --- | --- | --- |
-| A | Rules-only detection baseline | `python -m event_processing detect` |
-| B | Single-agent generalist baseline | `--mode single-agent` |
-| C | Specialist-agent incident reconstruction without independent verification | `--mode multi-agent` |
-| D | Specialist-agent incident reconstruction with independent evidence verification | `--mode full` with verifier factory |
+| Evaluation approach | Stable pipeline interface |
+| --- | --- |
+| Rules-only detection baseline | `python -m event_processing detect` |
+| Single-agent generalist baseline | `--mode single-agent` |
+| Specialist-agent incident reconstruction without independent verification | `--mode multi-agent` |
+| Specialist-agent incident reconstruction with independent evidence verification | `--mode full` with the verifier factory |
 
-The letter codes are **historical identifiers**, not roles or a quality ranking. Retain `B_single_agent`, `C_multi_agent_no_verifier`, `D_full_mair`, original run-directory names, schema fields and the `-Only B,C,D` script switches as compatibility and provenance contracts. Never rewrite a published experiment, a raw event record, a private answer key, or the frozen evaluation protocol merely to update its display wording. Evaluator source-file changes—even comments or docstrings—alter `implementation_digest()` and can invalidate runs already bound to a code fingerprint; schedule such changes separately with a new labelled evaluation instead of making them during scoring.
+These names describe evaluation approaches, not team-member numbers or rankings. Private answer keys, original event IDs, and previously recorded evidence remain unmodified. Evaluate new implementation revisions with their own recorded provenance.
