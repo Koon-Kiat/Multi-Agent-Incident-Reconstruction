@@ -1,5 +1,11 @@
 # Authentication follow-up investigation
 
+> **Historical report (2026-09-24).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 This Authentication Investigation Agent follow-up starts from merged PR #9 (`4ad96da`) on
 the dedicated follow-up branch. It preserves the v2 result, provider contracts,
 required operations, positional callers, and the endpoint investigation, reconstruction and independent verification boundaries. It uses only

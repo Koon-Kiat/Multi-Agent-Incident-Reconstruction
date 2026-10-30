@@ -1,14 +1,10 @@
 # Incident Reconstruction Orchestrator handoff
 
-> **Status update:** the orchestrator now calls this boundary from
-> `incident_reconstruction.orchestrator.corpus_investigators`, passing trigger 4624/4625 IDs as
-> `required_operations`. The text below is the Authentication Investigation Agent's original
-> handoff and is unchanged.
-
-The Authentication Investigation Agent is callable with the verified corpus and
-local Ollama adapter. The actual Incident Reconstruction Orchestrator has not
-been connected. This delivery covers authentication retrieval, findings and the
-call boundary; dispatch and cross-agent reconstruction remain with their owners.
+The orchestrator calls the authentication boundary from
+`incident_reconstruction.orchestrator.corpus_investigators`, passing supported
+trigger IDs as `required_operations`. The contract below describes the current
+call boundary. Routing, deadlines and cross-source reconstruction are documented
+in the [pipeline manual](../incident_reconstruction/README.md).
 
 ## Ordinary invocation
 
@@ -90,8 +86,11 @@ Later required operations receive `not_run` receipts; they are never silently om
 
 ## Optional investigation and factual boundaries
 
-After required retrieval, the model can select any of the three approved tools
-or finish. Each turn includes the request, budgets, prior operation arguments
+After required retrieval, the model selects a legal query from the host-generated
+`public-query-menu-v1` or finishes. Menu choices use the three approved tools,
+exclude equivalent prior operations and exact re-fetches, and are derived only
+from public scope and observed evidence. A complete initial inventory permits
+finishing only. Each turn includes the request, budgets, prior operation arguments
 and outcomes, new evidence IDs, truncation, computed observations and bounded
 authentication details grouped under the observations that reference them.
 Raw XML and arbitrary event messages are excluded. All evidence remains
@@ -105,7 +104,8 @@ uncertainty without another query. There is no minimum optional call count.
 
 Python computes authoritative counts, timestamps, entities, ordering and cohorts.
 The decoder offers only existing observation/evidence pairs for annotations,
-while all approved tools and tentative interpretation choices remain available.
+with indexed batch annotations and tentative interpretation choices; query
+selection is restricted to the public menu.
 The host independently rejects fabricated, merged, reordered or duplicate
 references even if an adapter ignores that decoder schema. No model reply is
 rewritten into an expected response. Final exact readback checks record consistency.
@@ -122,7 +122,7 @@ remains available for other components.
 ## Result and trace contract
 
 New output metadata identifies `authentication-result-v2`,
-`authentication-prompt-v16` and `authentication-config-v3`.
+`authentication-prompt-v17` and `authentication-config-v5`.
 The v1 finding/status/request fields are retained. V2 adds
 `metadata.operations` and `metadata.evidence_readbacks`; readers using an old
 strict v1 schema must update. The current model can still read saved v1 results,
@@ -130,10 +130,11 @@ which default to an empty trace and zero readbacks. No provider signature change
 are needed. Export the current schema with
 `python -m authentication_agent.investigate_corpus --schema`.
 
-The Authentication Investigation Agent follow-up leaves this v2 handoff unchanged. A short internal model
-assessment and decoder query-limit constraints do not add result fields or
-change caller requirements. See the [follow-up report](AUTHENTICATION_AUTONOMY.md)
-for measured optional retrieval and the remaining model-selection limitations.
+The v2 envelope retains optional metadata defaults for older recordings. Current
+model review uses complete-observation batches with byte/token admission and
+exact readbacks. See the [agent manual](../authentication_agent/README.md) for
+limits; [historical follow-up measurements](AUTHENTICATION_AUTONOMY.md) predate
+the current query-menu policy.
 
 | Result | Meaning |
 | --- | --- |
@@ -191,7 +192,7 @@ owner still decides whole-run deadlines, cancellation, provider lifetime, model
 configuration and scenario dispatch. Endpoint analysis, cross-source correlation,
 ATT&CK mapping and final reconstruction remain separate implementations.
 
-See the [current validation report](AUTHENTICATION_CORPUS_INTEGRATION.md) for
+See the [historical integration report](AUTHENTICATION_CORPUS_INTEGRATION.md) for
 separate ordinary, required-operation and directed-model results. Deterministic
 required execution does not demonstrate autonomous tool selection. Successful
 factual readback does not establish detection accuracy or complete model reliability.

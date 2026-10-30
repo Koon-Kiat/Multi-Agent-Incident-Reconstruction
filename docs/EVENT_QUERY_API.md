@@ -7,9 +7,9 @@ Companion document: [`EVENT_SCHEMA.md`](EVENT_SCHEMA.md) for the events this API
 The query layer is **deterministic and read-only**: the same call returns the same events in the
 same order on every run, and nothing a consumer can reach mutates the corpus.
 
-`EventStore.load()` is the tested integration path. Direct constructor callers
-must not mutate their input records: a caller-owned `event_data` dictionary is
-currently retained. See the [reproducer and proposed fix](AUTHENTICATION_PROVIDER_HANDOFF.md#constructor-snapshot-issue).
+`EventStore.load()` verifies the written corpus. Direct construction also
+deep-copies input records, including `event_data`, before indexing them; returned
+records are detached copies. See the [provider ownership contract](AUTHENTICATION_PROVIDER_HANDOFF.md#agreed-and-tested-boundary).
 
 ## Contents
 
@@ -199,7 +199,7 @@ from authentication_agent import InvestigationRequest, investigate
 from authentication_agent.llm.fake import FakeLLM
 
 provider = CorpusAuthenticationProvider(store, limits)
-result = investigate(request, provider, FakeLLM())
+result = investigate(request, provider, FakeLLM(), limits)
 ```
 
 * `get_event(evidence_id)` returns `authentication_agent.models.AuthenticationEvent | None`. Exact lookup

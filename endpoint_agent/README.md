@@ -27,25 +27,12 @@ With the shared model already installed in a running local Ollama service:
 .\.venv\Scripts\python.exe -m endpoint_agent --corpus out/corpus --scenario S02 --start 2026-09-21T02:04:30Z --end 2026-09-21T02:06:30Z --mode ollama --model qwen3:8b
 ```
 
-For a new machine, install Ollama from its [official Windows download](https://ollama.com/download/windows)
-or [standalone release](https://github.com/ollama/ollama/releases), start
-`ollama serve`, and run `ollama pull qwen3:8b`. These are explicit setup steps,
-never agent tools. Allow about 5.2 GB for model weights plus runtime files.
-On this development machine the standalone executable is
-`out/tools/ollama/ollama.exe`, with weights in `out/ollama-models/`.
-To restart that project-local server from PowerShell:
-
-```powershell
-$env:OLLAMA_HOST = '127.0.0.1:11434'
-$env:OLLAMA_MODELS = Join-Path (Get-Location) 'out/ollama-models'
-$env:OLLAMA_NO_CLOUD = '1'
-& .\out\tools\ollama\ollama.exe serve
-```
-
-Do not start another server if port 11434 is already serving Ollama. Cold model
-loading counts toward the request deadline; use `--timeout 180` if necessary.
-The first cold validation timed out at the 60-second default; warm smoke tests
-passed. See [measured validation](../docs/ENDPOINT_IMPLEMENTATION.md#validation-scope).
+For a new machine, install Ollama, start the intended local service and explicitly
+install `qwen3:8b` before inference. These are setup steps, never agent tools.
+Use one loopback service; do not start another server on an occupied port.
+Cold loading counts toward the request deadline; `--timeout 180` can be used
+when the configured workload requires it. Historical smoke timings are in the
+[initial validation report](../docs/ENDPOINT_IMPLEMENTATION.md#validation-scope).
 
 The installed `mair-investigate-endpoint` command and
 `python -m endpoint_agent.investigate_corpus` invoke the same entry point.
@@ -90,9 +77,10 @@ are rejected by the CLI; the provider's unknown-scenario query returns empty.
 Other Sysmon types are outside this version's investigation allowlist. Exact
 provider lookup preserves any Sysmon event, but agent tools reject unsupported
 types before findings. Security-channel events never enter endpoint findings.
-The normalizer's `user` stays unchanged; Sysmon 10's `SourceUser` and `TargetUser`
-are exposed separately as reported identities because the shared normalized
-`user` may be absent. The `account` query filter still uses normalized `user`.
+The normalizer maps Sysmon 10's `SourceUser` to `user`; other supported Sysmon
+types use `User`. Endpoint findings also expose the reported `SourceUser` and
+`TargetUser` separately. Missing source fields remain absent. The `account`
+query filter uses normalized `user`.
 
 The five approved tools query a window, retrieve an exact event, find a process
 creation, find children or retrieve process activity. GUID tools use a host/GUID
@@ -140,13 +128,15 @@ every observation after every batch finishes. No command line, path, timestamp,
 identity or citation is clipped to make a batch fit. Repeated scope/uncertainty is
 carried once, unavailable null fields are omitted, and the model sees the latest
 operation summary; the complete query audit remains in result metadata. Each
-annotation must match an observation in the current batch. Any follow-up rebuilds
-the global observations and restarts review, discarding stale annotations.
+annotation uses a batch-local index that Python expands to immutable finding and
+evidence IDs. A follow-up that adds evidence rebuilds global observations and
+restarts review; unchanged retrieval preserves completed batches.
 
 `metadata.context_batches` records each attempted model call's observation and
 evidence IDs, snapshot revision and serialized context size. If the adapter exposes
-`num_ctx`, batches additionally reserve `max_output_tokens` and use a conservative
-UTF-8 input token bound with chat-template headroom for the shared Qwen tokenizer.
+`num_ctx`, batches additionally reserve `max_output_tokens` with chat-template
+headroom. Installed Qwen2 BPE counting is used when available; unsupported
+tokenizers retain the conservative UTF-8 bound.
 `context_strategy` identifies this behavior; historical results still parse with
 the original strategy default.
 
@@ -186,17 +176,9 @@ Tests cover process chains, administrative activity, missing parents, PID reuse,
 GUID ambiguity, equal timestamps, malformed schemas, nonexistent references,
 scope violations, altered evidence, untrusted text and operational failures.
 
-The model timeout covers each model request, not corpus loading, custom providers
-or the whole investigation. Async callers use `asyncio.to_thread`; orchestration,
-whole-run cancellation and cross-source reconstruction remain downstream work.
-See the [provider and orchestrator handoff](../docs/ENDPOINT_PROVIDER_HANDOFF.md)
-and [implementation review](../docs/ENDPOINT_IMPLEMENTATION.md).
-
-Correctness amendment (2026-10-19): prompt/config v3 uses batch-local annotation indices to reduce model
-response overhead. Python expands each valid index to the original immutable finding and evidence IDs;
-unknown, duplicate or mixed references fail validation. All evidence facts and global process links remain
-in the prompt/result. Local installed Qwen2 BPE counting replaces the byte bound when available; unsupported
-tokenizers retain the conservative bound. Unchanged tool results keep completed batches; new evidence
-invalidates prior annotations. The production orchestrator also bounds each call by the task's remaining
-deadline and prevents later calls after expiry. Custom uncooperative providers/extensions still require
-their own cancellation support. See [correctness remediation](../docs/CORRECTNESS_REMEDIATION.md).
+The standalone model timeout covers each request, not corpus loading or custom
+providers. The production orchestrator additionally bounds each model request
+by the task's remaining deadline and prevents later calls after expiry. A custom
+blocking provider still needs its own cancellation support. Async callers use
+`asyncio.to_thread`. See the [integration contract](../docs/ENDPOINT_PROVIDER_HANDOFF.md)
+and [pipeline manual](../incident_reconstruction/README.md).

@@ -56,18 +56,19 @@ unrelated to the PR. A transient API failure can be rerun.
 
 For authentication changes, state which corpus/provider, fake and local Ollama
 checks actually ran. Keep provider compatibility diagnostics and model-selection
-failures visible, and distinguish the tested call boundary from pending Incident
-Reconstruction Orchestrator integration. Use the current validation report rather
-than copying historical PR descriptions.
+failures visible, and distinguish provider checks, pipeline integration and independently
+reviewed correctness. Report runtime/model versions and the exact commands used,
+including skips for missing EVTX or opt-in model tests. Never copy historical
+validation totals as current results.
 
 `.github/workflows/python-tests.yml` runs **Python and contribution tests** on
 pull requests and pushes to main using Python 3.11. CI uses `lfs: false`; tests
 requiring original EVTX files skip explicitly. Run those tests locally after
 fetching Git LFS evidence. This application test check does not replace the
 metadata checks. The reusable provider contract runs against the real adapter in default discovery.
-The original explicitly invoked diagnostic also remains available; PR #10 resolved
-its lookup and constructor-ownership failures. Current results are documented in
-`docs/AUTHENTICATION_CORPUS_INTEGRATION.md`.
+The original explicitly invoked diagnostic also remains available. The maintained
+provider contract is in [the authentication provider guide](docs/AUTHENTICATION_PROVIDER_HANDOFF.md).
+Dated measurements are indexed under [historical reports](docs/README.md#historical-reports-and-evidence).
 
 Maintainers must separately enable branch protection or a ruleset requiring
 **PR description**, **Commit messages**, and (recommended) **Python and contribution

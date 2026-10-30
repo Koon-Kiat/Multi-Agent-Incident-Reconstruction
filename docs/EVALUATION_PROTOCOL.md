@@ -1,5 +1,10 @@
 # Evaluation protocol
 
+> Documentation maintenance, 2026-10-30: links and the agreement-status summary
+> now point to the maintained metrics reference. Scoring definitions, recorded
+> amendments and approval requirements are unchanged. This edit changes the
+> document hash; historical results retain their originally recorded protocol hash.
+
 Owner: Evidence Verification & Evaluation. Status: **frozen** at the commit that introduces this file.
 
 This protocol fixes every definition and parameter of the four-configuration comparison **before any
@@ -99,9 +104,10 @@ All are raw counts with their denominators. A rate with a zero denominator is un
   scorer unchanged. Two label views are produced: primary (scaffolding excluded and tallied separately) and
   strict (scaffolding counts as false positives).
 
-**Provisional:** the detection definitions are the Event Processing & Detection Engine's draft
-(`DETECTION_METRICS_PROPOSAL.md`), awaiting agreement from Dataset & Ground Truth Management and Evidence
-Verification & Evaluation. Every D1 figure is labelled provisional until that agreement is recorded here.
+**Agreement status:** the detection definitions are recorded in section 12 and
+summarized in [Detection metrics](DETECTION_METRICS.md). The recorded agreements
+do not replace Amendment 4's signed scoring contract and independent review gates;
+a result that has not passed them remains diagnostic.
 
 ## 7. Run discipline
 
@@ -349,8 +355,6 @@ remaining false semantic downgrades. Historical artifacts above remain unchanged
   implementation changes and first live execution; they test generalization within this harness, not
   independent real-world accuracy. Failed prototypes and all original result files are preserved. Full
   project comparison still needs the private lab key/runbooks, independent reviews and owner agreement.
-
-
 
 **Amendment 6 (2026-10-22): descriptive terminology and result identifiers.**
 The current document uses the four canonical evaluation names in section 1.

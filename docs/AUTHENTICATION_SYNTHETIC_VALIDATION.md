@@ -1,5 +1,11 @@
 # Authentication Investigation Agent synthetic validation history
 
+> **Historical report (2026-09-23).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 PR #7 validated the local agent before real-corpus integration. The recorded
 Qwen3 run completed nine natural synthetic scenarios and passed 15 of 16
 checks. One directed success-only query selected a different approved tool.

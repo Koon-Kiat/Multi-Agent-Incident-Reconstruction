@@ -8,9 +8,7 @@ labels.
 Everything here is deterministic, read-only and offline. There is no LLM, no machine learning, no
 anomaly model, no automatic response and no verdict logic: a detection is a *finding*, not a
 conclusion, and the engine never sees the ground truth. The answer key decides what a detection is worth;
-The engine only implements the arithmetic (`docs/DETECTION_METRICS_PROPOSAL.md`).
-
-Delivered in PR #8. The existing package path remains `event_processing/`.
+the engine only implements the arithmetic ([metrics reference](../docs/DETECTION_METRICS.md)).
 
 ## Contents
 
@@ -37,20 +35,19 @@ Delivered in PR #8. The existing package path remains `event_processing/`.
 | `event_processing/query.py` | `EventStore`: verified load, exact `lookup`, `[start, end)` `query`, bounded helpers |
 | `event_processing/adapters/authentication_provider.py` | `CorpusAuthenticationProvider`, Authentication Investigation Agent's `AuthenticationEventProvider` over one store |
 | `event_processing/detection/` | 12 rules, the engine, and the run/summary artefacts (`detection-run-v1`) |
-| `event_processing/metrics.py` | P/R/F1 over agreed labels (`detection-score-v1`); no definitions of its own |
+| `event_processing/metrics.py` | P/R/F1 over agreed labels (`detection-score-v2`); no definitions of its own |
 | `event_processing/__main__.py` | the CLI described below |
 
-Documents: [`../docs/EVENT_SCHEMA.md`](../docs/EVENT_SCHEMA.md) (field by field),
-[`../docs/EVENT_QUERY_API.md`](../docs/EVENT_QUERY_API.md) (every function and its semantics),
-[`../docs/DETECTION_RULES.md`](../docs/DETECTION_RULES.md) (the rules and the baseline run),
-[`../docs/DETECTION_METRICS_PROPOSAL.md`](../docs/DETECTION_METRICS_PROPOSAL.md) (DRAFT metric
-definitions), [`../docs/PROCESSING_VERIFICATION_HANDOFF.md`](../docs/PROCESSING_VERIFICATION_HANDOFF.md) (the reply to Evidence Verification & Evaluation's
-interface note) and [`../docs/PROCESSING_PROVIDER_REPLY.md`](../docs/PROCESSING_PROVIDER_REPLY.md) (the reply to Authentication Investigation Agent's
-integration handoff, including the provider contract-suite result).
+Documents: [event schema](../docs/EVENT_SCHEMA.md),
+[query API](../docs/EVENT_QUERY_API.md), [detection rules](../docs/DETECTION_RULES.md),
+[metrics reference](../docs/DETECTION_METRICS.md), and
+[authentication provider contract](../docs/AUTHENTICATION_PROVIDER_HANDOFF.md).
+The [evaluation protocol](../docs/EVALUATION_PROTOCOL.md) records definitions and
+approval gates for final comparisons.
 
 ## Install
 
-CI runs **Python 3.11**; 3.13 is what the project currently develops on. The only runtime
+The package requires **Python 3.11 or later**; CI runs Python 3.11. The only runtime
 dependency the engine adds is `python-evtx`; `event_processing/adapters/authentication_provider.py` also imports `authentication_agent`.
 
 ```powershell
@@ -127,7 +124,7 @@ matching and no nearest neighbour.
 ```text
 {"channel": "Security", "event_data": {"TargetUserName": "SYSTEM", ...},
  "evidence_id": "S02-SEC-43547", ...}          <- one JSON line per matching event
-The engine: query: truncated at 1 of 6 matches          <- stderr; more events matched than were returned
+event_processing query: truncated at 1 of 6 matches    <- stderr; more events matched than were returned
 ```
 
 The window is UTC **`[start, end)`**: `start` is included, `end` is excluded. Filters
@@ -150,7 +147,7 @@ total: 38 detections; summary -> out\detections\summary.json
 
 `--out` is a directory `detect` owns: stale **the engine run files** there from an earlier corpus revision
 are removed, so `event_processing score` never reads a run that no longer describes the corpus. Only a file whose
-name is `<scenario_id>.json`/`summary.json` *and* whose contents carry the the engine detection schema
+name is `<scenario_id>.json`/`summary.json` *and* whose contents carry the engine detection schema
 marker (`detection-run-v1`; the summary also carries the `detection-summary` marker) is removed —
 anything else in the directory is left exactly as it is. `detect` refuses a `--out` that resolves
 inside a `datasets/` or `ground_truth/` tree, or that is the corpus directory, and exits `2`
@@ -163,8 +160,8 @@ intact. A run also sweeps its own staging leftovers (`.<name>.json.tmp`) that a 
 in `--out` before it writes — only a regular file matching that pattern is removed, nothing else.
 See
 [`../docs/DETECTION_RULES.md`](../docs/DETECTION_RULES.md) for all 12 rules, their frozen
-thresholds, their benign lookalikes and what is deliberately not covered. The baseline is **not
-scored**: there are no agreed labels yet.
+thresholds, their benign lookalikes and what is deliberately not covered. Detection generation
+does not score the baseline; evaluation consumes independent labels separately.
 
 > **Upgrade note (pre-phase-5 output).** The `summary.json` written by an Event Processing & Detection Engine build from before the
 > phase-5 `detection-summary` marker was added does not carry that marker, so `detect` treats it as
@@ -172,10 +169,10 @@ scored**: there are no agreed labels yet.
 > `summary.json` is deleted (or `--out` is pointed at a fresh directory). Nothing is overwritten;
 > the refusal is the safety check doing its job.
 
-### `score` — P/R/F1 once the labels are agreed
+### `score` — P/R/F1 from supplied labels
 
 ```powershell
-.\.venv\Scripts\python.exe -m event_processing score --detections out/detections --labels <labels.csv> `
+.\.venv\Scripts\python.exe -m event_processing score --detections out/detections --labels out/labels.csv `
   --corpus out/corpus --out out/scores
 ```
 
@@ -197,10 +194,11 @@ report -> out\readme-scores\score_report.json
 ```
 
 Those numbers come from a **synthetic** three-failures-then-success corpus built for this README,
-not from the MAIR scenarios: the real baseline must not be scored until the the engine/Dataset & Ground Truth Management and Evidence Verification & Evaluation call agrees
-the definitions, so no real metric appears anywhere in this repository
-(`../docs/DETECTION_METRICS_PROPOSAL.md`, and task T4.3 is BLOCKED). An undefined metric (`0/0`)
-prints `undefined` and serialises as `null`, never `0`.
+not from the MAIR scenarios. See [the metrics reference](../docs/DETECTION_METRICS.md)
+for the recorded definitions and [the evaluation workflow](../docs/FINAL_EVALUATION_HANDOFF.md)
+for independent reviews and owner approval. An undefined precision or recall (`0/0`)
+prints `undefined` and serialises as `null`. F1 is 0.0 when precision and recall
+are both defined zeros; otherwise an undefined input leaves F1 undefined.
 
 ## Python API
 
@@ -324,14 +322,14 @@ Full detail, including the evidence-ID format and why the scenario prefix is man
 ## Tests
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q --basetemp .test-tmp            # the full suite (authentication_agent + event_processing + contribution checks)
+.\.venv\Scripts\python.exe -m pytest -q --basetemp .test-tmp            # all component, integration and contribution tests
 .\.venv\Scripts\python.exe -m pytest -q event_processing/tests --basetemp .test-tmp   # processing tests only
 ```
 
 Unit tests use small synthetic fixtures in `event_processing/tests/fixtures/` and `event_processing/tests/synthetic.py` and run
 everywhere. Tests that need the real EVTX exports go through the `real_evtx` / `real_corpus_dir`
 helpers, which **skip with a reason** when a file is missing or is a Git-LFS pointer — so in CI
-(`lfs: false`) the the engine suite is green with those tests skipped, and locally every anchor, count and
+(`lfs: false`) the engine suite is green with those tests skipped, and locally every anchor, count and
 digest is checked. A test is never weakened to make a change pass.
 
 The datasets root is `<repo>/datasets`. Set **`MAIR_DATASETS_DIR`** to run the whole suite in the
@@ -343,8 +341,8 @@ $env:MAIR_DATASETS_DIR = "$env:TEMP/event_processing-no-evtx"
 .\.venv\Scripts\python.exe -m pytest -q --basetemp .test-tmp
 ```
 
-For the real authentication entry point and current integration findings, see
-[the integration report](../docs/AUTHENTICATION_CORPUS_INTEGRATION.md).
+For the real authentication entry point and integration contract, see
+[the authentication manual](../authentication_agent/README.md).
 
 ## Known limitations
 
@@ -363,8 +361,7 @@ For the real authentication entry point and current integration findings, see
   domain). The engine normalises neither: no case folding, no domain stripping, values verbatim, so the
   two channels can represent the same human under two names. Authentication detection separately uses
   `host-domain-sid-v1` to avoid merging conflicting principals; raw normalized values stay verbatim.
-  Scoring treats each event as its own unit
-  (open question 1 in the metrics proposal).
+  Scoring treats each evidence ID as its own unit; stage coverage is separate.
 * **A field the source does not carry is `None` or `""`, not absent.** `host` and `user` can be
   either; a present-but-empty value stays `""` and is distinct from missing. Consumers must not
   coalesce them.
@@ -372,14 +369,15 @@ For the real authentication entry point and current integration findings, see
   holding a run can mutate that dictionary in place; treat a run as read-only and copy it before
   storing it. The values are always JSON primitives, so serialisation is unaffected.
 * **`detect --out` owns only its own run files, and refuses two locations.** It removes a direct
-  child only when the name is `<scenario_id>.json`/`summary.json` *and* the contents carry the the engine
+  child only when the name is `<scenario_id>.json`/`summary.json` *and* the contents carry the engine
   detection schema marker; every other file in the directory is left alone, so a `manifest.json`,
   a `package.json` or a foreign `S02.json` survives. A target name that is not a regular file (a
   directory called `S02.json`) or is a symbolic link is refused before anything is written. A
   `--out` resolving inside `datasets/` or `ground_truth/` (any path component, case-insensitive),
   or equal to the corpus directory, is refused with exit `2` before anything is read or written.
-* **Metrics are arithmetic, not definitions.** `event_processing/metrics.py` reports precision/recall/F1 for
-  whatever labels it is given; the unit, the positive label and the excluded category are still
-  DRAFT (`../docs/DETECTION_METRICS_PROPOSAL.md`), and the real baseline stays unscored until
-  they are agreed.
+* **Metrics require independent labels.** `event_processing/metrics.py` reports precision/recall/F1
+  over supplied labels using `detection-score-v2`. Definitions are recorded in
+  [the protocol](../docs/EVALUATION_PROTOCOL.md); final evaluation also requires
+  independently completed reviews and an approved scoring contract.
+
 * **SQLite, dashboards, ML and response actions are out of scope** for the engine by design.

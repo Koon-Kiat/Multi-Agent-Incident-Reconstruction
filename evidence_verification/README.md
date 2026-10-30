@@ -13,8 +13,8 @@ scored run.
 ## Use it
 
 ```powershell
-# Full MAIR with the deterministic verifier only (no model needed):
-python -m incident_reconstruction --corpus out/corpus --llm ollama --mode full --out out/runs `
+# Plumbing run with fake investigators and the deterministic verifier (no model needed):
+python -m incident_reconstruction --corpus out/corpus --llm fake --mode full --out out/runs `
     --verifier evidence_verification.verifier:make_verifier
 
 # Full MAIR with the deterministic verifier plus the independently prompted model layer:

@@ -1,5 +1,11 @@
 # Generalist context correction experiment
 
+> **Historical report (2026-10-21).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 **Evaluation status: diagnostic only; not officially scored.** Completed
 independent human annotations and signed owner approvals have not been supplied
 for validation. Code publication does not establish evaluation completion or

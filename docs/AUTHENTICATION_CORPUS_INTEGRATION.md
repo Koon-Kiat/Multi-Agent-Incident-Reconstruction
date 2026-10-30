@@ -1,5 +1,11 @@
 # Authentication corpus integration and validation
 
+> **Historical report (2026-09-23).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 This is the historical PR #9 integration report. PR #9 was merged on 2026-09-23.
 The subsequent Authentication Investigation Agent investigation is documented in the
 [autonomous follow-up report](AUTHENTICATION_AUTONOMY.md).

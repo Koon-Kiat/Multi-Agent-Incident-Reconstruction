@@ -1,5 +1,11 @@
 # Semantic review of the real-corpus component claims
 
+> **Historical report (2026-10-20).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 Owner: Evidence Verification & Evaluation follow-up. Reviewed 2026-10-20 on `fix/evidence-evaluation-correctness`.
 
 The corrected-code validation (`CORRECTNESS_REMEDIATION.md`, "Remaining items") ran the verifier once on 17
