@@ -79,7 +79,9 @@ def make_verifier():
 Run it with `--mode full --verifier your_package.module:make_verifier`. The factory is called
 with no arguments. The verifier receives the claims and read-only corpus access only: no
 orchestration trace, agent reasoning or answer key. To re-verify saved runs without dispatching
-the agents again, add `--reconstruct-only`.
+the agents again, add `--reconstruct-only` only on a separate diagnostic copy. It
+overwrites claims/verdicts without updating pipeline timing or artifact bindings,
+so it cannot replace fresh final-comparison runs.
 
 The pipeline guards integrity but never changes a verdict:
 
@@ -89,8 +91,11 @@ The pipeline guards integrity but never changes a verdict:
   claim `unverified` with `verifier_failed:<Type>`;
 * each case is listed in `integrity_notes`, and the CLI exits `1`.
 
-Until the verifier is connected, `PendingVerifier` marks every claim `unverified` with reason
+When `--verifier` is omitted, `PendingVerifier` marks every claim `unverified` with reason
 `independent verifier not connected`, and the report says verification is pending.
+The repository supplies `evidence_verification.verifier:make_verifier` for deterministic
+checks and `evidence_verification.agent:make_agent_verifier` for checks plus the
+independent model layer. See the [verifier manual](../evidence_verification/README.md).
 
 ## Run modes for the comparison
 
@@ -114,7 +119,8 @@ Scoring notes:
   `context_evidence_ids == evidence_ids`; multi-agent claims also carry stage context.
 * `uncertainty` and `investigation_gaps` record why evidence may be incomplete; keep them in
   error analysis rather than treating missing claims as clean scenarios.
-* Fake-model runs (`"runtime": "fake"` in `llm`) check plumbing only and must not be scored.
+* Fake-model runs (`"runtime": "fake"` in `llm`) check plumbing only. Explicit
+  `--allow-fake` inspection remains labelled diagnostic and cannot be a final score.
 
 ## Commands
 
@@ -122,7 +128,9 @@ Scoring notes:
 python -m event_processing normalise --datasets datasets --out out/corpus
 python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode single-agent --out out/runs
 python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode multi-agent --out out/runs
-python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode full --out out/runs --verifier your_package.module:make_verifier
+$env:MAIR_VERIFIER_LLM = "ollama"
+$env:MAIR_VERIFIER_MODEL = "qwen3:8b"
+python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode full --out out/runs --verifier evidence_verification.agent:make_agent_verifier
 python -m incident_reconstruction.report --corpus out/corpus --runs out/runs
 ```
 
@@ -132,8 +140,9 @@ verifier setup failed.
 
 ## Known limitations
 
-* No scored run has used local weights yet; all current outputs come from deterministic fake
-  models.
+* Historical local-model and fake-model outputs are tied to their original revisions.
+  Final readiness requires fresh compatible runs, independent human review and owner
+  approvals; use [the evaluation workflow](FINAL_EVALUATION_HANDOFF.md).
 * Historical runs on the original endpoint agent had two unresolved S02/S03 context windows.
   The endpoint-only [2026-10-18 correction](ENDPOINT_CONTEXT_COVERAGE.md) batches model review
   and recovers capped retrieval within existing budgets. Historical run records remain unchanged;

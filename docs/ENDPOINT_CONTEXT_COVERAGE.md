@@ -1,5 +1,11 @@
 # Endpoint context and evidence coverage correction
 
+> **Historical report (2026-10-18).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 The endpoint context limitation was correct on latest `main`, commit
 `e6a5ac4c2f8ac2c1b3fe1749fde7213b901a3d5d`, fetched on 2026-10-18.
 Both reported windows can be investigated without dropping supported evidence.

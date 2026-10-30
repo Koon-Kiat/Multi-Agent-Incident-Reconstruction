@@ -1,6 +1,6 @@
-> Historical handoff/report: numbered role labels and recorded results are preserved.
-> See [component names and current architecture](ARCHITECTURE.md) and the
-> [current authentication integration report](AUTHENTICATION_CORPUS_INTEGRATION.md) for current status.
+> **Historical acceptance record (2026-09-21).** The package assessment and open
+> actions below apply to that delivery. Use the [current evaluation workflow](FINAL_EVALUATION_HANDOFF.md)
+> and readiness command for a selected run; this record is not a scoring approval.
 
 # Evidence Verification & Evaluation Ground-Truth Acceptance
 

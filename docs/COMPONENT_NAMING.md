@@ -39,19 +39,19 @@ Active version identifiers:
 - `security-event-v1`: normalised event format.
 - `security-corpus-v1`: corpus manifest.
 - `detection-run-v1`: conventional detection runs.
-- `detection-score-v1`: scoring output.
+- `detection-score-v2`: detection scoring output (defined-zero precision/recall gives F1 0.0).
 - `authentication-result-v2`: investigation result envelope, adding operation receipts and readback counts to the v1 fields.
-- `authentication-config-v3` and `authentication-prompt-v16`: agent configuration and prompt revisions.
-- `endpoint-result-v1`, `endpoint-config-v1` and `endpoint-prompt-v1`: additive endpoint result, configuration and prompt contracts.
+- `authentication-config-v5` and `authentication-prompt-v17`: agent configuration and prompt revisions.
+- `endpoint-result-v1`, `endpoint-config-v3` and `endpoint-prompt-v3`: additive endpoint result, configuration and prompt contracts.
 
 Finding IDs use `AUTH-` plus the existing deterministic digest; their identity
 namespace changed while supporting evidence IDs did not. Historical results and
 commits remain unchanged in Git history. Current reports contain newly executed
 results, not renamed historical model replies.
 
-External component owners must adopt the imports and result identifiers before
-connecting the Incident Reconstruction Orchestrator. Its dispatch, window retries
-and end-to-end reconstruction are now in `incident_reconstruction/`, adding
+Component consumers use these imports and result identifiers. The integrated
+Incident Reconstruction Orchestrator provides dispatch, window retries
+and end-to-end reconstruction in `incident_reconstruction/`, adding
 `orchestration-run-v1`, `reconstruction-v1`, `pipeline-run-v1` and
 `verification-report-v1`; claim IDs take the form `<scenario>-CLM-<nn>`.
 
@@ -67,7 +67,6 @@ Documentation and generated reports use meaningful experiment names:
 | Specialist-Agent Incident Reconstruction with Independent Evidence Verification | `--mode full` with the verifier factory |
 
 These names describe evaluation approaches, not team-member numbers or rankings. Private answer keys, original event IDs, and previously recorded evidence remain unmodified. Evaluate new implementation revisions with their own recorded provenance.
-
 
 ### Evaluation result schema and command compatibility
 

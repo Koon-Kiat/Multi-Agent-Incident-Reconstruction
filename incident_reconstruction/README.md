@@ -35,15 +35,22 @@ python -m event_processing normalise --datasets datasets --out out/corpus
 python -m incident_reconstruction --corpus out/corpus --llm fake --plan-only
 python -m incident_reconstruction --corpus out/corpus --llm fake --mode single-agent --out out/runs
 python -m incident_reconstruction --corpus out/corpus --llm fake --mode multi-agent  --out out/runs
-python -m incident_reconstruction --corpus out/corpus --llm fake --mode full         --out out/runs
-python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode full --out out/runs --scenario S02
-python -m incident_reconstruction --corpus out/corpus --llm ollama --mode full --out out/runs --reconstruct-only
+python -m incident_reconstruction --corpus out/corpus --llm fake --mode full --out out/runs --verifier evidence_verification.verifier:make_verifier
+$env:MAIR_VERIFIER_LLM = "ollama"
+$env:MAIR_VERIFIER_MODEL = "qwen3:8b"
+python -m incident_reconstruction --corpus out/corpus --llm ollama --model qwen3:8b --mode full --out out/live-runs --scenario S02 --verifier evidence_verification.agent:make_agent_verifier
 ```
 
 `--llm` is required so a run never silently uses the deterministic fake; `--llm ollama` runs the
-installed-weights preflight before any evidence is sent and uses one model for every role.
+installed-weights preflight before any evidence is sent and uses one model for the investigator
+and reconstruction roles. Configure the verifier separately with matching `MAIR_VERIFIER_*`
+settings for a comparable evaluation.
 `--reconstruct-only` (multi-agent/full) re-reads `<out>/<mode>/<scenario>.orchestration.json`, so
-narration and verification can be repeated without re-running the investigation agents. Exit
+narration and verification can be repeated without re-running the investigation agents. It
+overwrites reconstruction/verification files and leaves the saved pipeline summary unchanged;
+use only a separate diagnostic copy of a run. It does not produce a fresh comparable evaluation
+or refresh artifact bindings. Use the [evaluation workflow](../docs/FINAL_EVALUATION_HANDOFF.md)
+for final comparisons. Exit
 codes: `0` complete, `1` written but incomplete (an investigation stayed unresolved, the
 single-agent run ended early, or the verifier failed), `2` invalid input, `3` model or verifier
 setup failed. `mair-orchestrate` is the installed script name.
@@ -78,8 +85,11 @@ run with whatever valid claims exist and the reason in `investigation_gaps`; it 
 `checked_evidence_ids`, `conflicts`) are stored unchanged in `verification-report-v1`; claims stay
 `not_verified`. A missing decision becomes `unverified` (`no_decision_returned`), decisions for
 unknown or repeated claims are set aside, and a verifier that raises leaves every claim
-`unverified`; each case is listed in `integrity_notes`. Until the Evidence Verification &
-Evaluation verifier is connected, the default `PendingVerifier` marks every claim `unverified`.
+`unverified`; each case is listed in `integrity_notes`. Omitting `--verifier` selects
+`PendingVerifier`, which marks every claim `unverified`. The implemented factories are
+`evidence_verification.verifier:make_verifier` (deterministic checks) and
+`evidence_verification.agent:make_agent_verifier` (checks plus independent model review).
+Only the latter is the full independently verified comparison configuration.
 
 ## Report
 
@@ -171,31 +181,24 @@ Every claim is `verification_status="not_verified"`. `evidence_ids` is always a 
 `context_evidence_ids`; `investigation_gaps` and per-claim `uncertainty` carry failed, truncated
 or unresolved investigations forward.
 
-## Current results (fake models, 2026-10-15)
+## Validation scope
 
-| Scenario | Detections | Tasks | Unresolved | Uninvestigated detections |
-| --- | --- | --- | --- | --- |
-| S01 | 9 | 3 | 0 | 0 |
-| S02 | 15 | 13 | 1 | 0 |
-| S03 | 14 | 10 | 1 | 0 |
-
-The two unresolved leaves are 6–9 s endpoint windows inside a benign EdgeWebView burst (115
-Sysmon events in 6 s, command lines around 2.8 KB) that exceed the Endpoint Investigation
-Agent's context bound even at the minimum split. Their detections are still covered by sibling
-windows. Fake-model runs check plumbing only; they say nothing about investigation quality.
-
-Reconstruction yields 3 / 8 / 6 claims for S01 / S02 / S03, using about 10 of 208–421 findings
-per scenario. In S02 the failed-then-successful logons for `mair_user` link by account to the
-payload write and discovery stages, and the discovery processes were started by the PowerShell
-process from the payload stage (process lineage).
+Fake-model runs exercise plumbing and evidence contracts; they do not establish
+investigation quality. Earlier endpoint context failures and subsequent fixes are
+recorded in [endpoint coverage](../docs/ENDPOINT_CONTEXT_COVERAGE.md) and
+[correctness remediation](../docs/CORRECTNESS_REMEDIATION.md). Those reports describe
+their original revisions. Generate fresh runs for the current implementation and
+complete the independent review and approval gates before claiming final accuracy.
 
 ## Known limitations
 
-* A timed-out agent call cannot be cancelled; its daemon thread is abandoned.
+* Production model calls inherit the task's remaining deadline and cannot start after
+  expiry. A custom blocking provider or extension cannot be forcibly cancelled; its
+  worker thread may outlive the task.
 * Tasks run sequentially against one local model, by design, for reproducible latency.
 * Stage grouping is by rule; two different rules describing one action stay separate stages,
   joined only by links.
-* Template narratives are factual but generic; only model narration distinguishes benign
-  lookalikes, and that has not yet been measured on local weights.
+* Template narratives are deterministic summaries, not independently established truth.
+  Both template and model text require verification and independent semantic review.
 * Truncated agent queries (more than 100 events) are kept as the agent's own uncertainty, not
   split: splitting on truncation would multiply local model calls.

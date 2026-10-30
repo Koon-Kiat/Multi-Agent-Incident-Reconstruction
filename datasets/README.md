@@ -33,7 +33,9 @@ are intentionally excluded from the public dataset directories.
 Investigation components should operate only on the raw telemetry and neutral
 metadata during inference.
 
-Ground truth is supplied separately to the evaluation/verifier component.
+Ground truth is supplied only to post-run evaluation. Investigation, reconstruction
+and the independent verifier must never read it or the private runbooks. See
+[private input handling](../ground_truth/README.md).
 
 ## Time
 

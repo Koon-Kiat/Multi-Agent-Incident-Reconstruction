@@ -61,8 +61,7 @@ Real 4634/4688 records are returned by exact lookup but fail at the agent's tool
 boundary with `provider_scope_violation` and no findings. Constructor and returned
 record isolation are covered by the original regression and inherited query tests.
 
-See the [processing reply](PROCESSING_PROVIDER_REPLY.md),
-[current validation](AUTHENTICATION_CORPUS_INTEGRATION.md),
-[naming guide](COMPONENT_NAMING.md) and [orchestrator handoff](ORCHESTRATOR_HANDOFF.md).
-Baseline precision/recall/F1, metric-definition agreements and the actual
-Incident Reconstruction Orchestrator remain separate work.
+See the [query API](EVENT_QUERY_API.md), [authentication manual](../authentication_agent/README.md),
+[naming guide](COMPONENT_NAMING.md) and [orchestrator integration](ORCHESTRATOR_HANDOFF.md).
+The pipeline consumes this provider; final evaluation remains a separate,
+review-gated workflow described in [the evaluation checklist](FINAL_EVALUATION_HANDOFF.md).

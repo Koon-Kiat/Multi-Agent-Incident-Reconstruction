@@ -152,7 +152,7 @@ python -m authentication_agent.examples.investigate_required_corpus --corpus out
 
 Use new/empty output directories. PR #10 resolved the compatibility diagnostic
 failures; all 12 reusable checks also run against the actual adapter in default
-discovery. See the [current report](../docs/AUTHENTICATION_CORPUS_INTEGRATION.md). Default tests never
+discovery. See the [provider contract](../docs/AUTHENTICATION_PROVIDER_HANDOFF.md). Default tests never
 require a model. Public EVTX tests run with Git LFS content and otherwise skip
 explicitly; private answers and expected classifications are never used.
 
@@ -186,7 +186,7 @@ and [architecture](../docs/ARCHITECTURE.md). Endpoint investigation, incident
 reconstruction and independent verification/evaluation remain separate
 responsibilities. No new EVTX parser, normaliser, query API or storage is added.
 
-Correctness amendment (2026-10-19): configuration v4 adds bounded complete-observation batches when a
+Current configuration v5 retains bounded complete-observation batches when a
 whole prompt cannot fit. Both serialized bytes and the declared token context are checked with space
 reserved for output. The local Qwen2 tokenizer is reconstructed from installed metadata; unsupported
 metadata uses a conservative UTF-8 bound. No event details are clipped. An irreducible observation fails

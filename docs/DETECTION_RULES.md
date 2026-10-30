@@ -9,12 +9,12 @@ This is the **conventional (non-LLM) detection baseline**: fixed, readable rules
 normalised corpus, plus the counts they produced on the MAIR exports. There is no machine
 learning, no anomaly scoring, no LLM call and no automatic response here.
 
-The baseline is **not scored** in this document. There are no labels, no precision, recall or
-F1, and no statement about which detections are correct. Metric definitions are a joint
-The engine/Dataset & Ground Truth Management and Evidence Verification & Evaluation decision; the engine's proposal is `docs/DETECTION_METRICS_PROPOSAL.md` (DRAFT — not agreed,
-and the baseline must not be scored until it is). The scoring code and the label-file format are
-implemented and tested (`event_processing/metrics.py`), but they are arithmetic over whatever labels are agreed,
-not a definition of their own.
+The baseline is **not scored** in this document. It describes rules and recorded
+counts, not which detections are correct. [Detection metrics](DETECTION_METRICS.md)
+defines the arithmetic and label-file format. Recorded definition agreements and
+final scoring gates are in [the protocol](EVALUATION_PROTOCOL.md#12-outstanding-scoring-agreements);
+an approved contract and independent review are required for a final comparison.
+Historical hashes below remain labelled by revision.
 
 ## Contents
 
@@ -154,30 +154,32 @@ exact and case-sensitive.
 
 | ID | Ver. | Sev. | ATT&CK | Logic | Benign lookalikes / known false positives |
 |---|---|---|---|---|---|
-| R-AUTH-01 | 4 | high | T1110 | anchored on **each success**: for every 4624 `S` of a `(user, host)` group, the 4625s of that group in `[t(S) - 300 s, t(S))`; when there are ≥3, one detection with `F(S)` followed by `S` as triggers and `[min t(F(S)), t(S)]` as its window. Two close successes can confirm the same failures and produce two overlapping detections | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon; the attempts a parallel brute-force tool logs *after* the one that succeeded, while the earlier ones still confirm it |
-| R-AUTH-02 | 5 | medium | T1110 | anchored on the **uncovered failure burst**: the failures that are *not* a trigger of any R-AUTH-01 detection of the same `(user, host)`. A burst starts at each uncovered failure `t_i` and covers the uncovered failures in `[t_i, t_i + 300 s)`; ≥3 of them qualify, and overlapping qualifying bursts merge into one detection holding every uncovered failure of the merged segment. The rationale names the merged segment's own span as `window_span_seconds`, which can exceed 300 s when bursts chain | the same retry patterns with no success; password spraying aimed at one account; a burst whose only nearby success confirms fewer than three failures, so R-AUTH-01 cannot use it |
+| R-AUTH-01 | 5 | high | T1110 | anchored on **each success**: for every 4624 `S` of a `host-domain-sid-v1` principal group, the 4625s of that group in `[t(S) - 300 s, t(S))`; when there are ≥3, one detection with `F(S)` followed by `S` as triggers and `[min t(F(S)), t(S)]` as its window. Two close successes can confirm the same failures and produce two overlapping detections | a user mistyping a password three times and then succeeding; a stale-credential service account retrying before a good logon; the attempts a parallel brute-force tool logs *after* the one that succeeded, while the earlier ones still confirm it |
+| R-AUTH-02 | 6 | medium | T1110 | anchored on the **uncovered failure burst**: the failures that are *not* a trigger of any R-AUTH-01 detection of the same principal. A burst starts at each uncovered failure `t_i` and covers the uncovered failures in `[t_i, t_i + 300 s)`; ≥3 of them qualify, and overlapping qualifying bursts merge into one detection holding every uncovered failure of the merged segment. The rationale names the merged segment's own span as `window_span_seconds`, which can exceed 300 s when bursts chain | the same retry patterns with no success; password spraying aimed at one account; a burst whose only nearby success confirms fewer than three failures, so R-AUTH-01 cannot use it |
 | R-AUTH-03 | 1 | low | T1078 | every Security 4648 (explicit-credential logon) | `runas`, admin tooling, backup and deployment software using alternate credentials — routine in admin workflows, hence low |
 | R-CRED-01 | 1 | high | T1003.001 | Sysmon 10 where the target image stem is `lsass` and `GrantedAccess` is one of 7 masks (`0x1010`, `0x1410`, `0x1418`, `0x1438`, `0x143a`, `0x1f0fff`, `0x1fffff`) | monitoring/EDR/backup agents that legitimately read `lsass`; the mask is what was *requested*, not what was granted |
 | R-EXEC-01 | 2 | medium (burst) / low (single) | the binary's own technique (see the map above) | ≥3 distinct discovery binaries by one account inside **any** 120 s window is one windowed detection; every matching event outside such a window is its own low detection | routine administration and troubleshooting running `whoami`/`net`/`ipconfig`; installers and scripts that call several discovery tools in a row |
 | R-EXEC-02 | 2 | high | T1059.001 | Security 4688 or Sysmon 1 that is a PowerShell process — its own image basename is `powershell.exe`/`pwsh.exe`, or a whitespace/quote-delimited `CommandLine` token's basename is — **and** the command line matches ≥1 of: `-enc`/`-EncodedCommand` token, `FromBase64String`, `-w`/`-WindowStyle hidden`, `IEX`/`Invoke-Expression`, `DownloadString` | management scripts that `-enc` a legitimate payload; modules that use `IEX` internally; scheduled tasks that run a hidden window. `-Encoding` is deliberately not matched. A binary whose *name* merely contains `powershell`/`pwsh` (`notpowershell.exe`, `pwshish`) is not PowerShell and never matches (B6) |
 | R-EXEC-03 | 2 | high | T1204 (field) / T1059 (rationale) | parent image stem in {winword, excel, powerpnt, outlook, msedge, chrome, firefox, wmiprvse, mshta} spawning a child stem in {cmd, powershell, pwsh, wscript, cscript, rundll32, regsvr32} | management agents that run scripts through `WmiPrvSE.exe` (SCCM/Intune-style); legacy Office add-ins that shell out |
-| R-FILE-01 | 1 | medium | T1105 | Sysmon 11 creating a file whose name ends in `.exe|.dll|.ps1|.bat|.vbs|.js` under `\Users\*\AppData\`, `\Temp\`, `\Downloads\` or `\ProgramData\` | installers and updaters that stage binaries in `%TEMP%`/`%APPDATA%`; browser and print-driver updates — deliberately noisy, hence medium |
+| R-FILE-01 | 1 | medium | T1105 | Sysmon 11 creating a file whose name ends in `.exe\|.dll\|.ps1\|.bat\|.vbs\|.js` under `\Users\*\AppData\`, `\Temp\`, `\Downloads\` or `\ProgramData\` | installers and updaters that stage binaries in `%TEMP%`/`%APPDATA%`; browser and print-driver updates — deliberately noisy, hence medium |
 | R-LOG-01 | 1 | high | T1070.001 | every Security 1102 (audit log cleared) | an operator or log-rotation script legitimately clearing the log — see the baseline note below |
 | R-PERSIST-01 | 1 | medium | T1543.003 | every Security 4697 (service installed) | software installers creating services |
 | R-PERSIST-02 | 1 | medium | T1053.005 | every Security 4698 (scheduled task created) | provisioning scripts and updaters creating tasks |
 | R-PERSIST-03 | 1 | medium | T1547.001 | every Sysmon 13 whose `TargetObject` names `\CurrentVersion\Run` or `\CurrentVersion\RunOnce` (the key or a value below it) | installers and users adding autostart entries |
 
-### How the failed-logon rules decide (version 5)
+### How the failed-logon rules decide (R-AUTH-01 v5, R-AUTH-02 v6)
 
 The two rules are anchored, not scanned: neither decision depends on where a grouping window
 happened to start. R-AUTH-01 is evaluated first and R-AUTH-02 is defined on the failures
-R-AUTH-01 did **not** claim (task_plan.md T3.2, "planner amendment A1"), so the two rules are
-disjoint: no failure is a trigger of both. Both evaluate one `(user, host)` group at a time, over
-that group's events in `(timestamp_ticks, evidence_id)` order, with `W` = 300 s.
+R-AUTH-01 did **not** claim, so the two rules are disjoint: no failure is a trigger of both.
+Both use `host-domain-sid-v1` principal groups, preserving host, domain and SID
+boundaries. Unknown SIDs resolve only through an unambiguous exact alias;
+conflicting identities do not merge. Events within each group are ordered by
+`(timestamp_ticks, evidence_id)`, with `W` = 300 s.
 
 **R-AUTH-01 is anchored on each success.** For every 4624 `S` of the group, `F(S)` is the 4625s
 of that group with `t(S) - W ≤ t(F) < t(S)`: the failures inside the W seconds that end at `S`.
-The bound is half-open at both ends, so a failure at exactly `t(S) - W` counts and a failure
+The bound includes its start and excludes its end, so a failure at exactly `t(S) - W` counts and a failure
 logged in the same 100 ns tick as `S` does not. When `|F(S)| ≥ 3`, `S` yields one detection whose
 triggers are `F(S)` followed by `S` and whose window is `[min t(F(S)), t(S)]`. Failures after `S`
 are not part of it. Two successes close together confirm the same failures and produce two
@@ -253,7 +255,6 @@ is 100 s before it. The benign counterpart holds as well: binaries that never sh
 single hits. Version 1 clustered from the first event of an account's history instead, which
 silently suppressed such bursts (phase-3 review finding F1); the thresholds themselves are
 unchanged.
-
 
 User and host grouping uses the normalised `user` and `host` fields exactly as stored; they are
 never case-folded or domain-stripped. `None` (a field the source did not carry) forms its own
@@ -383,18 +384,18 @@ changed the `rules` array recorded in the three scenario files and therefore the
 * **R-LOG-01 fired exactly once in every scenario**, including the two lab scenarios. This is the
   runbook's log reset, the corpus property Evidence Verification & Evaluation's interface note describes. Treating it as
   operator/scaffolding activity (tallied separately rather than counted as a detection) is a
-  joint the engine/Dataset & Ground Truth Management and Evidence Verification & Evaluation decision, proposed in `docs/DETECTION_METRICS_PROPOSAL.md`; it is
-  **not** decided here.
+  recorded evaluation definition; see [metrics](DETECTION_METRICS.md) and protocol section 12.
+  This rule catalogue does not supply labels or approve a score.
 * **Six rules produced no detection at all on this corpus:** R-AUTH-02, R-EXEC-02, R-EXEC-03 and
   the three persistence rules. The corpus holds no Security 4697 or 4698 record, no Sysmon 13
   event whose target object is a Run/RunOnce key, no command line matching the R-EXEC-02
   patterns, and no suspicious parent-to-shell pair. Their synthetic tests cover them.
 * **Security and Sysmon views of one action appear as two detections.** For example S02's
   02:05:58 discovery activity yields `S02-SEC-43662` (Security 4688) and `S02-SYS-25814`
-  (Sysmon 1) as separate low detections with different evidence IDs. Whether that counts once or
-  twice is the first open question in the metrics proposal.
+  (Sysmon 1) as separate low detections with different evidence IDs. They count as two evidence IDs
+  in detection metrics; stage coverage is a separate evaluation view.
 
-Output digests (SHA-256), for reproducing the run byte for byte:
+Historical output digests (SHA-256), for reproducing the recorded revision byte for byte:
 
 | File | SHA-256 |
 |---|---|
@@ -403,9 +404,9 @@ Output digests (SHA-256), for reproducing the run byte for byte:
 | `S03.json` | `6ed830c1c52b8448567c8bd6d2e47cfda082b3a040e270e1b51cc66475ffc3c7` |
 | `summary.json` | `a16836328abd1136bfb21fa573d221a6227c88c237d8544ab0783a645af8395c` |
 
-These are byte-identical across repeated runs, which the real test
-`event_processing/tests/test_detection_real.py::test_two_real_runs_are_byte_identical` checks; the four
-SHA-256 values themselves are pinned by
+Repeated runs are byte-identical, which the real test
+`event_processing/tests/test_detection_real.py::test_two_real_runs_are_byte_identical` checks. The current corrected
+digests in the amendment at the end of this guide are pinned by
 `test_the_declared_output_digests_reproduce_on_the_real_corpus`, which also pins the corpus
 manifest digest, and `test_the_declared_baseline_reproduces_on_the_real_corpus` pins the per-rule
 counts above. A rule change that alters these files therefore fails a test rather than silently
@@ -424,7 +425,7 @@ The rule tests are synthetic and run in CI, where the EVTX exports are absent; t
 ## Change control
 
 Changing a rule's logic, a threshold constant or a recorded `params` value is a **rule change**:
-bump `rule_version`, justify it in the `task_plan.md` progress log, and re-run the baseline. Do
+bump `rule_version`, document the reason in the change and this rule catalogue, and re-run the baseline. Do
 not edit a constant to make a particular detection appear or disappear — that would break the
 blind-design rule this baseline was built under. A changed rule changes `detection_id` values
 and therefore every downstream artifact, so the metrics phase must be re-run too.
@@ -454,7 +455,7 @@ all upstream pinned digests. After accounting for descriptive schema identifiers
 and the dependent corpus digest, the integrated detections are identical to
 upstream. Compared with the prior feature-branch run, only the recorded
 R-EXEC-02 version changes from 1 to 2. Event JSONL, detections, counts, triggers
-and windows remain identical. The current byte and canonical hashes above were
+and windows remain identical. The historical byte and canonical hashes above were
 refreshed only after this comparison; see the
 [integration readback](validation/authentication-pr10-2026-09-23/integration-readback.json).
 

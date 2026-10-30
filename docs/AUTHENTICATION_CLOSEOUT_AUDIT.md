@@ -1,5 +1,11 @@
 # Authentication Investigation Agent closeout audit
 
+> **Historical report (2026-10-18).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 Validation dates: 18–19 October 2026; closeout review: 19 October 2026. Target: fetched `origin/main`,
 `b822a2e7de5e4c23898838ddc6be75322b615765`. Live recordings and the initial
 regression run were made at `7eb4e62e74d5b48edb004d7a234eac44c07a22c7`.

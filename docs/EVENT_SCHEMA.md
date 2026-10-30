@@ -223,9 +223,8 @@ the record's full 100 ns precision, which is why the two differ.
 * A field rename, a type change, a new required field, a change to the ID format or a change to
   the `""`/`None`, inclusivity or ordering rules **is a contract change**: it affects Authentication Investigation Agent
   (`authentication_agent/queries/interface.py`, `authentication_agent/models.py`, `authentication_agent/queries/semantics.py`), Incident Reconstruction Orchestrator and Evidence Verification & Evaluation. It needs a
-  new `SCHEMA_VERSION`, an entry in the engine's response to
-  [`docs/EVIDENCE_QUERY_REQUIREMENTS.md`](EVIDENCE_QUERY_REQUIREMENTS.md) (items 1–4), and reviewer
-  approval before it lands.
+  new `SCHEMA_VERSION`, corresponding updates to this schema and the
+  [query API](EVENT_QUERY_API.md), and reviewer approval before it lands.
 * Adding an optional field with a default, or adding a new scenario directory, is not a
   contract change.
 * The pinning tests are `event_processing/tests/test_ids.py`, `event_processing/tests/test_timeutil.py`,

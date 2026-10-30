@@ -1,5 +1,11 @@
 # Correctness remediation and validation
 
+> **Historical report (2026-10-19 to 2026-10-20).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 Recorded 2026-10-19 on `fix/evidence-evaluation-correctness`, based on upstream
 `da189892a48cb872808b6d6df2206100fb722ef8`. A subsequent fetch confirmed the same upstream revision.
 The original requirements, evaluation protocol and component responsibility boundaries informed the review. Historical results

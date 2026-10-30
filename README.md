@@ -13,11 +13,12 @@ The framework provides a Rules-only Detection Baseline, a Single-Agent Generalis
 | Authentication Investigation Agent | `authentication_agent/`: bounded authentication observations and local model interpretation |
 | Endpoint Investigation Agent | `endpoint_agent/`: bounded Sysmon observations, process relationships and local model interpretation |
 | Incident Reconstruction Orchestrator and Reconstruction Agent | `incident_reconstruction/`: dispatch, claim timeline, ATT&CK mapping, run modes and HTML report |
-| Evidence Verification & Evaluation | Separate responsibility; connects through the verifier interface. Integration checks do not establish accuracy |
+| Evidence Verification & Evaluation | `evidence_verification/`: deterministic and model-backed verification, plus a separate post-run evaluation workflow |
 
 Packages, imports, commands and machine identifiers now use descriptive names.
 Original evidence and scenario IDs are unchanged. See [architecture](docs/ARCHITECTURE.md)
-and [migration details](docs/COMPONENT_NAMING.md).
+and [migration details](docs/COMPONENT_NAMING.md). The [documentation index](docs/README.md)
+separates maintained guides from historical reports.
 
 ## Run against real events
 
@@ -36,11 +37,11 @@ temperature 0 and seed 0. `--model` or `MAIR_OLLAMA_MODEL` selects another insta
 local model. Nothing downloads weights. Add `--mode fake` to exercise the same
 integration without inference. JSON goes to stdout; exit 3 signals truncation.
 
-See the [integration report and reproduction commands](docs/AUTHENTICATION_CORPUS_INTEGRATION.md),
-[agent manual](authentication_agent/README.md), [processing manual](event_processing/README.md), and
-[orchestrator handoff](docs/ORCHESTRATOR_HANDOFF.md). Local model tool-selection
-limitations remain explicit; PR #10 resolved the provider lookup and constructor
-ownership failures, and the actual adapter now passes all 12 reusable checks.
+See the [agent manual](authentication_agent/README.md),
+[processing manual](event_processing/README.md), and
+[programmatic integration](docs/ORCHESTRATOR_HANDOFF.md). Provider contracts are
+covered by automated tests; historical model measurements and their limitations
+are listed in the [documentation index](docs/README.md#historical-reports-and-evidence).
 
 ## Run the full pipeline
 
@@ -67,6 +68,8 @@ start out/runs/index.html
 Each run ends by writing an HTML report per scenario and `out/runs/index.html`. Useful options:
 `--scenario S02` (repeatable), `--plan-only` (print the investigation windows), and
 `--reconstruct-only` (re-narrate and re-verify saved runs without re-running the agents).
+The latter overwrites claims/verdicts without refreshing pipeline summary bindings;
+use a separate diagnostic copy, not a final evaluation run.
 Exit `1` means the files were written but something stayed incomplete, such as an investigation
 window that exceeded the agent's context; it is listed in the report. Omitting `--verifier`
 leaves claims unverified. The full comparison requires the independent model factory above.
@@ -111,4 +114,4 @@ Exit 3 signals truncated evidence; it is not a complete inventory. The endpoint
 result shares the finding envelope but has endpoint-specific payload types.
 See the [endpoint manual](endpoint_agent/README.md),
 [provider/orchestrator handoff](docs/ENDPOINT_PROVIDER_HANDOFF.md), and
-[role alignment and implementation review](docs/ENDPOINT_IMPLEMENTATION.md).
+[historical implementation review](docs/ENDPOINT_IMPLEMENTATION.md).

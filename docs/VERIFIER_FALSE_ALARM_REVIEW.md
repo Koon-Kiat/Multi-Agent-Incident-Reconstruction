@@ -1,5 +1,11 @@
 # Verifier false-alarm review
 
+> **Historical report (2026-10-18).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 Owner: Evidence Verification & Evaluation. Reviewed 2026-10-18, after the first scored run.
 
 The scored run's full-MAIR configuration passed 17 claims to the verifier. The deterministic checks confirmed all
@@ -69,4 +75,3 @@ the same 17 claims.
 
 Net: no revision has yet been shown to catch a real unsupported claim on real data. The model layer's downgrades
 remain audit signals only.
-

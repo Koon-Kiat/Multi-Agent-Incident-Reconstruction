@@ -6,7 +6,8 @@ matches authentication findings; `observed_events` and `entities` carry distinct
 endpoint types. Consumers should dispatch on `agent_type` and use the appropriate
 typed result model. The authentication-only `Finding` class cannot deserialize
 endpoint payloads. No existing authentication or normalized-event fields change.
-The original callable handoff is now consumed by the orchestrator and verifier.
+The orchestrator consumes this callable boundary; the verifier later reads reconstructed claims
+and source records independently.
 The [2026-10-18 context correction](ENDPOINT_CONTEXT_COVERAGE.md) changes only
 endpoint internals and adds optional endpoint metadata with historical defaults;
 the request, provider API and finding envelope are unchanged.
@@ -156,7 +157,8 @@ digest without receiving the investigator's private model context.
 and consecutive model batches. `context_batches` records each attempted call's
 `index`, `revision` (tool-call count), `observation_ids`, `evidence_ids`,
 `context_bytes` and optional `input_token_upper_bound`. After a follow-up, earlier
-annotations are discarded and all observations are reviewed again. A completed
+annotations are discarded and all observations are reviewed again only if the
+retrieved snapshot changed; unchanged retrieval preserves completed batches. A completed
 result's final revision covers every returned finding. Batch failure still returns
 no partial findings. Metadata defaults let the updated models read historical
 `endpoint-result-v1` outputs; consumers with private strict metadata copies must

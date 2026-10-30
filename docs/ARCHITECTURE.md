@@ -11,7 +11,7 @@ remain unchanged.
 | Authentication Investigation Agent | `authentication_agent/` |
 | Endpoint Investigation Agent | `endpoint_agent/`, through `CorpusEndpointProvider` |
 | Incident Reconstruction Orchestrator and Reconstruction Agent | `incident_reconstruction/` |
-| Evidence Verification & Evaluation | Separate evaluation workflow; connects through `incident_reconstruction.verification` |
+| Evidence Verification & Evaluation | `evidence_verification/`; verifier factory connects through `incident_reconstruction.verification`, evaluation reads saved artifacts separately |
 
 ```mermaid
 flowchart TD
@@ -34,16 +34,25 @@ flowchart TD
   C --> R
   L --> R
   R --> CL[Claims: reconstruction-v1, not_verified]
-  CL -. verifier interface .-> V[Evidence Verification & Evaluation]
-  V -. decisions stored unchanged .-> RP[HTML report]
+  CL --> V[Independent evidence verifier]
+  C --> V
+  L --> V
+  V --> RP[HTML report: decisions stored unchanged]
   CL --> RP
 ```
 
-Solid edges are implemented and exercised end to end on S01–S03 with deterministic fake
-models; local-weights runs of the full pipeline are still to be recorded. The dashed edges
-are the verifier connection: the interface, placeholder and integrity checks exist, while the
-independent verifier itself is a separate delivery. No evaluation answer keys or scenario
-runbooks enter model context. Processing baseline scoring is separate from integration testing.
+The specialist pipeline and verifier connection are implemented. Select
+`evidence_verification.agent:make_agent_verifier` for deterministic checks plus
+the independent model prompt, or `evidence_verification.verifier:make_verifier`
+for deterministic checks only. Omitting the factory uses `PendingVerifier`,
+which leaves claims unverified. The single-agent baseline uses the same corpus
+and triggers through its own bounded generalist loop.
+
+No evaluation answer keys or scenario runbooks enter model context, including
+the verifier. Post-run evaluation is separate: it compares saved artifacts with
+private ground truth, independent human reviews and owner-approved definitions.
+Automated integration and historical local-model measurements do not establish
+current evaluation readiness; use the [evaluation workflow](FINAL_EVALUATION_HANDOFF.md).
 
 The orchestrator turns detections into bounded, merged windows per agent, supplies trigger
 evidence as trusted retrieval, records every outcome (including timeouts and context overflows,
@@ -54,16 +63,13 @@ run modes (`single-agent`, `multi-agent`, `full`) share triggers, providers, mod
 points for the evaluation comparison. See the [package README](../incident_reconstruction/README.md)
 and the [verification and evaluation handoff](RECONSTRUCTION_HANDOFF.md).
 
-Endpoint retrieval and deterministic findings are also exercised on the public
-corpus using the fake model. Its local Ollama adapter reuses the existing transport;
-Qwen3:8b smoke tests also completed on small public S01-S03 windows. These
-validate integration, not autonomous investigation quality (see
-[validation scope](ENDPOINT_IMPLEMENTATION.md#validation-scope)). The callable
-boundary is `endpoint_agent.investigate`, backed by
+The endpoint boundary is `endpoint_agent.investigate`, backed by
 `event_processing.adapters.endpoint_provider.CorpusEndpointProvider`.
 Its installed command is `mair-investigate-endpoint`, result schema is
-`endpoint-result-v1`, and finding IDs begin `ENDPOINT-`. See the
-[endpoint handoff](ENDPOINT_PROVIDER_HANDOFF.md).
+`endpoint-result-v1`, and finding IDs begin `ENDPOINT-`. It batches complete
+observations and recovers capped retrieval within the existing query budget.
+See the [endpoint manual](../endpoint_agent/README.md) and
+[provider contract](ENDPOINT_PROVIDER_HANDOFF.md) for current behavior.
 
 The public entry point is `authentication_agent.investigate`. The read-only
 provider is `event_processing.adapters.authentication_provider.CorpusAuthenticationProvider`.
@@ -72,9 +78,9 @@ commands are `mair-events`, `mair-authentication` and
 `mair-investigate-authentication`.
 
 Schema identifiers describe content: `security-event-v1`, `security-corpus-v1`,
-`detection-run-v1`, `detection-score-v1`, `authentication-result-v2`,
-`endpoint-result-v1`, `orchestration-run-v1`, `reconstruction-v1`, `pipeline-run-v1`
-and `verification-report-v1`. Pipeline commands are `mair-orchestrate` and `mair-report`.
+`detection-run-v1`, `detection-score-v2`, `authentication-result-v2`,
+`endpoint-result-v1`, `orchestration-run-v1`, `reconstruction-v1`, `pipeline-run-v1`,
+`verification-report-v1` and `evaluation-results-v3`. Pipeline commands are `mair-orchestrate` and `mair-report`.
 Finding IDs now begin `AUTH-`. Original evidence IDs such as `S02-SEC-43584`
 and scenario IDs such as `S01` remain unchanged.
 

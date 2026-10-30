@@ -1,5 +1,11 @@
 # Endpoint implementation review
 
+> **Historical report (initial endpoint delivery).** Versions, results, limitations and
+> reproduction commands below describe that recorded revision, not the current
+> checkout. See the [documentation index](README.md) for maintained guides.
+> Saved measurements remain evidence of the original run; they are not current
+> evaluation results or independent human approval.
+
 The original delivery review below records the 2026-09-24 implementation.
 The 2026-10-18 [context and coverage correction](ENDPOINT_CONTEXT_COVERAGE.md)
 supersedes its single-context and permanently sticky truncation limitations.
