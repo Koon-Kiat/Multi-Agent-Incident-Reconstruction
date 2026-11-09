@@ -70,6 +70,17 @@ The original explicitly invoked diagnostic also remains available. The maintaine
 provider contract is in [the authentication provider guide](docs/AUTHENTICATION_PROVIDER_HANDOFF.md).
 Dated measurements are indexed under [historical reports](docs/README.md#historical-reports-and-evidence).
 
+`.github/dependabot.yml` requests weekly version updates for GitHub Actions and
+Python dependencies. Python pull requests appear only when a release falls outside
+a `pyproject.toml` cap, because CI already installs the newest release inside each
+cap. Security updates are a separate repository setting and do not wait for this
+schedule. **PR description** passes pull requests authored by exactly
+`dependabot[bot]` without checking sections, because Dependabot generates that
+text. **Commit messages** still applies to them.
+
+CodeQL code scanning uses GitHub's default setup, configured in the repository
+settings rather than a workflow file.
+
 Maintainers must separately enable branch protection or a ruleset requiring
 **PR description**, **Commit messages**, and (recommended) **Python and contribution
 tests** before merge. Confirm the exact displayed check contexts after their
