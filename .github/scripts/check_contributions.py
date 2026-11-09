@@ -13,6 +13,8 @@ from collections.abc import Callable
 REQUIRED_SECTIONS = ("summary", "changes", "testing")
 PLACEHOLDERS = {"todo", "tbd", "...", "fill in", "fill this in", "your text here", "n/a", "none", "summary", "changes", "testing"}
 GENERIC_SUBJECTS = {"fix", "update", "wip", "changes", "test"}
+# GitHub logins cannot contain brackets, so this author cannot be impersonated.
+DEPENDABOT_LOGIN = "dependabot[bot]"
 
 
 def validate_pr_body(body: str) -> list[str]:
@@ -121,7 +123,11 @@ def main() -> int:
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
     mode = sys.argv[1]
     if mode == "body":
-        errors = validate_pr_body(event["pull_request"].get("body") or "")
+        pull_request = event["pull_request"]
+        if (pull_request.get("user") or {}).get("login") == DEPENDABOT_LOGIN:
+            print("Dependabot generates this PR description; required sections were not checked.")
+            return 0
+        errors = validate_pr_body(pull_request.get("body") or "")
     elif mode == "commits":
         repository = event["repository"]
         try:

@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,27 @@ def test_missing_sections_and_template():
     assert len(policy.validate_pr_body("No headings")) == 3
     template = Path(__file__).resolve().parents[1] / ".github/pull_request_template.md"
     assert len(policy.validate_pr_body(template.read_text())) == 3
+
+
+DEPENDABOT_BODY = "Bumps [actions/checkout](https://github.com/actions/checkout) from 4 to 7.\n<details>\n<summary>Release notes</summary>\n</details>"
+
+
+def run_body_check(tmp_path, monkeypatch, user):
+    event = tmp_path / "event.json"
+    event.write_text(json.dumps({"pull_request": {"body": DEPENDABOT_BODY, "user": user}}), encoding="utf-8")
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
+    monkeypatch.setattr(policy.sys, "argv", ["check_contributions.py", "body"])
+    return policy.main()
+
+
+def test_dependabot_generated_pr_body_passes(tmp_path, monkeypatch, capsys):
+    assert run_body_check(tmp_path, monkeypatch, {"login": "dependabot[bot]"}) == 0
+    assert "Dependabot" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("user", [{"login": "dependabot"}, {"login": "dependabot-preview[bot]"}, {"login": "Koon-Kiat"}, {}, None])
+def test_only_the_exact_dependabot_author_skips_pr_sections(tmp_path, monkeypatch, user):
+    assert run_body_check(tmp_path, monkeypatch, user) == 1
 
 
 @pytest.mark.parametrize("subject", ["Add authentication query limits", "fix: handle missing evidence", "Fix: handle missing evidence", "Document Authentication Investigation Agent setup (#5)", "Merge branch 'main' into authentication_agent/authentication-investigation-agent", 'Revert "Add authentication query limits"', "Merge " + "x" * 120])

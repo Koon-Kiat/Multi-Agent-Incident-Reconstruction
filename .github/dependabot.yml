@@ -1,0 +1,24 @@
+# Version updates. Dependabot security updates are a separate repository
+# setting and do not wait for this schedule.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  # Raises a pyproject.toml cap only when a release falls outside it. CI has no
+  # lockfile, so it already installs the newest release inside each cap. Left
+  # ungrouped because a cap change can be a breaking migration.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    versioning-strategy: increase-if-necessary
+    commit-message:
+      prefix: chore(deps)
